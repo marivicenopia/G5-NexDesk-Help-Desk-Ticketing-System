@@ -18,7 +18,20 @@ module.exports = {
         ],
       },
       {
-        test: /\.css$/,
+        test: /\.module\.css$/, // Handle CSS modules
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true, // Enable CSS modules
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/, // Handle regular CSS files
+        exclude: /\.module\.css$/,
         use: ['style-loader', 'css-loader'],
       },
       {
@@ -42,6 +55,6 @@ module.exports = {
   ],
   stats: 'errors-only',
   devServer: {
-    historyApiFallback: true
-  }
-}
+    historyApiFallback: true,
+  },
+};
