@@ -1,0 +1,113 @@
+/* DeleteTicket.css */
+/* Reusing styles from your original CSS and adding specific table styles */
+
+.ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;  
+  }
+  
+  .ticket-table td,
+  .ticket-table th {
+    color: black;
+    font-size: 14px;
+    padding: 10px;
+  }
+  
+  
+  
+  .ticket-table th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .ticket-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .status-completed {
+    background-color: #52c41a;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  
+  .status-in-progress {
+    background-color: #1890ff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .edit-btn, .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .edit-btn {
+    color: #1890ff;
+  }
+  
+  .delete-btn {
+    color: #f5222d;
+  }
+  
+  .edit-btn:hover, .delete-btn:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .attachment-section {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .attach-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #3366cc;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .attach-btn:hover {
+    text-decoration: underline;
+  }
+
+  .icon-img {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+  
+  /* Adjust button sizes if needed */
+  .edit-btn, .delete-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }

@@ -1,0 +1,66 @@
+/* Add these styles to your App.css file */
+
+/* Dropdown Container Styling */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  justify-content: space-between;
+  padding: 10px 15px;
+  background-color: #1a3b6e;
+  transition: background-color 0.3s;
+}
+
+.dropdown-trigger:hover {
+  background-color: #2a4d83;
+}
+
+.dropdown-arrow {
+  margin-left: 10px;
+  font-size: 12px;
+}
+
+/* Dropdown Menu Styling */
+.dropdown-menu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background-color: #1d7fb2;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  z-index: 100;
+}
+
+/* Dropdown Items Styling */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  text-decoration: none;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #3590c0;
+}
+
+.dropdown-icon {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    left: 0;
+    top: 100%;
+    width: 100%;
+  }
+}
