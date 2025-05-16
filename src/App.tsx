@@ -1,13 +1,7 @@
-import Box from "@mui/material/Box";
+import SignIn from './components/SignIn';
 
-import { AppRoutes } from "./routes";
-
-const App = () => {
-  return (
-    <Box sx={{ display: "flex" }}>
-      <AppRoutes />
-    </Box>
-  );
-};
+function App() {
+  return <SignIn />;
+}
 
 export default App;

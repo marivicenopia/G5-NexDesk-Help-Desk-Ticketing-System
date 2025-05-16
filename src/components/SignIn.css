@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.signin-container {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+
+.signin-left {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5% 10%;
+    background-color: white;
+    box-sizing: border-box;
+}
+
+.logo {
+    font-weight: bold;
+    color: #16326a;
+    margin-bottom: 2rem;
+}
+
+.title {
+    display: flex;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: extra-bold;
+    color: #16326a;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.main-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #16326a;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.signin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    background-color: #eee;
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.input-icon {
+    margin-right: 0.5rem;
+    color: #505050;
+    font-size: 1.2rem;
+}
+
+.input-group input {
+    width: 400px;
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    color: #505050;
+    opacity: 0.8;
+}
+
+.signin-button {
+    background-color: #16326a;
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 200px;
+    align-self: center;
+}
+
+.signin-right {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5% 10%;
+    background-color: #03174e;
+    color: white;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.signin-right h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.signin-right p {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.error-msg {
+    display: flex;
+    justify-content: center;
+    color: #dc2626;
+    margin: 10px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .signin-container {
+        flex-direction: column;
+    }
+}
