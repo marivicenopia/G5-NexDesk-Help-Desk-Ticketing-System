@@ -1,10 +1,16 @@
 [
   {
     "email": "admin@example.com",
-    "password": "admin123"
+    "password": "admin123",
+    "name": "James Quijano",
+    "role": "admin",
+    "username": "jamesq"
   },
   {
     "email": "user@example.com",
-    "password": "user123"
+    "password": "user123",
+    "name": "Jane Doe",
+    "role": "user",
+    "username": "janed"
   }
 ]

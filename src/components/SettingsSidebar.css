@@ -1,0 +1,76 @@
+/* SettingsSidebar.css */
+.settings-sidebar {
+    width: 250px;
+    background-color: #03174e;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    transition: width 0.3s;
+    overflow: hidden;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.initials {
+    width: 40px;
+    height: 40px;
+    background-color: #16326a;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+.user-details .name {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.collapse-btn {
+    margin: 10px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    gap: 8px;
+}
+
+.nav-menu a {
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.2s;
+    border-radius: 4px;
+}
+
+.nav-menu a:hover {
+    background-color: #16326a;
+}
