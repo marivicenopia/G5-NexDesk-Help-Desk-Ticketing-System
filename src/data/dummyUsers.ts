@@ -32,7 +32,7 @@ export const dummyUsers: User[] = [
         password: 'staff123',
         isActive: false,
         role: 'staff',
-        supportTeams: 'Software Support',
+        supportTeams: ['Software Support'],
     },
     {
         id: 1003,
@@ -65,7 +65,7 @@ export const dummyUsers: User[] = [
         password: 'staff123',
         isActive: false,
         role: 'staff',
-        supportTeams: 'Hardware Repair',
+        supportTeams: ['Hardware Repair'],
     },
     {
         id: 1006,
@@ -98,7 +98,7 @@ export const dummyUsers: User[] = [
         password: 'staff123',
         isActive: false,
         role: 'staff',
-        supportTeams: 'General Support, Network',
+        supportTeams: ['General Support, Network'],
     },
     {
         id: 1009,

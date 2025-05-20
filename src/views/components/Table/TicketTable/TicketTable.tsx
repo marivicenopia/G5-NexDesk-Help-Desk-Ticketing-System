@@ -7,7 +7,6 @@ interface TicketTableProps {
     title?: string;
 }
 
-
 const TicketTable: React.FC<TicketTableProps> = ({ data, columns, title }) => {
     return (
         <div className="w-full">
