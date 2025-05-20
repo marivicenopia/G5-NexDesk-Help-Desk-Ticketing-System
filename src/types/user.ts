@@ -10,5 +10,5 @@ export interface User {
     isActive: boolean;
     role: RoleOption;
     department?: string;
-    supportTeams?: string[];
+    supportTeams?: string;
 }
