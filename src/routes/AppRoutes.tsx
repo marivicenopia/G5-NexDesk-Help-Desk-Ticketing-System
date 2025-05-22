@@ -3,6 +3,12 @@ import * as Views from '../views/containers';
 import { PATHS } from "./constant";
 import { AdminLayout, AgentLayout, UserLayout } from "../layout";
 import PrivateRoute from "./PrivateRoute";
+import Settings from '../views/containers/Settings/Settings';
+import SettingsGeneral from '../views/containers/Settings/SettingsGeneral';
+import SettingsPassword from '../views/containers/Settings/SettingsPassword';
+import SettingsDelete from '../views/containers/Settings/SettingsDelete';
+
+
 
 export const AppRoutes = () => {
     return (
@@ -21,6 +27,12 @@ export const AppRoutes = () => {
                         <Route path={PATHS.ADMIN.MANAGE_USERS.path} element={<Views.ViewUsers />} />
                         <Route path={PATHS.ADMIN.CREATE_TICKET.path} element={<Views.CreateTicket />} />
                         <Route path={PATHS.ADMIN.CREATE_USER.path} element={<Views.CreateUser />} />
+                        <Route path={PATHS.ADMIN.SETTINGS.path} element={<Settings />}>
+                            <Route index element={<SettingsGeneral />} />
+                            <Route path="general" element={<SettingsGeneral />} />
+                            <Route path="password" element={<SettingsPassword />} />
+                            <Route path="delete" element={<SettingsDelete />} />
+                        </Route>
                     </Route>
                 </Route>
 
