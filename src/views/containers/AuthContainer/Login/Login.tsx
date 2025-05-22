@@ -2,7 +2,7 @@ import type { FormEvent } from "react";
 import React, { useState } from "react";
 import { MdOutlinePerson } from 'react-icons/md';
 import { MdOutlineLock } from 'react-icons/md';
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AuthService } from "../../../../services/auth/AuthService";
 
 const Login: React.FC = () => {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import * as Views from '../views/containers';
 import { PATHS } from "./constant";
 import { AdminLayout, AgentLayout, UserLayout } from "../layout";
@@ -8,6 +8,8 @@ export const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
+                {/* Redirect root "/" to login */}
+                <Route path="/" element={<Navigate to={PATHS.COMMON.LOGIN.path} replace />} />
                 <Route path={PATHS.COMMON.LOGIN.path} element={<Views.Login />} />
                 <Route path={PATHS.COMMON.REGISTER.path} element={<Views.Register />} />
                 {/* <Route path={PATHS.COMMON.NOT_FOUND.path} element={<Views.NotFound />} /> */}
