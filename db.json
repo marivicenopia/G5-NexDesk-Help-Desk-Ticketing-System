@@ -1,18 +1,27 @@
 {
   "users": [
     {
-      "name": "James Quijano",
+      "id": 1000,
+      "firstname": "James",
+      "lastname": "Quijano",
+      "email": "quijanojamesv@gmail.com",
       "username": "jamesq",
-      "email": "admin@example.com",
       "password": "admin123",
-      "id": "1"
-    },
+      "isActive": true,
+      "role": "admin",
+      "department": "IT"
+    }
+  ],
+  "tickets": [
     {
-      "id": "2",
-      "email": "user@example.com",
-      "password": "user123",
-      "name": "Jane Doe",
-      "username": "janed"
+      "id": 1,
+      "title": "Ticket 1",
+      "description": "Description for ticket 1",
+      "status": "open",
+      "priority": "high",
+      "createdAt": "2023-10-01T12:00:00Z",
+      "updatedAt": "2023-10-01T12:00:00Z",
+      "assignedTo": 1000
     }
   ]
 }

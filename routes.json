@@ -1,0 +1,4 @@
+{
+    "/users/:id": "/users/:id",
+    "/users\\?.*": "/users?:splat"
+}
