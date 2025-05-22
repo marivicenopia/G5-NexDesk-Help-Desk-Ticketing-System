@@ -10,6 +10,17 @@
       "isActive": true,
       "role": "admin",
       "department": "IT"
+    },
+    {
+      "id": 1001,
+      "firstname": "Jane",
+      "lastname": "Doe",
+      "email": "janedoe@example.com",
+      "username": "janedoe",
+      "password": "jane123",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT"
     }
   ],
   "tickets": [

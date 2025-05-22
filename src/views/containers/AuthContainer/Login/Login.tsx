@@ -53,6 +53,10 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-white">
+        <div className="absolute top-8 left-8 flex items-center gap-2">
+          <span className="flex items-center justify-center w-8 h-8 rounded-sm bg-[#031849] text-white text-2xl font-bold">N</span>
+          <span className="text-2xl font-bold text-[#031849] tracking-wide">NexDesk</span>
+        </div>
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold mb-6 text-center">LOGIN</h2>
           {error && <p className="text-red-600 text-center mb-4">{error}</p>}
