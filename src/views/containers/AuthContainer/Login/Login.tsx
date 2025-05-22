@@ -1,5 +1,7 @@
 import type { FormEvent } from "react";
 import React, { useState } from "react";
+import { MdOutlinePerson } from 'react-icons/md';
+import { MdOutlineLock } from 'react-icons/md';
 import { useNavigate, Link } from "react-router-dom";
 import { AuthService } from "../../../../services/auth/AuthService";
 
@@ -58,41 +60,46 @@ const Login: React.FC = () => {
           <span className="text-2xl font-bold text-[#031849] tracking-wide">NexDesk</span>
         </div>
         <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold mb-6 text-center">LOGIN</h2>
+          <h2 className="text-6xl font-bold mb-15 text-center text-[#031849]">Sign In</h2>
           {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="flex items-center border rounded-md px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
+              <MdOutlinePerson className="text-xl text-gray-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full outline-none bg-transparent"
+                required
+              />
+            </div>
+            <div className="flex items-center border rounded-md px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
+              <MdOutlineLock className="text-xl text-gray-400 mr-2" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full outline-none bg-transparent"
+                required
+              />
+            </div>
             <button
               type="submit"
-              className="w-full bg-[#031849] hover:bg-[#192F64] text-white font-semibold py-2 rounded-md transition"
-              style={{ cursor: "pointer" }}
+              className="w-full bg-[#031849] hover:bg-[#192F64] text-white font-medium py-2 rounded-md transition mt-5 cursor-pointer"
             >
-              Login
+              SIGN IN
             </button>
           </form>
 
-          <p className="text-center mt-6 text-gray-600 text-sm">
+          {/* <p className="text-center mt-6 text-gray-600 text-sm">
             Don't have an account?{" "}
             <Link to="/register" className="text-[#031849] font-medium hover:underline">
               Register
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
 
