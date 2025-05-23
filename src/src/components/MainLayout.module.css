@@ -1,0 +1,19 @@
+.mainLayout {
+  display: flex;
+  min-height: 100%; /* Changed from 100vh to 100% to work with parent height:100% */
+}
+
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* This is key */
+  background-color: #ffffff;
+  /* Adding this might help if the content isn't stretching: */
+  width: 0; /* Allows flex-grow to properly expand against a fixed-width sidebar */
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 25px 30px;
+  overflow-y: auto;
+}

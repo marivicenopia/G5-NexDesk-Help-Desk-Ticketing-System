@@ -1,0 +1,18 @@
+.mainLayout {
+  display: flex;
+  min-height: 100%; 
+}
+
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; 
+  background-color: #ffffff;
+  width: 0; /* Allows flex-grow to properly expand against a fixed-width sidebar */
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 25px 30px;
+  overflow-y: auto;
+}

@@ -1,0 +1,50 @@
+
+.topNav {
+  height: 60px; /* Or your desired height */
+  background-color: #ffffff; /* White background, same as main content area */
+  border-bottom: 1px solid #eaecf0; /* Light border like in many designs */
+  padding: 0 20px; /* Horizontal padding */
+  display: flex;
+  justify-content: space-between; /* Pushes left and right actions to opposite ends */
+  align-items: center;
+}
+
+.leftActions,
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Space between items in these sections */
+}
+
+.newButton {
+  background-color: #1D66D6; /* Example blue - adjust to your design */
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.newButton:hover {
+  background-color: #1652a8;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  min-width: 200px; /* Example */
+}
+
+.userIconPlaceholder {
+  width: 32px;
+  height: 32px;
+  background-color: #0D254C; /* Example dark blue */
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
