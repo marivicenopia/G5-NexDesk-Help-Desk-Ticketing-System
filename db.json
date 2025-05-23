@@ -1,4 +1,254 @@
 {
+  "users": [
+    {
+      "id": "1000",
+      "firstname": "James",
+      "lastname": "Quijano",
+      "email": "quijanojamesv@gmail.com",
+      "username": "jamesq",
+      "password": "admin123",
+      "isActive": true,
+      "role": "admin",
+      "department": "IT"
+    },
+    {
+      "id": "1002",
+      "firstname": "Liza",
+      "lastname": "Cruz",
+      "email": "liza.c@example.com",
+      "username": "lizac",
+      "password": "staff123",
+      "isActive": false,
+      "role": "staff",
+      "supportTeams": [
+        "Software Support"
+      ]
+    },
+    {
+      "id": "1003",
+      "firstname": "Benjie",
+      "lastname": "Garcia",
+      "email": "benjie.g@example.com",
+      "username": "benjieg",
+      "password": "user123",
+      "isActive": true,
+      "role": "user",
+      "department": "Marketing"
+    },
+    {
+      "id": "1004",
+      "firstname": "Celia",
+      "lastname": "Lim",
+      "email": "celia.l@example.com",
+      "username": "celial",
+      "password": "admin123",
+      "isActive": true,
+      "role": "admin",
+      "department": "Finance"
+    },
+    {
+      "id": "1005",
+      "firstname": "Jun",
+      "lastname": "Dela Cruz",
+      "email": "jun.dc@example.com",
+      "username": "jundc",
+      "password": "staff123",
+      "isActive": false,
+      "role": "staff",
+      "supportTeams": [
+        "Hardware Repair"
+      ]
+    },
+    {
+      "id": "1006",
+      "firstname": "Analyn",
+      "lastname": "Bautista",
+      "email": "analyn.b@example.com",
+      "username": "analynb",
+      "password": "user123",
+      "isActive": true,
+      "role": "agent",
+      "department": "HR"
+    },
+    {
+      "id": "1007",
+      "firstname": "Ricardo",
+      "lastname": "Gonzales",
+      "email": "ricardo.g@example.com",
+      "username": "ricardog",
+      "password": "admin123",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT"
+    },
+    {
+      "id": "1008",
+      "firstname": "Michelle",
+      "lastname": "Fernandez",
+      "email": "michelle.f@example.com",
+      "username": "michellef",
+      "password": "staff123",
+      "isActive": false,
+      "role": "agent",
+      "supportTeams": [
+        "General Support",
+        "Network"
+      ]
+    },
+    {
+      "id": "2060",
+      "username": "",
+      "password": "",
+      "firstname": "",
+      "lastname": "",
+      "email": "",
+      "isActive": true,
+      "role": "user",
+      "department": "",
+      "supportTeams": []
+    },
+    {
+      "id": "42cb",
+      "username": "fafawe",
+      "password": "asdas",
+      "firstname": "fqw",
+      "lastname": "asda",
+      "email": "qweqe@gmasda.com",
+      "isActive": true,
+      "role": "admin",
+      "department": "sadsad",
+      "supportTeams": [
+        "asdas"
+      ]
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TKT-001",
+      "title": "No Wi-Fi Connection in Office A",
+      "description": "Users in Office A are unable to connect to the Wi-Fi network. This is impacting productivity.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "john.doe@example.com",
+      "submittedDate": "2025-05-14T10:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-003",
+      "title": "Software Installation Request - New Employee",
+      "description": "Request to install necessary software (Microsoft Office Suite, Adobe Reader) on the new employee, Peter Jones's, laptop.",
+      "priority": "low",
+      "department": "Software Support",
+      "submittedBy": "hr.admin@example.com",
+      "submittedDate": "2025-05-14T14:45:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.charlie@example.com"
+    },
+    {
+      "id": "TKT-004",
+      "title": "Printer Jamming Frequently - Finance Department",
+      "description": "The main printer in the Finance department keeps jamming multiple times a day, causing delays.",
+      "priority": "medium",
+      "department": "Repair and Maintenance",
+      "submittedBy": "finance.manager@example.com",
+      "submittedDate": "2025-05-15T08:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-005",
+      "title": "Urgent: Server Down - Website Unavailable",
+      "description": "The main company website is currently down and inaccessible to users. This is a critical issue.",
+      "priority": "urgent",
+      "department": "Network Operations",
+      "submittedBy": "system.monitor@example.com",
+      "submittedDate": "2025-05-15T07:30:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.david@example.com"
+    },
+    {
+      "id": "TKT-006",
+      "title": "Password Reset Request - Account Locked",
+      "description": "User Sarah Miller has locked her account and needs a password reset.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "sarah.miller@example.com",
+      "submittedDate": "2025-05-13T16:00:00Z",
+      "status": "resolved",
+      "assignedTo": "agent.eve@example.com"
+    },
+    {
+      "id": "TKT-007",
+      "title": "Email Delivery Failure - Multiple Users",
+      "description": "Several users in Sales are reporting emails not being sent or received.",
+      "priority": "high",
+      "department": "Email Support",
+      "submittedBy": "sales.manager@example.com",
+      "submittedDate": "2025-05-16T09:15:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-008",
+      "title": "Laptop Battery Not Charging",
+      "description": "The laptop of Mark Johnson is not charging properly, even when plugged in.",
+      "priority": "medium",
+      "department": "Hardware Support",
+      "submittedBy": "mark.johnson@example.com",
+      "submittedDate": "2025-05-16T10:30:00Z",
+      "status": "assigned",
+      "assignedTo": "agent.frank@example.com"
+    },
+    {
+      "id": "TKT-009",
+      "title": "Access Request to Confidential Files",
+      "description": "Request for access to confidential financial reports for audit purposes.",
+      "priority": "low",
+      "department": "Security",
+      "submittedBy": "audit.team@example.com",
+      "submittedDate": "2025-05-16T12:00:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.grace@example.com"
+    },
+    {
+      "id": "TKT-010",
+      "title": "VPN Connection Timeout",
+      "description": "Users are experiencing VPN disconnections frequently during work hours.",
+      "priority": "high",
+      "department": "Network Operations",
+      "submittedBy": "network.admin@example.com",
+      "submittedDate": "2025-05-16T13:45:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-011",
+      "title": "New Software License Purchase Request",
+      "description": "Request to purchase additional licenses for Photoshop and Illustrator.",
+      "priority": "medium",
+      "department": "Software Support",
+      "submittedBy": "design.lead@example.com",
+      "submittedDate": "2025-05-16T15:00:00Z",
+      "status": "resolved",
+      "assignedTo": "agent.harry@example.com"
+    },
+    {
+      "id": "TKT-012",
+      "title": "Office A Air Conditioning Not Working",
+      "description": "Temperature in Office A is too high due to air conditioning malfunction.",
+      "priority": "medium",
+      "department": "Facility Management",
+      "submittedBy": "office.manager@example.com",
+      "submittedDate": "2025-05-16T16:20:00Z",
+      "status": "open"
+    },
+    {
+      "id": "4b54",
+      "title": "dasda",
+      "description": "dasdas",
+      "priority": "medium",
+      "department": "IT Support",
+      "submittedDate": "2025-05-23T22:04:22.172Z",
+      "status": "open"
+    }
+  ],
   "statistics": [
     {
       "report1": "Sample Response 1"
