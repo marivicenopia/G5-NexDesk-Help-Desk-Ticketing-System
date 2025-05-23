@@ -318,15 +318,13 @@
       "date": "2025-03-19"
     },
     {
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com",
-  "title": "Great Service!",
-  "message": "Really loved the support.",
-  "experience": "😊",
-  "date": "2025-05-24"
-}
-
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "title": "Great Service!",
+      "message": "Really loved the support.",
+      "experience": "😊",
+      "date": "2025-05-24"
+    }
   ]
-  
 }

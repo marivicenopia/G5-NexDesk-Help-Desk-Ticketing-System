@@ -7,6 +7,13 @@ import Settings from '../views/containers/Settings/Settings';
 import SettingsGeneral from '../views/containers/Settings/SettingsGeneral';
 import SettingsPassword from '../views/containers/Settings/SettingsPassword';
 import SettingsDelete from '../views/containers/Settings/SettingsDelete';
+import Knowledgebase from '../views/containers/Knowledgebase/Knowledgebase';
+import AddArticle from '../views/containers/Knowledgebase/AddArticle';
+import EditArticle from "../views/containers/Knowledgebase/EditArticle";
+import DeleteArticle from '../views/containers/Knowledgebase/DeleteArticle';
+import ViewArticle from '../views/containers/Knowledgebase/ViewArticle';
+import ViewFeedback from '../views/containers/Feedback/Feedback';
+import CreateFeedback from '../views/containers/Feedback/CreateFeedback'; 
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -59,3 +66,5 @@ export const AppRoutes = () => {
         </Route>
       </Routes>
     </BrowserRouter>
+      );
+};
