@@ -1,10 +1,314 @@
 {
-  "statistics": [
+  "users": [
     {
-      "report1": "Sample Response 1"
+      "id": 1000,
+      "firstname": "James",
+      "lastname": "Quijano",
+      "email": "quijanojamesv@gmail.com",
+      "username": "jamesq",
+      "password": "admin123",
+      "isActive": true,
+      "role": "admin",
+      "department": "IT"
     },
     {
-      "report2": "Sample Response 2"
+      "id": 1001,
+      "firstname": "Jane",
+      "lastname": "Doe",
+      "email": "janedoe@example.com",
+      "username": "janedoe",
+      "password": "jane123",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT"
+    }
+  ],
+  "tickets": [
+    {
+      "id": 1,
+      "title": "Ticket 1",
+      "description": "Description for ticket 1",
+      "status": "open",
+      "priority": "high",
+      "createdAt": "2023-10-01T12:00:00Z",
+      "updatedAt": "2023-10-01T12:00:00Z",
+      "assignedTo": 1000
+    }
+  ],
+  "articles": [
+    {
+      "id": 1,
+      "category": "Introduction to I.T",
+      "title": "What is Information Technology?",
+      "author": "Olivia Brown",
+      "content": "Information Technology (IT) is the backbone of the modern digital world, encompassing the use of computers, networks, software, and systems to store, process, transmit, and secure data. IT is not just about fixing computers; it's a vast field that powers everything from global financial systems and healthcare databases to personal smartphones and smart home devices. At its core, IT solves problems and improves efficiency through technology.\n\nThe field of IT can be divided into several key areas:\n\u2022 Computer Hardware: The physical components like processors (CPUs), memory (RAM), storage drives (HDDs/SSDs), and peripherals (keyboards, printers).\n\u2022 Software: Programs and operating systems (like Windows, macOS, or Linux) that enable hardware to perform tasks.\n\u2022 Networking: The infrastructure that connects devices, allowing communication and data sharing (e.g., LANs, WANs, the internet).\n\u2022 Data Management: Storing, organizing, and retrieving information using databases and cloud systems.\n\u2022 Cybersecurity: Protecting systems and data from digital threats like hackers and malware.\n\nIT professionals work in diverse roles, from system administrators who maintain networks to software developers who create applications. The field is constantly evolving, with emerging areas like artificial intelligence (AI), blockchain, and the Internet of Things (IoT) creating new opportunities.",
+      "status": "Delayed"
+    },
+    {
+      "id": 2,
+      "category": "Introduction to I.T",
+      "title": "Basics of Computer Hardware and Software",
+      "author": "Alex Rivera",
+      "content": "A computer system is made up of two main elements: hardware and software. Understanding both is important for anyone interested in technology.\n\nComputer hardware refers to the physical parts of a computer system. This includes:\n\u2022 Central Processing Unit (CPU) \u2013 the brain of the computer that processes instructions.\n\u2022 Random Access Memory (RAM) \u2013 temporary memory used to run programs quickly.\n\u2022 Hard Drive (HDD) or Solid-State Drive (SSD) \u2013 where files and programs are stored.\n\u2022 Motherboard \u2013 the main circuit board connecting all components.\n\u2022 Input Devices \u2013 like keyboards, mice, and scanners.\n\u2022 Output Devices \u2013 like monitors, printers, and speakers.\n\nSoftware, on the other hand, is a set of instructions that tells the hardware what to do. Software can be divided into two types:\n\u2022 System software \u2013 like operating systems (Windows, macOS, Linux) that manage hardware and allow other programs to run.\n\u2022 Application software \u2013 like Microsoft Word, web browsers, or games that let users perform specific tasks.\n\nWithout software, hardware is useless. And without hardware, software has nothing to run on. Both work together to make computers useful tools in business, education, and personal life.",
+      "status": "Pending Review"
+    },
+    {
+      "id": 3,
+      "category": "Introduction to I.T",
+      "title": "Understanding Operating Systems",
+      "author": "Alex Rivera",
+      "content": "An Operating System (OS) is essential software that acts as a bridge between the user, applications, and the computer hardware. It controls the system\u2019s memory, processes, devices, and software.\n\nSome of the most common operating systems include:\n\u2022 Microsoft Windows \u2013 widely used in homes and offices.\n\u2022 macOS \u2013 used on Apple\u2019s desktop and laptop computers.\n\u2022 Linux \u2013 popular in servers and tech environments.\n\u2022 Android and iOS \u2013 used in mobile phones and tablets.\n\nThe OS performs several important functions:\n\u2022 Manages hardware resources, like the CPU, memory, and storage.\n\u2022 Provides a user interface, such as a desktop or command line.\n\u2022 Handles system security, including user permissions and virus protection.\n\u2022 Manages files, allowing users to create, delete, and organize data.\n\u2022 Runs applications, ensuring software can access needed resources.\n\nWithout an operating system, you would not be able to use your computer. It plays a central role in everything from browsing the internet to playing music or writing a report.",
+      "status": "On Track"
+    },
+    {
+      "id": 4,
+      "category": "Introduction to I.T",
+      "title": "Introduction to Networking",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 5,
+      "category": "Introduction to I.T",
+      "title": "IT Career Paths and Specializations",
+      "author": "John Doe",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 6,
+      "category": "Coding & Dev",
+      "title": "Intro to Programming",
+      "author": "Jane Smith",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 7,
+      "category": "Coding & Dev",
+      "title": "Software Dev Tips",
+      "author": "Alex Rivera",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 8,
+      "category": "Coding & Dev",
+      "title": "Git & GitHub Basics",
+      "author": "John Doe",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 9,
+      "category": "Coding & Dev",
+      "title": "Debugging Code",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 10,
+      "category": "Coding & Dev",
+      "title": "APIs Explained",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 11,
+      "category": "Cybersecurity",
+      "title": "What is Cybersecurity?",
+      "author": "Emily Davis",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 12,
+      "category": "Cybersecurity",
+      "title": "Ethical Hacking 101",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 13,
+      "category": "Cybersecurity",
+      "title": "Firewalls & Security",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 14,
+      "category": "Cybersecurity",
+      "title": "Protecting Accounts",
+      "author": "Jane Smith",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 15,
+      "category": "Cybersecurity",
+      "title": "Common Cyber Threats",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 16,
+      "category": "Databases",
+      "title": "SQL Basics",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 17,
+      "category": "Databases",
+      "title": "Database Design",
+      "author": "Emily Davis",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 18,
+      "category": "Databases",
+      "title": "Writing SQL Queries",
+      "author": "Jane Smith",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 19,
+      "category": "Databases",
+      "title": "SQL vs. NoSQL",
+      "author": "Michael Chen",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 20,
+      "category": "Databases",
+      "title": "Database Security",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 21,
+      "category": "Cloud & DevOps",
+      "title": "Cloud Basics",
+      "author": "Michael Chen",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 22,
+      "category": "Cloud & DevOps",
+      "title": "What is DevOps?",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 23,
+      "category": "Cloud & DevOps",
+      "title": "Virtualization 101",
+      "author": "Alex Rivera",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 24,
+      "category": "Cloud & DevOps",
+      "title": "CI/CD Explained",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 25,
+      "category": "Cloud & DevOps",
+      "title": "Cloud Security",
+      "author": "Jane Smith",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 26,
+      "category": "Networking",
+      "title": "What is networking?",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 27,
+      "category": "Networking",
+      "title": "IP addresses & DNS basics",
+      "author": "Emily Davis",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 28,
+      "category": "Networking",
+      "title": "LAN vs. WAN",
+      "author": "Samantha Cruz",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 29,
+      "category": "Networking",
+      "title": "How Wi-Fi works",
+      "author": "Michael Chen",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": 30,
+      "category": "Networking",
+      "title": "Fixing common network issues",
+      "author": "Samantha Cruz",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    }
+  ],
+  "feedback": [
+    {
+      "id": 1,
+      "name": "Liam Miller",
+      "title": "Exceeded My Expectations \u2013 Awesome Experience!",
+      "message": "I had a fantastic experience from start to finish. The team was incredibly professional, friendly, and attentive to my needs...",
+      "date": "2025-01-17"
+    },
+    {
+      "id": 2,
+      "name": "Larry Hills",
+      "title": "Highly Satisfied with the Service!",
+      "message": "Service was quick, staff were polite, and I got the help I needed in no time.",
+      "date": "2025-01-18"
+    },
+    {
+      "id": 3,
+      "name": "Liam Miller",
+      "title": "Disappointed with the Service \u2013 Not What I Expected",
+      "date": "2025-01-20"
+    },
+    {
+      "id": 4,
+      "name": "Liam Miller",
+      "title": "Too Many Issues \u2013 Will Not Return",
+      "date": "2025-02-17"
+    },
+    {
+      "id": 5,
+      "name": "Liam Miller",
+      "title": "Reliable and Efficient \u2013 Highly Recommend!",
+      "date": "2025-03-19"
     }
   ]
 }
