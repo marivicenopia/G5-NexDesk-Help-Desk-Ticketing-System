@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "id": 1000,
+      "id": "1000",
       "firstname": "James",
       "lastname": "Quijano",
       "email": "quijanojamesv@gmail.com",
@@ -12,7 +12,7 @@
       "department": "IT"
     },
     {
-      "id": 1001,
+      "id": "1001",
       "firstname": "Jane",
       "lastname": "Doe",
       "email": "janedoe@example.com",
@@ -25,7 +25,7 @@
   ],
   "tickets": [
     {
-      "id": 1,
+      "id": "1",
       "title": "Ticket 1",
       "description": "Description for ticket 1",
       "status": "open",

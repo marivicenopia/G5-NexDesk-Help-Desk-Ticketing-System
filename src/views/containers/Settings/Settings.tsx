@@ -1,32 +1,122 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AuthService } from "../../../services/auth/AuthService";
 
-const Settings: React.FC = () => (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow font-sans">
-        <h2 className="text-2xl font-bold mb-6">Settings</h2>
-        <nav className="mb-8 flex gap-4 border-b pb-2">
-            <NavLink
-                to="general"
-                className={({ isActive }) => isActive ? "font-bold" : ""}
-                end
-            >
-                General
-            </NavLink>
-            <NavLink
-                to="password"
-                className={({ isActive }) => isActive ? "font-bold" : ""}
-            >
-                Password
-            </NavLink>
-            <NavLink
-                to="delete"
-                className={({ isActive }) => isActive ? "font-bold text-red-600" : "text-red-600"}
-            >
-                Delete Account
-            </NavLink>
-        </nav>
-        <Outlet />
-    </div>
-);
+const getSettingTitle = (pathname: string) => {
+    if (pathname.endsWith("/general")) return "General";
+    if (pathname.endsWith("/password")) return "Password";
+    if (pathname.endsWith("/delete")) return "Delete Account";
+    // Default to General if at /settings or /settings/
+    if (pathname.endsWith("/settings") || pathname.endsWith("/settings/")) return "General";
+    return "";
+};
+
+const getSettingSubtext = (pathname: string) => {
+    if (pathname.endsWith("/general") || pathname.endsWith("/settings") || pathname.endsWith("/settings/")) {
+        return "Update your username and manage your account information.";
+    }
+    if (pathname.endsWith("/password")) {
+        return "Change your password to keep your account secure.";
+    }
+    if (pathname.endsWith("/delete")) {
+        return "Permanently delete your account and all associated data.";
+    }
+    return "";
+};
+
+const Settings: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const settingTitle = getSettingTitle(location.pathname);
+    const settingSubtext = getSettingSubtext(location.pathname);
+
+    const [firstName, setFirstName] = useState<string>("");
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const stored = AuthService.getStoredUser();
+            if (stored?.id) {
+                const user = await AuthService.getCurrentUser(Number(stored.id));
+                if (user && user.firstname) setFirstName(user.firstname);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    // Redirect to /general if at /settings or /settings/
+    useEffect(() => {
+        if (
+            location.pathname.endsWith("/settings") ||
+            location.pathname.endsWith("/settings/")
+        ) {
+            navigate("general", { replace: true });
+        }
+    }, [location.pathname, navigate]);
+
+    return (
+        <div className="max-w-3xl mx-auto mt-5 p-0 bg-white rounded font-sans flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-8 pt-8 pb-4">
+                <h1 className="text-4xl font-bold">
+                    {firstName}
+                    {settingTitle && (
+                        <span className="text-[#6E6D7A] font-normal text-3xl"> / {settingTitle}</span>
+                    )}
+                </h1>
+                {settingSubtext && (
+                    <p className="text-[#6E6D7A] text-xl mt-1">{settingSubtext}</p>
+                )}
+            </div>
+            <div className="flex">
+                {/* Left navigation */}
+                <nav className="w-56 bg-white p-6 flex flex-col gap-2">
+                    <NavLink
+                        to="general"
+                        className={({ isActive }) =>
+                            `block px-3 py-2 rounded transition font-semibold text-lg ${
+                                isActive
+                                    ? "text-[#0D0C22]"
+                                    : "text-[#6E6D7A] hover:bg-blue-100"
+                            }`
+                        }
+                        end
+                    >
+                        General
+                    </NavLink>
+                    <NavLink
+                        to="password"
+                        className={({ isActive }) =>
+                            `block px-3 py-2 rounded transition font-semibold text-lg ${
+                                isActive
+                                    ? "text-[#0D0C22]"
+                                    : "text-[#6E6D7A] hover:bg-blue-100"
+                            }`
+                        }
+                    >
+                        Password
+                    </NavLink>
+                    <hr className="my-2 border-gray-300" />
+                    <NavLink
+                        to="delete"
+                        className={({ isActive }) =>
+                            `block px-3 py-2 rounded transition font-semibold text-lg ${
+                                isActive
+                                    ? "text-[#0D0C22]"
+                                    : "text-[#54D4AB] hover:bg-red-100"
+                            }`
+                        }
+                    >
+                        Delete Account
+                    </NavLink>
+                </nav>
+                {/* Right content */}
+                <div className="flex-1 p-8 transition-all duration-300">
+                    <h2 className="text-3xl font-bold mb-6">{settingTitle}</h2>
+                    <Outlet />
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default Settings;

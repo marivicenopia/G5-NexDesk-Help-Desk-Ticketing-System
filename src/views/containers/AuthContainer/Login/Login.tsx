@@ -60,9 +60,7 @@ const Login: React.FC = () => {
           <span className="text-2xl font-bold text-[#031849] tracking-wide">NexDesk</span>
         </div>
         <div className="w-full max-w-md">
-          <h2 className="text-6xl font-bold mb-15 text-center text-[#031849]">Sign In</h2>
-          {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-
+          <h2 className="text-6xl font-bold mb-8 text-center text-[#031849]">Sign In</h2>
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="flex items-center border rounded-md px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
               <MdOutlinePerson className="text-xl text-gray-400 mr-2" />
@@ -86,6 +84,10 @@ const Login: React.FC = () => {
                 required
               />
             </div>
+            {/* Error message below password input */}
+            {error && (
+              <p className="text-red-600 text-center mb-2">{error}</p>
+            )}
             <button
               type="submit"
               className="w-full bg-[#031849] hover:bg-[#192F64] text-white font-medium py-2 rounded-md transition mt-5 cursor-pointer"
@@ -93,7 +95,6 @@ const Login: React.FC = () => {
               SIGN IN
             </button>
           </form>
-
           {/* <p className="text-center mt-6 text-gray-600 text-sm">
             Don't have an account?{" "}
             <Link to="/register" className="text-[#031849] font-medium hover:underline">
@@ -106,9 +107,10 @@ const Login: React.FC = () => {
       {/* Right Panel - Design */}
       <div className="hidden md:flex w-1/2 bg-[#031849] text-white items-center justify-center p-10">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
+          <h1 className="text-5xl font-bold mb-4">Welcome Back!</h1>
           <p className="text-lg max-w-md mx-auto">
-            Manage your help desk tickets with ease.
+            To keep connected with us, please
+sign in with your username and password.
           </p>
         </div>
       </div>

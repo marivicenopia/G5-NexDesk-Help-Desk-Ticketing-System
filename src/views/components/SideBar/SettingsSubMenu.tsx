@@ -2,7 +2,12 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AuthService } from "../../../services/auth/AuthService";
 
-const SettingsSubMenu: React.FC<{ settingsPath: string }> = ({ settingsPath }) => {
+interface SettingsSubMenuProps {
+    settingsPath: string;
+    onClose: () => void;
+}
+
+const SettingsSubMenu: React.FC<SettingsSubMenuProps> = ({ settingsPath, onClose }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -11,20 +16,28 @@ const SettingsSubMenu: React.FC<{ settingsPath: string }> = ({ settingsPath }) =
     };
 
     return (
-        <div className="flex flex-col space-y-4 bg-[#192F64] text-white p-4 rounded shadow">
-            <NavLink
-                to={settingsPath}
-                className={({ isActive }) => isActive ? "font-bold underline" : ""}
-                end
-            >
-                Settings
-            </NavLink>
-            <button
-                onClick={handleLogout}
-                className="text-left text-red-400 hover:text-red-600"
-            >
-                Log out
-            </button>
+        <div className="fixed left-20 top-0 h-full bg-[#22306a] text-white p-6 shadow-lg z-50 flex flex-col min-w-[180px]">
+            <button onClick={onClose} className="mb-4 text-right text-gray-400 hover:text-white self-end">✕</button>
+            <ul className="space-y-4">
+                <li>
+                    <NavLink
+                        to={settingsPath}
+                        className={({ isActive }) => isActive ? "font-bold underline" : ""}
+                        end
+                        onClick={onClose}
+                    >
+                        Settings
+                    </NavLink>
+                </li>
+                <li>
+                    <button
+                        onClick={handleLogout}
+                        className="text-left text-red-400 hover:text-red-600"
+                    >
+                        Log out
+                    </button>
+                </li>
+            </ul>
         </div>
     );
 };

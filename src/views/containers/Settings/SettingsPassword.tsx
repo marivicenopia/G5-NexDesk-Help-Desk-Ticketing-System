@@ -40,7 +40,6 @@ const SettingsPassword: React.FC = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Change Password</h3>
             <form onSubmit={handlePasswordChange} className="space-y-3">
                 <input
                     type="password"
@@ -67,12 +66,15 @@ const SettingsPassword: React.FC = () => {
                     required
                 />
                 {passwordError && <div className="text-red-600">{passwordError}</div>}
-                <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    Change Password
-                </button>
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        className="bg-[#031849] text-white px-4 py-2 rounded hover:bg-blue-700 mt-5"
+                        style={{ borderRadius: "9.66px", gap: 15, marginTop: 15 }}
+                    >
+                        Change Password
+                    </button>
+                </div>
                 {successMsg && <div className="text-green-600 mt-2">{successMsg}</div>}
             </form>
         </div>

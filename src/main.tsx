@@ -21,3 +21,17 @@ createRoot(document.getElementById('root')!).render(
     <AppRoutes />
   </StrictMode>,
 )
+
+// import { StrictMode } from 'react'
+// import { createRoot } from 'react-dom/client'
+// import './index.css'
+// import { AppRoutes } from './routes/AppRoutes'
+// import { SidebarProvider } from './views/components/SideBar/SidebarContext'
+
+// createRoot(document.getElementById('root')!).render(
+//   <StrictMode>
+//     <SidebarProvider>
+//       <AppRoutes />
+//     </SidebarProvider>
+//   </StrictMode>,
+// )

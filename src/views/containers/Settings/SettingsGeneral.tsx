@@ -38,43 +38,69 @@ const SettingsGeneral: React.FC = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">General</h3>
-            <div className="space-y-3">
-                <input
-                    name="firstname"
-                    value={editData.firstname}
-                    onChange={handleEditChange}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="First Name"
-                />
-                <input
-                    name="lastname"
-                    value={editData.lastname}
-                    onChange={handleEditChange}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Last Name"
-                />
-                <input
-                    name="username"
-                    value={editData.username}
-                    onChange={handleEditChange}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Username"
-                />
-                <input
-                    name="email"
-                    value={editData.email}
-                    onChange={handleEditChange}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Email"
-                />
+            <div className="space-y-4">
+                <div>
+                    <label htmlFor="firstname" className="block text-base font-medium mb-1">
+                        First Name
+                    </label>
+                    <input
+                        id="firstname"
+                        name="firstname"
+                        value={editData.firstname}
+                        onChange={handleEditChange}
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="First Name"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="lastname" className="block text-base font-medium mb-1">
+                        Last Name
+                    </label>
+                    <input
+                        id="lastname"
+                        name="lastname"
+                        value={editData.lastname}
+                        onChange={handleEditChange}
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Last Name"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="username" className="block text-base font-medium mb-1">
+                        Username
+                    </label>
+                    <input
+                        id="username"
+                        name="username"
+                        value={editData.username}
+                        onChange={handleEditChange}
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Username"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="email" className="block text-base font-medium mb-1">
+                        Email
+                    </label>
+                    <input
+                        id="email"
+                        name="email"
+                        value={editData.email}
+                        onChange={handleEditChange}
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Email"
+                    />
+                </div>
             </div>
-            <button
-                onClick={handleSaveGeneral}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-                Save Changes
-            </button>
+            <div className="flex justify-end">
+                <button
+                    onClick={handleSaveGeneral}
+                    className="mt-6 bg-[#031849] text-white px-4 py-2 hover:bg-blue-700"
+                    style={{ borderRadius: "9.66px" }}
+                >
+                    Save Changes
+                </button>
+            </div>
             {successMsg && <div className="text-green-600 mt-2">{successMsg}</div>}
         </div>
     );
