@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import * as Views from '../views/containers';
 import { PATHS } from "./constant";
-import { AdminLayout, AgentLayout, UserLayout} from "../layout";
+import { AdminLayout, AgentLayout, UserLayout } from "../layout";
 import PrivateRoute from "./PrivateRoute";
 
 export const AppRoutes = () => {
@@ -15,8 +15,9 @@ export const AppRoutes = () => {
                 <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
                     <Route element={<AdminLayout />}>
                         {/* <Route path={PATHS.ADMIN.DASHBOARD.path} element={<Views.AdminDashboard />} /> */}
+                        <Route path={PATHS.ADMIN.DASHBOARD.path} element={<Views.AdminDashboard />} />
                         <Route path={PATHS.ADMIN.MANAGE_TICKETS.path} element={<Views.ViewTickets />} />
-                        <Route path={PATHS.ADMIN.MANAGE_USERS.path} element={<Views.ViewUsers />} />
+                        <Route path={PATHS.ADMIN.MANAGE_USERS.path} element={<Views.UsersViewContainer />} />
                         <Route path={PATHS.ADMIN.CREATE_TICKET.path} element={<Views.CreateTicket />} />
                         <Route path={PATHS.ADMIN.CREATE_USER.path} element={<Views.CreateUser />} />
                     </Route>

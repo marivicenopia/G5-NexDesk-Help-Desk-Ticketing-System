@@ -5,7 +5,7 @@ export const AdminSideBarItems = [
   {
     label: "Dashboard",
     icon: FaTachometerAlt,
-    path: PATHS.ADMIN.MANAGE_USERS.path,
+    path: PATHS.ADMIN.DASHBOARD.path,
   },
   {
     label: "Users",
@@ -23,7 +23,7 @@ export const AdminSideBarItems = [
     icon: FaTicketAlt,
     children: [
       { label: "View Tickets", path: PATHS.ADMIN.MANAGE_TICKETS.path },
-      { label: "Create Ticket", path: `${PATHS.ADMIN.CREATE_TICKET.path}?role=admin` },
+      { label: "Create Ticket", path: `${PATHS.ADMIN.CREATE_TICKET.path}`},
     ],
   },
 ];
