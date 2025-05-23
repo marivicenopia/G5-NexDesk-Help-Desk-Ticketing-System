@@ -17,7 +17,7 @@ const EditArticle = () => {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await axios.get(`http://localhost:5173/articles/${id}`);
+        const res = await axios.get(`http://localhost:3001/articles/${id}`);
         setFormData(res.data);
       } catch (err) {
         console.error('Failed to fetch article');
@@ -38,7 +38,7 @@ const EditArticle = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5173articles/${id}`, formData);
+      await axios.put(`http://localhost:3001/articles/${id}`, formData);
       alert('Article updated successfully!');
       navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
     } catch (error) {

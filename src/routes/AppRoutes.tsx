@@ -13,6 +13,7 @@ import EditArticle from "../views/containers/Knowledgebase/EditArticle";
 import DeleteArticle from '../views/containers/Knowledgebase/DeleteArticle';
 import ViewArticle from '../views/containers/Knowledgebase/ViewArticle';
 import ViewFeedback from '../views/containers/Feedback/Feedback';
+import CreateFeedback from '../views/containers/Feedback/CreateFeedback'; 
 
 
 
@@ -65,6 +66,7 @@ export const AppRoutes = () => {
         {/* User routes */}
         <Route element={<PrivateRoute allowedRoles={["user"]} />}>
           <Route element={<UserLayout />}>
+          <Route path={PATHS.USER.CREATE_FEEDBACK.path} element={<CreateFeedback />} />
             {/* <Route path={PATHS.USER.DASHBOARD.path} element={<Views.UserDashboard />} />
             <Route path={PATHS.USER.MY_TICKETS.path} element={<Views.MyTickets />} />
             <Route path={PATHS.USER.CREATE_TICKET.path} element={<Views.CreateTicket />} /> */}

@@ -41,6 +41,7 @@ export const PATHS = {
     MY_TICKETS: { path: '/user/tickets', label: 'My Tickets' },
     CREATE_TICKET: { path: '/user/create-ticket', label: 'Create Ticket' },
     SETTINGS: { path: '/user/settings', label: 'Settings' },
+    CREATE_FEEDBACK: { path: '/user/feedback', label: 'Submit Feedback' },
   },
 };
 

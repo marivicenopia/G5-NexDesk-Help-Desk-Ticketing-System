@@ -16,7 +16,7 @@ const ViewArticle = () => {
 
   useEffect(() => {
     if (id && /^\d+$/.test(id)) {
-      axios.get(`http://localhost:5173/articles/${id}`)
+      axios.get(`http://localhost:3001/articles/${id}`)
         .then((res) => setArticle(res.data))
         .catch(() => setArticle(null))
         .finally(() => setLoading(false));
