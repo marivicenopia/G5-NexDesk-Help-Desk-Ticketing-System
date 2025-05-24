@@ -21,6 +21,10 @@ const AdminSidebar: React.FC = () => {
         }
     };
 
+    const handleSettings = () => {
+        navigate("/admin/settings");
+    };
+
     return (
         <div className="flex min-h-screen">
             <div className="flex flex-col justify-between w-20 bg-[#192F64] text-white py-4 space-y-6">
@@ -52,7 +56,7 @@ const AdminSidebar: React.FC = () => {
                         item.action ? (
                             <button
                                 key={item.label}
-                                onClick={handleLogout}
+                                onClick={item.label === "Settings" ? handleSettings : handleLogout}
                                 className="w-20 h-10 flex justify-center items-center cursor-pointer"
                                 aria-label={item.label}
                             >
@@ -70,7 +74,6 @@ const AdminSidebar: React.FC = () => {
                     )}
                 </div>
             </div>
-
 
             {activeMenu && (
                 <SidebarSubmenu

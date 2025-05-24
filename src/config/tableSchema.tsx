@@ -1,16 +1,41 @@
 import React from "react";
 import type { Ticket } from "../types/ticket";
 import type { User } from "../types/user";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
-
-export const userTableSchema: { key: keyof User; label: string; render?: (user: User) => React.ReactNode }[] = [
-    { key: 'id', label: 'ID' },
-    { key: 'lastname', label: 'Last Name' },
-    { key: 'firstname', label: 'First Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'role', label: 'Role' },
-    { key: 'department', label: 'Department' },
-    { key: 'supportTeams', label: 'Support Teams' },
+export const userTableSchema = (
+  handleEdit: (user: User) => void,
+  handleDelete: (user: User) => void
+) => [
+  { key: "id", label: "ID" },
+  { key: "lastname", label: "Last Name" },
+  { key: "firstname", label: "First Name" },
+  { key: "email", label: "Email" },
+  { key: "role", label: "Role" },
+  { key: "department", label: "Department" },
+  { key: "supportTeams", label: "Support Teams" },
+  {
+    key: 'actions' as any,
+    label: 'Actions',
+    render: (user: User) => (
+      <div className="flex space-x-4">
+        <button
+          onClick={() => handleEdit(user)}
+          className="text-blue-600 hover:text-blue-800"
+          aria-label="Edit User"
+        >
+          <FiEdit size={18} />
+        </button>
+        <button
+          onClick={() => handleDelete(user)}
+          className="text-red-600 hover:text-red-800"
+          aria-label="Delete User"
+        >
+          <FiTrash2 size={18} />
+        </button>
+      </div>
+    ),
+  },
 ];
 
 export const ticketTableSchema: { key: keyof Ticket; label: string; render?: (ticket: Ticket) => React.ReactNode }[] = [
@@ -43,16 +68,8 @@ export const ticketTableSchema: { key: keyof Ticket; label: string; render?: (ti
         key: "status",
         label: "Status",
         render: (ticket: Ticket) => {
-            const colorMap = {
-                open: "bg-blue-100 text-blue-800",
-                assigned: "bg-purple-100 text-purple-800",
-                "in progress": "bg-yellow-100 text-yellow-800",
-                "on hold": "bg-gray-200 text-gray-800",
-                resolved: "bg-green-100 text-green-800",
-                closed: "bg-gray-400 text-gray-900",
-            };
             return (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${colorMap[ticket.status] || "bg-gray-100 text-gray-800"}`}>
+                <span className={`px-2 py-1 rounded text-xs font-semibold "bg-gray-100 text-gray-800"}`}>
                     {ticket.status}
                 </span>
             );
