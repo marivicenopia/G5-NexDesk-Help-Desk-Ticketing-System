@@ -1,4 +1,4 @@
-import { FaUsers, FaTachometerAlt, FaTicketAlt, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaUsers, FaTachometerAlt, FaTicketAlt, FaCog, FaSignOutAlt, FaBook, FaCommentDots } from "react-icons/fa";
 import { PATHS } from "../../../../routes/constant";
 
 export const AdminSideBarItems = [
@@ -25,6 +25,16 @@ export const AdminSideBarItems = [
       { label: "View Tickets", path: PATHS.ADMIN.MANAGE_TICKETS.path },
       { label: "Create Ticket", path: `${PATHS.ADMIN.CREATE_TICKET.path}`},
     ],
+  },
+  {
+    label: "Knowledgebase",
+    icon: FaBook,
+    path: PATHS.ADMIN.KNOWLEDGEBASE.path,
+  },
+  {
+    label: "Feedback",
+    icon: FaCommentDots,
+    path: PATHS.ADMIN.VIEW_FEEDBACK.path,
   },
 ];
 
