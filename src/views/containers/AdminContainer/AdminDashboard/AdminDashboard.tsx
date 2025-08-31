@@ -58,38 +58,75 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#031849] mb-1">Admin Dashboard</h1>
+        <p className="text-gray-600">Overview of your help desk system</p>
+      </div>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white shadow-md rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Total Users</h2>
-          <p className="text-3xl font-bold text-blue-600">{totalUsers}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100">
+              <div className="w-6 h-6 bg-blue-600 rounded"></div>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-semibold text-gray-900">Total Users</h3>
+              <p className="text-3xl font-bold text-blue-600">{totalUsers}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white shadow-md rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Open Tickets</h2>
-          <p className="text-3xl font-bold text-yellow-600">{statusCounts.open}</p>
+
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-yellow-100">
+              <div className="w-6 h-6 bg-yellow-600 rounded"></div>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-semibold text-gray-900">Open Tickets</h3>
+              <p className="text-3xl font-bold text-yellow-600">{statusCounts.open}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white shadow-md rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Agents</h2>
-          <p className="text-3xl font-bold text-green-600">{totalAgents}</p>
+
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100">
+              <div className="w-6 h-6 bg-green-600 rounded"></div>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-semibold text-gray-900">Active Agents</h3>
+              <p className="text-3xl font-bold text-green-600">{totalAgents}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Ticket Status Chart */}
-      <div className="mt-10">
-        <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Ticket Status Overview</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="value" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-[#031849] mb-2">Ticket Status Overview</h2>
+          <p className="text-gray-600">Current distribution of ticket statuses</p>
         </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Legend />
+            <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

@@ -22,8 +22,10 @@ export const AdminSideBarItems = [
     label: "Tickets",
     icon: FaTicketAlt,
     children: [
+      { label: "All Tickets", path: "/admin/tickets" },
       { label: "View Tickets", path: PATHS.ADMIN.MANAGE_TICKETS.path },
-      { label: "Create Ticket", path: `${PATHS.ADMIN.CREATE_TICKET.path}`},
+      { label: "Ticket Summary", path: "/admin/tickets/summary" },
+      { label: "Create Ticket", path: "/admin/tickets/create" },
     ],
   },
   {

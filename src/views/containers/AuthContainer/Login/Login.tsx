@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import React, { useState } from "react";
 import { MdOutlinePerson, MdOutlineLock } from 'react-icons/md';
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AuthService } from "../../../../services/auth/AuthService";
 
 const Login: React.FC = () => {
@@ -23,17 +23,20 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // Use your existing fetch logic for authentication
-      const response = await fetch(`http://localhost:3001/users?username=${username}&password=${password}`);
-      const data = await response.json();
+      // Fetch all users and find matching credentials
+      const response = await fetch(`http://localhost:3001/users`);
+      const users = await response.json();
 
-      if (data.length > 0) {
-        const user = data[0];
-        AuthService.login("mock-token-123", user.role);
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userRole', user.role);
-        localStorage.setItem('userId', user.id?.toString() || "");
+      // Find user with matching username and password
+      const user = users.find((u: any) =>
+        u.username === username.trim() && u.password === password.trim()
+      );
 
+      if (user && user.isActive) {
+        // Store authentication data
+        AuthService.login(user.id.toString(), user.role);
+
+        // Navigate based on role
         switch (user.role) {
           case "admin":
             navigate("/admin/dashboard", { replace: true });
@@ -47,11 +50,13 @@ const Login: React.FC = () => {
           default:
             navigate("/", { replace: true });
         }
+      } else if (user && !user.isActive) {
+        setError("Account is deactivated. Please contact administrator.");
       } else {
         setError("Invalid username or password");
       }
     } catch (error) {
-      setError("Invalid username or password");
+      setError("Unable to connect to server. Please try again.");
       console.error("Login error:", error);
     } finally {
       setLoading(false);

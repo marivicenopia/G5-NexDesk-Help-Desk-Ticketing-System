@@ -51,25 +51,36 @@ const Knowledgebase = () => {
   }, {});
 
   return (
-    <div className="p-8 min-h-screen bg-gradient-to-br from-white to-blue-50">
-      {/* Top Action Bar */}
-      <div className="flex justify-between items-center mb-8">
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 text-base font-medium text-gray-700 hover:text-black"
-        >
-          <MdAdd className="text-2xl" />
-          Add Article
-        </button>
-        <MdDelete
-          className="text-2xl text-gray-400 hover:text-red-600 cursor-pointer"
-          title="Go to Delete Article Page"
-          onClick={handleRedirectToDeletePage}
-        />
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#031849] mb-1">Knowledge Base</h1>
+            <p className="text-gray-600">Browse articles and documentation by category</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAdd}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <MdAdd className="w-4 h-4" />
+              Add Article
+            </button>
+            <button
+              onClick={handleRedirectToDeletePage}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              title="Manage Articles"
+            >
+              <MdDelete className="w-4 h-4" />
+              Manage
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Article Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Object.entries(grouped).map(([category, articles]) => {
           const styles = categoryStyles[category] || {
             bg: 'bg-gray-100',
@@ -78,47 +89,70 @@ const Knowledgebase = () => {
           };
 
           return (
-            <div key={category} className="bg-white p-6 rounded-xl shadow-md min-h-[270px]">
+            <div key={category} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               {/* Category Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`rounded-full p-3 ${styles.iconBg} text-white`}>
-                  <MdArticle className="text-xl" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`rounded-lg p-3 ${styles.iconBg} text-white`}>
+                  <MdArticle className="w-5 h-5" />
                 </div>
-                <h2 className={`text-lg font-bold ${styles.text}`}>{category}</h2>
+                <div>
+                  <h3 className={`text-lg font-semibold ${styles.text}`}>{category}</h3>
+                  <p className="text-sm text-gray-500">{articles.length} article{articles.length !== 1 ? 's' : ''}</p>
+                </div>
               </div>
 
               {/* Article List */}
-              <ul className="text-[15px] text-gray-800 space-y-2 pl-1">
+              <div className="space-y-3">
                 {articles.map((article) => (
-                  <li
+                  <div
                     key={article.id}
-                    className="flex justify-between items-center group hover:text-blue-600"
+                    className="flex justify-between items-center group p-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start gap-2">
-                      <MdArticle className="text-gray-500 mt-1" />
+                    <div className="flex items-start gap-3 flex-1">
+                      <MdArticle className="text-gray-400 mt-1 w-4 h-4 flex-shrink-0" />
                       <button
                         onClick={() =>
                           navigate(PATHS.ADMIN.VIEW_ARTICLE.path.replace(':id', article.id.toString()))
                         }
-                        className="text-left hover:underline"
+                        className="text-left text-sm text-gray-900 hover:text-blue-600 transition-colors font-medium line-clamp-2"
                       >
                         {article.title}
                       </button>
                     </div>
                     <button
                       onClick={() => handleEdit(article.id)}
-                      className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:text-blue-600"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-blue-600"
                       title="Edit Article"
                     >
-                      <MdEdit />
+                      <MdEdit className="w-4 h-4" />
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+                {articles.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">No articles in this category</p>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
+
+      {Object.keys(grouped).length === 0 && (
+        <div className="text-center py-12">
+          <MdArticle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
+          <p className="text-gray-600 mb-4">Start building your knowledge base by adding articles.</p>
+          <button
+            onClick={handleAdd}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
+          >
+            <MdAdd className="w-4 h-4" />
+            Add First Article
+          </button>
+        </div>
+      )}
     </div>
   );
 };

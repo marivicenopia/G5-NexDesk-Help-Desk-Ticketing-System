@@ -1,5 +1,5 @@
 
- 
+
 // export const PATHS = {
 
 //   MAIN: { path: "/", label: "Main" },
@@ -61,7 +61,9 @@ export const PATHS = {
     DASHBOARD: { path: '/admin/dashboard', label: 'Dashboard' },
     MANAGE_USERS: { path: '/admin/manage/users', label: 'Manage Users' },
     MANAGE_TICKETS: { path: '/admin/manage/tickets', label: 'Manage Tickets' },
+    TICKETS: { path: '/admin/tickets', label: 'Tickets' },
     CREATE_TICKET: { path: '/admin/create/ticket', label: 'Create Ticket' },
+    TICKET_SUMMARY: { path: '/admin/tickets/summary', label: 'Ticket Summary' },
     CREATE_USER: { path: '/admin/create/user', label: 'Create User' },
     SETTINGS: { path: '/admin/settings', label: 'Settings' },
     KNOWLEDGEBASE: { path: '/admin/knowledgebase', label: 'Knowledge Base' },
@@ -70,7 +72,6 @@ export const PATHS = {
     DELETE_ARTICLE: { path: '/admin/knowledgebase/delete', label: 'Delete Article' },
     VIEW_ARTICLE: { path: '/admin/knowledgebase/view/:id', label: 'View Article' },
     VIEW_FEEDBACK: { path: "/admin/feedback", label: "View Feedback" },
-
   },
 
   AGENT: {

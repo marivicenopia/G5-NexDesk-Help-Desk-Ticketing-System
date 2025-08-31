@@ -14,6 +14,7 @@ import DeleteArticle from '../views/containers/Knowledgebase/DeleteArticle';
 import ViewArticle from '../views/containers/Knowledgebase/ViewArticle';
 import ViewFeedback from '../views/containers/Feedback/Feedback';
 import CreateFeedback from '../views/containers/Feedback/CreateFeedback';
+import TicketSummary from '../views/containers/TicketSummary';
 
 export const AppRoutes = () => {
     return (
@@ -35,6 +36,9 @@ export const AppRoutes = () => {
                 <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
                     <Route element={<AdminLayout />}>
                         <Route path={PATHS.ADMIN.DASHBOARD.path} element={<Views.AdminDashboard />} />
+                        <Route path="/admin/tickets" element={<Views.TicketManagement />} />
+                        <Route path="/admin/tickets/create" element={<Views.CreateTicket />} />
+                        <Route path="/admin/tickets/summary" element={<TicketSummary />} />
                         <Route path={PATHS.ADMIN.MANAGE_TICKETS.path} element={<Views.ViewTickets />} />
                         <Route path={PATHS.ADMIN.MANAGE_USERS.path} element={<Views.UsersViewContainer />} />
                         <Route path={PATHS.ADMIN.CREATE_TICKET.path} element={<Views.CreateTicket />} />

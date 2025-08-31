@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import UserTable from '../../../../components/UserTable';
-import { userTableSchema as baseUserColumns } from '../../../../../config/tableSchema';
 import { UserService } from '../../../../../services/users/UserService';
 import type { User } from '../../../../../types/user';
-import { FiEdit, FiTrash2 } from 'react-icons/fi';
 
 const UsersViewContainer: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -14,11 +12,19 @@ const UsersViewContainer: React.FC = () => {
     let isMounted = true;
     const fetchUsers = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        console.log('Fetching users...');
         const response = await UserService.getAll();
-        if (isMounted) setUsers(response);
+        console.log('Users fetched:', response);
+        if (isMounted) {
+          setUsers(response || []);
+        }
       } catch (err) {
-        if (isMounted) setError('Failed to fetch users');
-        console.error(err);
+        console.error('Error fetching users:', err);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch users');
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -29,62 +35,50 @@ const UsersViewContainer: React.FC = () => {
     };
   }, []);
 
-  const handleEdit = (user: User) => {
-    // Example: open edit modal or navigate to edit page
-    alert(`Edit user: ${user.firstname} ${user.lastname}`);
-  };
-
-  const handleDelete = async (user: User) => {
-    if (window.confirm(`Are you sure you want to delete ${user.firstname} ${user.lastname}?`)) {
-      try {
-        await UserService.delete(String(user.id));
-        setUsers(prev => prev.filter(u => u.id !== user.id));
-      } catch (error) {
-        console.error('Delete failed', error);
-      }
-    }
-  };
-
-
-  const userColumns = [
-  ...baseUserColumns,
-  {
-    key: 'actions' as keyof User,
-    label: 'Actions',
-    render: (user: User) => (
-      <div className="flex space-x-4">
-        <button
-          onClick={() => handleEdit(user)}
-          className="text-blue-600 hover:text-blue-800"
-          aria-label="Edit User"
-        >
-          <FiEdit size={18} />
-        </button>
-        <button
-          onClick={() => handleDelete(user)}
-          className="text-red-600 hover:text-red-800"
-          aria-label="Delete User"
-        >
-          <FiTrash2 size={18} />
-        </button>
-      </div>
-    ),
-  },
-];
+  console.log('Current state:', { loading, error, usersCount: users.length });
 
   if (loading) {
-    return <div className="text-center p-4">Loading users...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-gray-600">Loading users...</div>
+          <div className="mt-2 text-sm text-gray-500">Please wait while we fetch the user data.</div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center text-red-500 p-4">{error}</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-2">Error Loading Users</div>
+          <div className="text-sm text-red-500">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="text-lg text-gray-600 mb-2">No Users Found</div>
+          <div className="text-sm text-gray-500">No users available in the system.</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex justify-center items-start w-full min-h-screen p-2">
-      <div className="max-w-8xl w-full bg-white/5">
-        <UserTable data={users} columns={userColumns} title="User Data" />
-      </div>
+    <div className="w-full">
+      <UserTable data={users} columns={[]} />
     </div>
   );
 };

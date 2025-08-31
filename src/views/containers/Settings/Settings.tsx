@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { UserService } from "../../../services/users/UserService";
-import AdminSidebar from "../../components/SideBar/AdminSideBar"; // <-- Import the AdminSidebar
 
 const getSettingTitle = (pathname: string) => {
     if (pathname.endsWith("/general")) return "General";
@@ -31,23 +29,6 @@ const Settings: React.FC = () => {
     const settingTitle = getSettingTitle(location.pathname);
     const settingSubtext = getSettingSubtext(location.pathname);
 
-    const [firstName, setFirstName] = useState<string>("");
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            const userId = localStorage.getItem("userId");
-            if (userId) {
-                try {
-                    const user = await UserService.getById(userId);
-                    if (user && user.firstname) setFirstName(user.firstname);
-                } catch (err) {
-                    setFirstName("");
-                }
-            }
-        };
-        fetchUser();
-    }, []);
-
     // Redirect to /general if at /settings or /settings/
     useEffect(() => {
         if (
@@ -59,67 +40,67 @@ const Settings: React.FC = () => {
     }, [location.pathname, navigate]);
 
     return (
-        <div className="flex min-h-screen">
-            <AdminSidebar />
-            <div className="flex-1 max-w-3xl mx-auto mt-5 p-0 bg-white rounded font-sans flex flex-col overflow-hidden">
-                {/* Header */}
-                <div className="px-8 pt-8 pb-4">
-                    <h1 className="text-4xl font-bold">
-                        {firstName}
-                        {settingTitle && (
-                            <span className="text-[#6E6D7A] font-normal text-3xl"> / {settingTitle}</span>
-                        )}
-                    </h1>
-                    {settingSubtext && (
-                        <p className="text-[#6E6D7A] text-xl mt-1">{settingSubtext}</p>
-                    )}
-                </div>
-                <div className="flex">
-                    {/* Left navigation */}
-                    <nav className="w-56 bg-white p-6 flex flex-col gap-2">
-                        <NavLink
-                            to="general"
-                            className={({ isActive }) =>
-                                `block px-3 py-2 rounded transition font-semibold text-lg ${
-                                    isActive
-                                        ? "text-[#0D0C22]"
-                                        : "text-[#6E6D7A] hover:bg-blue-100"
-                                }`
-                            }
-                            end
-                        >
-                            General
-                        </NavLink>
-                        <NavLink
-                            to="password"
-                            className={({ isActive }) =>
-                                `block px-3 py-2 rounded transition font-semibold text-lg ${
-                                    isActive
-                                        ? "text-[#0D0C22]"
-                                        : "text-[#6E6D7A] hover:bg-blue-100"
-                                }`
-                            }
-                        >
-                            Password
-                        </NavLink>
-                        <hr className="my-2 border-gray-300" />
-                        <NavLink
-                            to="delete"
-                            className={({ isActive }) =>
-                                `block px-3 py-2 rounded transition font-semibold text-lg ${
-                                    isActive
-                                        ? "text-[#0D0C22]"
-                                        : "text-[#54D4AB] hover:bg-red-100"
-                                }`
-                            }
-                        >
-                            Delete Account
-                        </NavLink>
-                    </nav>
-                    {/* Right content */}
-                    <div className="flex-1 p-8 transition-all duration-300">
-                        <h2 className="text-3xl font-bold mb-6">{settingTitle}</h2>
-                        <Outlet />
+        <div className="p-6 bg-gray-50 min-h-screen">
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-[#031849] mb-1">Settings</h1>
+                <p className="text-gray-600">Manage your account settings and preferences</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="flex">
+                        {/* Left navigation */}
+                        <nav className="w-64 bg-gray-50 border-r border-gray-200 p-6">
+                            <div className="space-y-1">
+                                <NavLink
+                                    to="general"
+                                    className={({ isActive }) =>
+                                        `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                            ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        }`
+                                    }
+                                    end
+                                >
+                                    General
+                                </NavLink>
+                                <NavLink
+                                    to="password"
+                                    className={({ isActive }) =>
+                                        `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                            ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                        }`
+                                    }
+                                >
+                                    Password
+                                </NavLink>
+                                <hr className="my-4 border-gray-300" />
+                                <NavLink
+                                    to="delete"
+                                    className={({ isActive }) =>
+                                        `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                            ? "bg-red-50 text-red-700 border-r-2 border-red-500"
+                                            : "text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        }`
+                                    }
+                                >
+                                    Delete Account
+                                </NavLink>
+                            </div>
+                        </nav>
+
+                        {/* Right content */}
+                        <div className="flex-1">
+                            <div className="p-6 border-b border-gray-200">
+                                <h2 className="text-xl font-semibold text-[#031849] mb-1">{settingTitle}</h2>
+                                <p className="text-gray-600">{settingSubtext}</p>
+                            </div>
+                            <div className="p-6">
+                                <Outlet />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
