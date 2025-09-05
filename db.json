@@ -30,7 +30,7 @@
       "lastname": "Garcia",
       "email": "benjie.g@example.com",
       "username": "benjieg",
-      "password": "user123",
+      "password": "user1234",
       "isActive": true,
       "role": "user",
       "department": "Marketing"
@@ -108,32 +108,27 @@
       "supportTeams": []
     },
     {
-      "id": "42cb",
-      "username": "fafawe",
-      "password": "asdas",
-      "firstname": "fqw",
-      "lastname": "asda",
-      "email": "qweqe@gmasda.com",
-      "isActive": true,
-      "role": "admin",
-      "department": "sadsad",
-      "supportTeams": [
-        "asdas"
-      ]
-    },
-    {
-      "id": "a5be",
-      "username": "abc",
-      "password": "abc",
+      "id": "1999",
+      "username": "mcea",
+      "password": "super123",
       "firstname": "Marivic",
       "lastname": "Enopia",
-      "email": "helo@gmail.com",
+      "email": "super.admin@nexdesk.com",
       "isActive": true,
-      "role": "admin",
+      "role": "superadmin",
+      "department": "IT Management"
+    },
+    {
+      "id": "1757049961388",
+      "username": "civiram.it",
+      "password": "marivic123",
+      "firstname": "Civiram",
+      "lastname": "Ainope",
+      "email": "civiram.it@itdept.nexdesk.com",
+      "isActive": true,
+      "role": "agent",
       "department": "IT",
-      "supportTeams": [
-        "Network"
-      ]
+      "supportTeams": []
     }
   ],
   "tickets": [
@@ -145,7 +140,8 @@
       "department": "IT Support",
       "submittedBy": "john.doe@example.com",
       "submittedDate": "2025-05-14T10:00:00Z",
-      "status": "open"
+      "status": "assigned",
+      "assignedTo": "ricardo.g@example.com"
     },
     {
       "id": "TKT-003",
@@ -188,7 +184,11 @@
       "submittedBy": "sarah.miller@example.com",
       "submittedDate": "2025-05-13T16:00:00Z",
       "status": "resolved",
-      "assignedTo": "agent.eve@example.com"
+      "assignedTo": "agent.eve@example.com",
+      "resolvedBy": "agent.eve@example.com",
+      "resolvedDate": "2025-05-13T17:30:00Z",
+      "resolutionDescription": "Successfully reset the user's password and unlocked the account. The new temporary password was sent to the user's registered email address. User confirmed they can now access their account without any issues.",
+      "agentFeedback": "The account lockout was due to multiple failed login attempts. Recommended user to use strong passwords and enable two-factor authentication for enhanced security. User was educated about password security best practices."
     },
     {
       "id": "TKT-007",
@@ -261,6 +261,91 @@
       "department": "IT Support",
       "submittedDate": "2025-05-23T22:04:22.172Z",
       "status": "open"
+    },
+    {
+      "id": "TKT-014",
+      "submittedDate": "2025-05-09T14:00:00Z",
+      "submittedBy": "sarah.miller@example.com",
+      "description": "User Sarah Miller's email configuration has been successfully updated and is now working properly.",
+      "status": "closed",
+      "assignedTo": "agent.support@example.com",
+      "title": "Email Configuration Fixed",
+      "priority": "high",
+      "department": "IT Support"
+    },
+    {
+      "id": "TKT-016",
+      "title": "HR System Access Request",
+      "description": "Employee needs access to HR system for viewing payroll information.",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "employee@example.com",
+      "submittedDate": "2025-05-20T09:00:00Z",
+      "status": "assigned",
+      "assignedTo": "analyn.b@example.com"
+    },
+    {
+      "id": "TKT-017",
+      "title": "Network Connectivity Issues",
+      "description": "Multiple workstations experiencing intermittent network disconnections.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "manager@example.com",
+      "submittedDate": "2025-05-20T10:30:00Z",
+      "status": "in progress",
+      "assignedTo": "ricardo.g@example.com"
+    },
+    {
+      "id": "TKT-018",
+      "title": "Employee Onboarding Setup",
+      "description": "New employee needs laptop setup and account creation.",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "hr.manager@example.com",
+      "submittedDate": "2025-05-20T11:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "2aa4",
+      "title": "HR - For Analyn",
+      "description": "Assign to Analyn - HR",
+      "priority": "Medium",
+      "category": "Technical Support",
+      "status": "Open",
+      "userId": 1,
+      "createdAt": "2025-08-31T14:54:27.962Z",
+      "updatedAt": "2025-08-31T14:54:27.962Z"
+    },
+    {
+      "id": "6bba",
+      "title": "Test 2",
+      "description": "asdaasdasd",
+      "priority": "Medium",
+      "category": "General",
+      "status": "Open",
+      "userId": 1,
+      "createdAt": "2025-08-31T15:01:53.779Z",
+      "updatedAt": "2025-08-31T15:01:53.779Z"
+    },
+    {
+      "id": "72c0",
+      "title": "Test for HR",
+      "description": "Hello Analyn",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-08-31T15:12:11.737Z",
+      "status": "open"
+    },
+    {
+      "id": "d472",
+      "title": "Printer not working",
+      "description": "The printer is on fire! Needed to be replaced immediately or I lose my job :((",
+      "priority": "urgent",
+      "department": "IT Support",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-05T05:23:29.696Z",
+      "status": "open"
     }
   ],
   "statistics": [
@@ -273,7 +358,7 @@
       "id": "177d"
     }
   ],
-    "feedback": [
+  "feedback": [
     {
       "id": "1",
       "name": "Liam Miller",
@@ -307,24 +392,45 @@
       "date": "2025-03-19"
     },
     {
-      "id": 1,
+      "id": "1",
       "name": "John Doe",
       "email": "john@example.com",
       "title": "Great Service!",
       "message": "Really loved the support.",
       "experience": "😊",
       "date": "2025-05-24"
+    },
+    {
+      "id": "b823",
+      "name": "Benjie Garcia",
+      "email": "benjie.g@example.com",
+      "title": "Test Benj",
+      "message": "I dont like it!",
+      "experience": "😡",
+      "date": "2025-08-31"
+    },
+    {
+      "id": "test1",
+      "title": "Excellent Support!",
+      "ticketId": null,
+      "name": "Benjie Garcia",
+      "date": "2025-05-24",
+      "message": "The support team was very helpful in resolving my account access issue. Everything works perfectly now!",
+      "experience": "??",
+      "email": "benjie.g@example.com"
+    },
+    {
+      "id": "mezsjjwl9wsyd11u7bl",
+      "name": "Benjie Garcia",
+      "email": "benjie.g@example.com",
+      "title": "Test Resolved TKT - 013",
+      "message": "Test Resolved TKT - 013",
+      "experience": "😡",
+      "date": "2025-08-31",
+      "ticketId": null
     }
   ],
-    "articles": [
-    {
-      "id": "1",
-      "category": "Introduction to I.T",
-      "title": "What is Information Technology?",
-      "author": "Olivia Brown",
-      "content": "Information Technology (IT) is the backbone of the modern digital world, encompassing the use of computers, networks, software, and systems to store, process, transmit, and secure data. IT is not just about fixing computers; it's a vast field that powers everything from global financial systems and healthcare databases to personal smartphones and smart home devices. At its core, IT solves problems and improves efficiency through technology.\n\nThe field of IT can be divided into several key areas:\n• Computer Hardware: The physical components like processors (CPUs), memory (RAM), storage drives (HDDs/SSDs), and peripherals (keyboards, printers).\n• Software: Programs and operating systems (like Windows, macOS, or Linux) that enable hardware to perform tasks.\n• Networking: The infrastructure that connects devices, allowing communication and data sharing (e.g., LANs, WANs, the internet).\n• Data Management: Storing, organizing, and retrieving information using databases and cloud systems.\n• Cybersecurity: Protecting systems and data from digital threats like hackers and malware.\n\nIT professionals work in diverse roles, from system administrators who maintain networks to software developers who create applications. The field is constantly evolving, with emerging areas like artificial intelligence (AI), blockchain, and the Internet of Things (IoT) creating new opportunities.",
-      "status": "Delayed"
-    },
+  "articles": [
     {
       "id": "2",
       "category": "Introduction to I.T",
@@ -550,19 +656,18 @@
       "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
     },
     {
-      "id": "30",
-      "category": "Networking",
-      "title": "Fixing common network issues",
-      "author": "Samantha Cruz",
-      "status": "Delayed",
-      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
-    },
-    {
       "id": "8867",
       "title": "sadsadsadsad",
       "category": "Introduction to I.T",
       "author": "Monico Wembanyama",
       "content": "dsadsadasd"
+    },
+    {
+      "id": "6380",
+      "title": "Big Data",
+      "category": "Introduction to I.T",
+      "author": "James",
+      "content": "Hello World"
     }
   ]
 }

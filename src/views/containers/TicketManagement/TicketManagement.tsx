@@ -48,12 +48,12 @@ const TicketManagement: React.FC = () => {
 
   const handleView = (ticket: Ticket) => {
     // Navigate to ticket detail view
-    alert(`View ticket #${ticket.id}: ${ticket.title}`);
+    navigate(`/admin/tickets/view/${ticket.id}`);
   };
 
-  const handleEdit = (ticket: Ticket) => {
-    // Navigate to edit ticket form
-    alert(`Edit ticket #${ticket.id}: ${ticket.title}`);
+  const handleAssign = (ticket: Ticket) => {
+    // Navigate to ticket assignment page with ticket context
+    navigate('/admin/tickets/assignment', { state: { ticketId: ticket.id } });
   };
 
   const handleDelete = async (ticket: Ticket) => {
@@ -116,7 +116,7 @@ const TicketManagement: React.FC = () => {
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#031849] mb-1">All Tickets</h1>
+            <h1 className="text-2xl font-bold text-[#031849] mb-1">Manage Tickets</h1>
             <p className="text-gray-600">Manage and track all support tickets</p>
           </div>
           <button
@@ -185,7 +185,7 @@ const TicketManagement: React.FC = () => {
         <TicketTable
           data={filteredTickets}
           onView={handleView}
-          onEdit={handleEdit}
+          onEdit={handleAssign}
           onDelete={handleDelete}
         />
       </div>

@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from "react";
 import type { Ticket } from "../../../types/ticket";
-import { FiEdit, FiTrash2, FiEye, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiTrash2, FiEye, FiChevronLeft, FiChevronRight, FiCheck, FiUserPlus } from "react-icons/fi";
 
 interface TicketTableProps {
     data: Ticket[];
     onEdit?: (ticket: Ticket) => void;
     onDelete?: (ticket: Ticket) => void;
     onView?: (ticket: Ticket) => void;
+    onResolve?: (ticket: Ticket) => void;
     itemsPerPage?: number;
+    showResolveAction?: boolean;
 }
 
 const TicketTable: React.FC<TicketTableProps> = ({
@@ -15,7 +17,9 @@ const TicketTable: React.FC<TicketTableProps> = ({
     onEdit,
     onDelete,
     onView,
-    itemsPerPage = 10
+    onResolve,
+    itemsPerPage = 10,
+    showResolveAction = false
 }) => {
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -179,10 +183,19 @@ const TicketTable: React.FC<TicketTableProps> = ({
                                             <button
                                                 onClick={() => onEdit?.(ticket)}
                                                 className="text-blue-600 hover:text-blue-800 p-1 rounded"
-                                                title="Edit Ticket"
+                                                title="Assign Ticket"
                                             >
-                                                <FiEdit size={16} />
+                                                <FiUserPlus size={16} />
                                             </button>
+                                            {showResolveAction && ticket.status !== 'resolved' && ticket.status !== 'closed' && (
+                                                <button
+                                                    onClick={() => onResolve?.(ticket)}
+                                                    className="text-purple-600 hover:text-purple-800 p-1 rounded"
+                                                    title="Resolve Ticket"
+                                                >
+                                                    <FiCheck size={16} />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => onDelete?.(ticket)}
                                                 className="text-red-600 hover:text-red-800 p-1 rounded"
@@ -228,8 +241,8 @@ const TicketTable: React.FC<TicketTableProps> = ({
                                         key={page}
                                         onClick={() => handlePageChange(page)}
                                         className={`px-3 py-1 rounded text-sm ${page === currentPage
-                                                ? 'bg-blue-600 text-white'
-                                                : 'border border-gray-300 text-gray-500 hover:bg-gray-50'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'border border-gray-300 text-gray-500 hover:bg-gray-50'
                                             }`}
                                     >
                                         {page}

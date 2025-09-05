@@ -36,9 +36,17 @@ const SettingsPassword: React.FC = () => {
             return;
         }
         try {
-            await UserService.update(user.id, { password: passwords.new });
+            // Merge current user data with new password to prevent data loss
+            const updatedUser = { ...user, password: passwords.new };
+            await UserService.update(user.id, updatedUser);
+            setUser(updatedUser); // Update local user state
             setSuccessMsg("Password updated!");
             setPasswords({ current: "", new: "", confirm: "" });
+
+            // Refresh the page after a short delay to update all components
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } catch {
             setPasswordError("Failed to update password.");
         }

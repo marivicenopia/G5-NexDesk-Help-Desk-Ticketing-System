@@ -68,6 +68,7 @@ export const ticketTableSchema: { key: keyof Ticket; label: string; render?: (ti
         medium: "bg-yellow-100 text-yellow-800",
         high: "bg-orange-100 text-orange-800",
         urgent: "bg-red-100 text-red-800",
+        critical: "bg-red-200 text-red-900",
       };
       return (
         <span className={`px-2 py-1 rounded text-xs font-semibold ${colorMap[ticket.priority] || "bg-gray-100 text-gray-800"}`}>

@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AuthService } from "../../../services/auth/AuthService";
 
 const getSettingTitle = (pathname: string) => {
     if (pathname.endsWith("/general")) return "General";
     if (pathname.endsWith("/password")) return "Password";
+    if (pathname.endsWith("/preferences")) return "Ticket Preferences";
     if (pathname.endsWith("/delete")) return "Delete Account";
     // Default to General if at /settings or /settings/
     if (pathname.endsWith("/settings") || pathname.endsWith("/settings/")) return "General";
@@ -17,6 +19,9 @@ const getSettingSubtext = (pathname: string) => {
     if (pathname.endsWith("/password")) {
         return "Change your password to keep your account secure.";
     }
+    if (pathname.endsWith("/preferences")) {
+        return "Configure your default ticket viewing and sorting preferences.";
+    }
     if (pathname.endsWith("/delete")) {
         return "Permanently delete your account and all associated data.";
     }
@@ -28,6 +33,7 @@ const Settings: React.FC = () => {
     const navigate = useNavigate();
     const settingTitle = getSettingTitle(location.pathname);
     const settingSubtext = getSettingSubtext(location.pathname);
+    const userRole = AuthService.getRole();
 
     // Redirect to /general if at /settings or /settings/
     useEffect(() => {
@@ -76,6 +82,20 @@ const Settings: React.FC = () => {
                                 >
                                     Password
                                 </NavLink>
+                                {/* Show preferences only for agents */}
+                                {userRole === 'agent' && (
+                                    <NavLink
+                                        to="preferences"
+                                        className={({ isActive }) =>
+                                            `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                                ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                            }`
+                                        }
+                                    >
+                                        Ticket Preferences
+                                    </NavLink>
+                                )}
                                 <hr className="my-4 border-gray-300" />
                                 <NavLink
                                     to="delete"

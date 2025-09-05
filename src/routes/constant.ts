@@ -77,20 +77,22 @@ export const PATHS = {
   AGENT: {
     DASHBOARD: { path: '/agent/dashboard', label: 'Dashboard' },
     MY_TICKETS: { path: '/agent/tickets', label: 'My Tickets' },
+    TICKET_ASSIGNMENT: { path: '/agent/tickets/assignment', label: 'Ticket Assignment' },
     SETTINGS: { path: '/agent/settings', label: 'Settings' },
     KNOWLEDGEBASE: { path: '/agent/knowledgebase', label: 'Knowledge Base' },
     ADD_ARTICLE: { path: '/agent/knowledgebase/add', label: 'Add Article' },
     EDIT_ARTICLE: { path: '/agent/knowledgebase/edit/:id', label: 'Edit Article' },
     DELETE_ARTICLE: { path: '/agent/knowledgebase/delete', label: 'Delete Article' },
     VIEW_ARTICLE: { path: '/agent/knowledgebase/view/:id', label: 'View Article' },
-    VIEW_FEEDBACK: { path: "/admin/feedback", label: "View Feedback" },
-
+    VIEW_FEEDBACK: { path: "/agent/feedback", label: "View Feedback" },
   },
 
   USER: {
     DASHBOARD: { path: '/user/dashboard', label: 'Dashboard' },
     MY_TICKETS: { path: '/user/tickets', label: 'My Tickets' },
     CREATE_TICKET: { path: '/user/create-ticket', label: 'Create Ticket' },
+    KNOWLEDGEBASE: { path: '/user/knowledgebase', label: 'Knowledge Base' },
+    VIEW_ARTICLE: { path: '/user/knowledgebase/view/:id', label: 'View Article' },
     SETTINGS: { path: '/user/settings', label: 'Settings' },
     CREATE_FEEDBACK: { path: '/user/feedback', label: 'Submit Feedback' },
   },

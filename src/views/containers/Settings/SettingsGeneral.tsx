@@ -31,20 +31,30 @@ const SettingsGeneral: React.FC = () => {
         setEditData({ ...editData, [e.target.name]: e.target.value });
     };
 
-const handleSaveGeneral = async () => {
-    if (!user) return;
-    try {
-        // Merge all user fields, only overwrite those in editData
-        const updatedUser = { ...user, ...editData };
-        await UserService.update(user.id, updatedUser);
-        setUser(updatedUser);
-        setSuccessMsg("Profile updated!");
-        setTimeout(() => setSuccessMsg(""), 2000);
-    } catch {
-        setSuccessMsg("Failed to update profile.");
-        setTimeout(() => setSuccessMsg(""), 2000);
-    }
-};
+    const handleSaveGeneral = async () => {
+        if (!user) return;
+        try {
+            // Merge all user fields, only overwrite those in editData
+            const updatedUser = { ...user, ...editData };
+            await UserService.update(user.id, updatedUser);
+            setUser(updatedUser);
+            setSuccessMsg("Profile updated!");
+            setTimeout(() => setSuccessMsg(""), 2000);
+
+            // Update AuthService with new email if it changed
+            if (editData.email !== user.email) {
+                localStorage.setItem('userEmail', editData.email);
+            }
+
+            // Refresh after a delay to update header/sidebar
+            setTimeout(() => {
+                window.location.reload();
+            }, 2100);
+        } catch {
+            setSuccessMsg("Failed to update profile.");
+            setTimeout(() => setSuccessMsg(""), 2000);
+        }
+    };
 
     if (!user) return <div>Loading...</div>;
 

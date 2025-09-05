@@ -31,7 +31,7 @@ export const UserService = {
 
   update: async (id: string, user: Partial<User>): Promise<User> => {
     const response = await fetch(`http://localhost:3001/users/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user),
     });

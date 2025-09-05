@@ -20,6 +20,11 @@ export interface Ticket {
     customerEmail?: string;
     contactNumber?: string;
     category?: string;
+    // Resolution fields
+    resolvedBy?: string;
+    resolvedDate?: string;
+    resolutionDescription?: string;
+    agentFeedback?: string;
 }
 
 // Ticket Summary specific interface

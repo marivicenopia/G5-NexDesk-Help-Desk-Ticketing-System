@@ -27,27 +27,38 @@ const Login: React.FC = () => {
       const response = await fetch(`http://localhost:3001/users`);
       const users = await response.json();
 
+      console.log("Available users:", users.map((u: any) => ({ username: u.username, role: u.role, isActive: u.isActive })));
+      console.log("Looking for:", { username: username.trim(), password: password.trim() });
+
       // Find user with matching username and password
       const user = users.find((u: any) =>
         u.username === username.trim() && u.password === password.trim()
       );
 
+      console.log("Found user:", user);
+
       if (user && user.isActive) {
+        console.log("User authenticated, navigating to:", user.role);
         // Store authentication data
-        AuthService.login(user.id.toString(), user.role);
+        AuthService.login(user.id.toString(), user.role, user.email, user.department);
 
         // Navigate based on role
         switch (user.role) {
           case "admin":
+          case "superadmin":
+            console.log("Navigating to admin dashboard");
             navigate("/admin/dashboard", { replace: true });
             break;
           case "agent":
+            console.log("Navigating to agent dashboard");
             navigate("/agent/dashboard", { replace: true });
             break;
           case "user":
+            console.log("Navigating to user dashboard");
             navigate("/user/dashboard", { replace: true });
             break;
           default:
+            console.log("Unknown role, navigating to home");
             navigate("/", { replace: true });
         }
       } else if (user && !user.isActive) {

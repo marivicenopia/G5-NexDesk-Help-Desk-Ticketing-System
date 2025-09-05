@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { MdSearch } from "react-icons/md";
 
 interface AdminHeaderProps {
   title?: string;
@@ -53,16 +52,6 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative">
-          <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
         {/* User Info */}
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">Welcome, {displayName}</span>

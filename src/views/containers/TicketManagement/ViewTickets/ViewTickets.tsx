@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiSearch } from 'react-icons/fi';
 import type { Ticket } from '../../../../types/ticket';
 import TicketTable from '../../../components/TicketTable';
+import ResolveTicketModal from '../../../components/ResolveTicketModal';
+import { AuthService } from '../../../../services/auth/AuthService';
+import { PreferencesService } from '../../../../services/preferences/PreferencesService';
 
 const ViewTickets: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -11,7 +14,24 @@ const ViewTickets: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
+    const [selectedTicketForResolve, setSelectedTicketForResolve] = useState<Ticket | null>(null);
+    const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const navigate = useNavigate();
+
+    // Load user preferences on component mount
+    useEffect(() => {
+        const userId = AuthService.getToken();
+        const userRole = AuthService.getRole();
+
+        // Load preferences for agents (admins can also benefit from this)
+        if (userId && (userRole === 'agent' || userRole === 'admin')) {
+            const preferences = PreferencesService.getPreferences(userId);
+            setStatusFilter(preferences.defaultStatus);
+            setPriorityFilter(preferences.defaultPriority);
+            setItemsPerPage(preferences.itemsPerPage);
+        }
+    }, []);
 
     useEffect(() => {
         fetchTickets();
@@ -25,7 +45,39 @@ const ViewTickets: React.FC = () => {
                 throw new Error('Failed to fetch tickets');
             }
             const data = await response.json();
-            setTickets(data);
+
+            // Filter tickets based on user role
+            const userRole = AuthService.getRole();
+            const userEmail = AuthService.getUserEmail();
+            const userDepartment = AuthService.getUserDepartment();
+
+            let filteredData = data;
+
+            // For agents, only show tickets assigned to them or in their department
+            if (userRole === 'agent' && userEmail) {
+                filteredData = data.filter((ticket: Ticket) => {
+                    // Show tickets assigned to this agent
+                    const isAssignedToAgent = ticket.assignedTo === userEmail;
+
+                    // Show tickets in the same department (with department mapping)
+                    const isDepartmentMatch = userDepartment &&
+                        (ticket.department === userDepartment ||
+                            // Map common department names
+                            (userDepartment === 'IT' && (
+                                ticket.department === 'IT Support' ||
+                                ticket.department === 'Software Support' ||
+                                ticket.department === 'Hardware Support' ||
+                                ticket.department === 'Network Operations' ||
+                                ticket.department === 'Email Support'
+                            )) ||
+                            (userDepartment === 'HR' && (
+                                ticket.department === 'Human Resources' ||
+                                ticket.department === 'Facility Management'
+                            )));
+
+                    return isAssignedToAgent || isDepartmentMatch;
+                });
+            } setTickets(filteredData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
         } finally {
@@ -75,6 +127,53 @@ const ViewTickets: React.FC = () => {
         } catch (err) {
             alert('Failed to delete ticket');
             console.error('Delete error:', err);
+        }
+    };
+
+    const handleResolve = (ticket: Ticket) => {
+        setSelectedTicketForResolve(ticket);
+        setIsResolveModalOpen(true);
+    };
+
+    const handleResolveConfirm = async (ticketId: string | number, resolutionData: {
+        resolutionDescription: string;
+        agentFeedback: string;
+        resolvedBy: string;
+        resolvedDate: string;
+    }) => {
+        try {
+            const ticketToUpdate = tickets.find(t => t.id === ticketId);
+            if (!ticketToUpdate) {
+                throw new Error('Ticket not found');
+            }
+
+            const updatedTicket: Ticket = {
+                ...ticketToUpdate,
+                status: 'resolved' as const,
+                ...resolutionData
+            };
+
+            const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedTicket)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to resolve ticket');
+            }
+
+            // Update the tickets list with the resolved ticket
+            setTickets(tickets.map(t =>
+                t.id === ticketId ? updatedTicket : t
+            ));
+
+            alert('Ticket resolved successfully!');
+        } catch (error) {
+            console.error('Error resolving ticket:', error);
+            throw error; // Re-throw to be handled by the modal
         }
     };
 
@@ -187,8 +286,19 @@ const ViewTickets: React.FC = () => {
                     onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onResolve={handleResolve}
+                    showResolveAction={true}
+                    itemsPerPage={itemsPerPage}
                 />
             </div>
+
+            {/* Resolve Ticket Modal */}
+            <ResolveTicketModal
+                ticket={selectedTicketForResolve}
+                isOpen={isResolveModalOpen}
+                onClose={() => setIsResolveModalOpen(false)}
+                onResolve={handleResolveConfirm}
+            />
         </div>
     );
 };
