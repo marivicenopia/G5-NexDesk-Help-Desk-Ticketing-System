@@ -16,7 +16,7 @@ const defaultUser: Omit<User, 'id'> = {
     lastname: '',
     email: '',
     isActive: true,
-    role: 'user',
+    role: 'staff',
     department: '',
     supportTeams: [],
 };
@@ -24,10 +24,10 @@ const defaultUser: Omit<User, 'id'> = {
 // Define roles based on user permissions
 const getAvailableRoles = (currentUserRole: string | null): RoleOption[] => {
     if (currentUserRole === 'superadmin') {
-        return ['user', 'agent', 'admin'];
+        return ['staff', 'agent', 'admin'];
     }
-    // Regular admins can only create users and agents
-    return ['user', 'agent'];
+    // Regular admins can only create staff and agents
+    return ['staff', 'agent'];
 };
 
 const CreateUser: React.FC = () => {
@@ -241,7 +241,7 @@ const CreateUser: React.FC = () => {
 
             {/* Add Department Modal */}
             {showAddDepartment && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white bg-opacity-10 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h3 className="text-lg font-semibold mb-4">Add New Department</h3>
                         <input

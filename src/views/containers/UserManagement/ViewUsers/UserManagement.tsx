@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from 'axios';
 import type { User } from '../../../../types/user';
 import { AuthService } from '../../../../services/auth/AuthService';
+import { Pagination } from '../../../components/Pagination';
+import { DeleteAccountModal } from '../../../components/DeleteAccountModal';
 
 const UserManagementContainer: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -14,16 +16,14 @@ const UserManagementContainer: React.FC = () => {
     const [selectedRole, setSelectedRole] = useState(searchParams.get('role') || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [selectedStatus, setSelectedStatus] = useState('all');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const usersPerPage = 10;
     const navigate = useNavigate();
 
     // Get current user's role for permission checking
     const currentUserRole = AuthService.getRole();
-
-    // Helper function to check if current user can modify admin users
-    const canModifyAdmin = () => {
-        return currentUserRole === 'superadmin';
-    };
 
     // Helper function to check if current user can modify a specific user
     const canModifyUser = (user: User) => {
@@ -74,22 +74,38 @@ const UserManagementContainer: React.FC = () => {
         navigate(`/admin/users/view/${user.id}`, { state: { currentUserRole } });
     };
 
-    const handleDelete = async (user: User) => {
-        if (!canModifyUser(user)) {
-            alert('You do not have permission to delete this user.');
+    const handleDelete = (user: User) => {
+        // Only superadmin can delete accounts
+        if (currentUserRole !== 'superadmin') {
+            alert('You do not have permission to delete user accounts.');
             return;
         }
 
-        if (window.confirm(`Are you sure you want to delete ${user.firstname} ${user.lastname}?`)) {
-            try {
-                await axios.delete(`http://localhost:3001/users/${user.id}`);
-                alert('User deleted successfully!');
-                fetchUsers(); // Refresh the list
-            } catch (error) {
-                console.error('Error deleting user:', error);
-                alert('Failed to delete user');
-            }
+        setUserToDelete(user);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            await axios.delete(`http://localhost:3001/users/${userToDelete.id}`);
+            alert('User account deleted successfully!');
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+            fetchUsers(); // Refresh the list
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Failed to delete user account');
+        } finally {
+            setDeleteLoading(false);
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setUserToDelete(null);
     };
 
     const handleAddUser = () => {
@@ -203,7 +219,7 @@ const UserManagementContainer: React.FC = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Roles</option>
-                            <option value="user">Users</option>
+                            <option value="staff">Staff</option>
                             <option value="agent">Agents</option>
                             <option value="admin">Admins</option>
                             <option value="superadmin">Super Admins</option>
@@ -337,12 +353,15 @@ const UserManagementContainer: React.FC = () => {
                                                     >
                                                         Edit
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDelete(user)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    {/* Only superadmin can delete accounts */}
+                                                    {currentUserRole === 'superadmin' && (
+                                                        <button
+                                                            onClick={() => handleDelete(user)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
                                                 </>
                                             )}
                                             {!canModifyUser(user) && (
@@ -358,55 +377,25 @@ const UserManagementContainer: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1 flex justify-between sm:hidden">
-                                <button
-                                    onClick={() => setCurrentPage(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                        Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                                        <span className="font-medium">{Math.min(startIndex + usersPerPage, filteredUsers.length)}</span> of{' '}
-                                        <span className="font-medium">{filteredUsers.length}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                                                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* Unified Pagination */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredUsers.length}
+                    itemsPerPage={usersPerPage}
+                    onPageChange={setCurrentPage}
+                    startIndex={startIndex}
+                />
             </div>
+
+            {/* Delete Account Modal */}
+            <DeleteAccountModal
+                isOpen={showDeleteModal}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                userFullName={userToDelete ? `${userToDelete.firstname} ${userToDelete.lastname}` : ''}
+                loading={deleteLoading}
+            />
         </div>
     );
 };

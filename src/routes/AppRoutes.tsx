@@ -24,7 +24,7 @@ import ViewUser from '../views/containers/UserManagement/ViewUser';
 import TicketAssignment from '../views/containers/TicketAssignment';
 import ViewTicketDetail from '../views/containers/TicketManagement/ViewTicketDetail';
 import TicketTracking from '../views/containers/TicketTracking';
-import NewTicketSummary from '../views/containers/NewTicketSummary';
+import { AgentDashboard } from '../views/containers/AgentContainer';
 
 export const AppRoutes = () => {
     return (
@@ -43,7 +43,7 @@ export const AppRoutes = () => {
                         <Route path="/admin/tickets/assignment" element={<TicketAssignment />} />
                         <Route path="/admin/tickets/tracking" element={<TicketTracking />} />
                         <Route path="/admin/tickets/summary" element={<TicketSummary />} />
-                        <Route path="/admin/tickets/analytics" element={<NewTicketSummary />} />
+                        <Route path="/admin/tickets/analytics" element={<Navigate to={PATHS.ADMIN.DASHBOARD.path} replace />} />
                         <Route path={PATHS.ADMIN.MANAGE_TICKETS.path} element={<Views.ViewTickets />} />
                         <Route path={PATHS.ADMIN.MANAGE_USERS.path} element={<Views.UsersViewContainer />} />
                         <Route path="/admin/users/edit/:userId" element={<EditUser />} />
@@ -70,7 +70,7 @@ export const AppRoutes = () => {
                 {/* Agent routes - Agent access with specific permissions */}
                 <Route element={<PrivateRoute allowedRoles={["agent"]} />}>
                     <Route element={<AgentLayout />}>
-                        <Route path={PATHS.AGENT.DASHBOARD.path} element={<Views.AdminDashboard />} />
+                        <Route path={PATHS.AGENT.DASHBOARD.path} element={<AgentDashboard />} />
                         <Route path={PATHS.AGENT.MY_TICKETS.path} element={<Views.ViewTickets />} />
                         <Route path="/agent/tickets/view/:ticketId" element={<ViewTicketDetail />} />
                         <Route path={PATHS.AGENT.TICKET_ASSIGNMENT.path} element={<TicketAssignment />} />
@@ -90,8 +90,8 @@ export const AppRoutes = () => {
                         {/* Add more agent routes as needed */}
                     </Route>
                 </Route>
-                {/* User routes - User access only */}
-                <Route element={<PrivateRoute allowedRoles={["user"]} />}>
+                {/* User routes - Staff access only */}
+                <Route element={<PrivateRoute allowedRoles={["staff"]} />}>
                     <Route element={<UserLayout />}>
                         <Route path={PATHS.USER.DASHBOARD.path} element={<Views.UserDashboard />} />
                         <Route path={PATHS.USER.MY_TICKETS.path} element={<Views.UserTicketManagement />} />
@@ -106,6 +106,7 @@ export const AppRoutes = () => {
                             <Route index element={<SettingsGeneral />} />
                             <Route path="general" element={<SettingsGeneral />} />
                             <Route path="password" element={<SettingsPassword />} />
+                            <Route path="preferences" element={<SettingsPreferences />} />
                             {/* Note: No delete route for regular users for security */}
                         </Route>
                         {/* Add more user routes as needed */}

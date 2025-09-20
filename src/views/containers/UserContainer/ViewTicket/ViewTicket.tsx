@@ -25,6 +25,10 @@ const ViewTicket: React.FC = () => {
     const [ticket, setTicket] = useState<Ticket | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isEditingStatus, setIsEditingStatus] = useState(false);
+    const [newStatus, setNewStatus] = useState('');
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchTicket = async () => {
@@ -52,6 +56,7 @@ const ViewTicket: React.FC = () => {
                 }
 
                 setTicket(ticketData);
+                setNewStatus(ticketData.status);
             } catch (error) {
                 console.error('Error fetching ticket:', error);
                 setError('Failed to load ticket. Please try again.');
@@ -96,6 +101,42 @@ const ViewTicket: React.FC = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const handleStatusUpdate = async () => {
+        if (!ticket || newStatus === ticket.status) {
+            setIsEditingStatus(false);
+            return;
+        }
+
+        try {
+            setUpdateLoading(true);
+            const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, {
+                ...ticket,
+                status: newStatus,
+                lastUpdated: new Date().toISOString()
+            });
+            setTicket(response.data);
+            setIsEditingStatus(false);
+            setSuccessMessage('Ticket status updated successfully');
+            setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+            console.error('Error updating ticket status:', err);
+            setError('Failed to update ticket status');
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const canUpdateStatus = () => {
+        // Users can only close their own open tickets
+        return ticket?.status === 'open' || ticket?.status === 'assigned';
+    };
+
+    const formatForDisplay = (text: string) => {
+        return text.split(' ').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
     };
 
     if (loading) {
@@ -144,6 +185,13 @@ const ViewTicket: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
+            {/* Success Message */}
+            {successMessage && (
+                <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                    {successMessage}
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
@@ -168,11 +216,61 @@ const ViewTicket: React.FC = () => {
                             <p className="text-blue-700">{ticket.title}</p>
                         </div>
                         <div className="flex space-x-2">
-                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(ticket.status)}`}>
-                                {ticket.status}
-                            </span>
+                            <div className="flex items-center space-x-2">
+                                {!isEditingStatus ? (
+                                    <>
+                                        <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(ticket.status)}`}>
+                                            {formatForDisplay(ticket.status)}
+                                        </span>
+                                        {canUpdateStatus() && (
+                                            <button
+                                                onClick={() => {
+                                                    setIsEditingStatus(true);
+                                                    setNewStatus(ticket.status);
+                                                }}
+                                                className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                                                title="Edit Status"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex items-center space-x-2">
+                                        <select
+                                            value={newStatus}
+                                            onChange={(e) => setNewStatus(e.target.value)}
+                                            className="px-2 py-1 text-sm border border-gray-300 rounded"
+                                            disabled={updateLoading}
+                                        >
+                                            <option value="open">Open</option>
+                                            <option value="in progress">In Progress</option>
+                                            <option value="resolved">Resolved</option>
+                                            <option value="closed">Closed</option>
+                                        </select>
+                                        <button
+                                            onClick={handleStatusUpdate}
+                                            disabled={updateLoading}
+                                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 text-sm rounded disabled:opacity-50"
+                                        >
+                                            {updateLoading ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsEditingStatus(false);
+                                                setNewStatus(ticket.status);
+                                            }}
+                                            className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 text-sm rounded"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                             <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getPriorityBadgeClass(ticket.priority)}`}>
-                                {ticket.priority}
+                                {formatForDisplay(ticket.priority)}
                             </span>
                         </div>
                     </div>

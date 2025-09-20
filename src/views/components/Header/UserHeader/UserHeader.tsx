@@ -7,9 +7,9 @@ interface UserHeaderProps {
 }
 
 const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
-    const [displayName, setDisplayName] = useState("User");
-    const [initials, setInitials] = useState("U");
-    const [departmentDisplay, setDepartmentDisplay] = useState("User");
+    const [displayName, setDisplayName] = useState("Staff");
+    const [initials, setInitials] = useState("S");
+    const [departmentDisplay, setDepartmentDisplay] = useState("Staff");
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -22,8 +22,8 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
                         const user: User = await response.json();
                         setDisplayName(`${user.firstname} ${user.lastname}`);
                         setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
-                        // Display department instead of role for users
-                        if (user.role === 'user' && user.department) {
+                        // Display department instead of role for staff
+                        if (user.role === 'staff' && user.department) {
                             setDepartmentDisplay(user.department);
                         } else {
                             setDepartmentDisplay(getRoleDisplayName(user.role));
@@ -37,8 +37,8 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
                         if (foundUser) {
                             setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
                             setInitials(`${foundUser.firstname[0] || ''}${foundUser.lastname[0] || ''}`.toUpperCase());
-                            // Display department instead of role for users
-                            if (foundUser.role === 'user' && foundUser.department) {
+                            // Display department instead of role for staff
+                            if (foundUser.role === 'staff' && foundUser.department) {
                                 setDepartmentDisplay(foundUser.department);
                             } else {
                                 setDepartmentDisplay(getRoleDisplayName(foundUser.role));

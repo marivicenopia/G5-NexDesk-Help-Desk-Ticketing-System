@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PATHS } from "../../../../routes/constant";
+import { Pagination } from '../../../components/Pagination';
 
 interface Article {
     id: string;
@@ -218,82 +219,15 @@ const UserKnowledgeBase: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-700">
-                                        Page {currentPage} of {totalPages}
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        {/* Previous Button */}
-                                        <button
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className={`px-3 py-2 text-sm rounded-lg border ${currentPage === 1
-                                                    ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            ← Previous
-                                        </button>
-
-                                        {/* Page Numbers */}
-                                        {Array.from({ length: totalPages }, (_, index) => {
-                                            const pageNumber = index + 1;
-                                            const isCurrentPage = pageNumber === currentPage;
-                                            const showPage =
-                                                pageNumber === 1 ||
-                                                pageNumber === totalPages ||
-                                                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1);
-
-                                            if (!showPage && pageNumber === currentPage - 2) {
-                                                return (
-                                                    <span key={`ellipsis-before-${pageNumber}`} className="px-2 text-gray-400">
-                                                        ...
-                                                    </span>
-                                                );
-                                            }
-
-                                            if (!showPage && pageNumber === currentPage + 2) {
-                                                return (
-                                                    <span key={`ellipsis-after-${pageNumber}`} className="px-2 text-gray-400">
-                                                        ...
-                                                    </span>
-                                                );
-                                            }
-
-                                            if (!showPage) return null;
-
-                                            return (
-                                                <button
-                                                    key={pageNumber}
-                                                    onClick={() => handlePageChange(pageNumber)}
-                                                    className={`px-3 py-2 text-sm rounded-lg border ${isCurrentPage
-                                                            ? 'bg-blue-600 text-white border-blue-600'
-                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    {pageNumber}
-                                                </button>
-                                            );
-                                        })}
-
-                                        {/* Next Button */}
-                                        <button
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className={`px-3 py-2 text-sm rounded-lg border ${currentPage === totalPages
-                                                    ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            Next →
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        {/* Unified Pagination */}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={filteredArticles.length}
+                            itemsPerPage={articlesPerPage}
+                            onPageChange={handlePageChange}
+                            startIndex={indexOfFirstArticle}
+                        />
                     </div>
                 </div>
 

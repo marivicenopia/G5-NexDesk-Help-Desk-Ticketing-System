@@ -82,8 +82,8 @@ const Settings: React.FC = () => {
                                 >
                                     Password
                                 </NavLink>
-                                {/* Show preferences only for agents */}
-                                {userRole === 'agent' && (
+                                {/* Show preferences for agents and staff */}
+                                {(userRole === 'agent' || userRole === 'staff') && (
                                     <NavLink
                                         to="preferences"
                                         className={({ isActive }) =>
@@ -96,18 +96,23 @@ const Settings: React.FC = () => {
                                         Ticket Preferences
                                     </NavLink>
                                 )}
-                                <hr className="my-4 border-gray-300" />
-                                <NavLink
-                                    to="delete"
-                                    className={({ isActive }) =>
-                                        `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
-                                            ? "bg-red-50 text-red-700 border-r-2 border-red-500"
-                                            : "text-red-600 hover:bg-red-50 hover:text-red-700"
-                                        }`
-                                    }
-                                >
-                                    Delete Account
-                                </NavLink>
+                                {/* Show delete account only for superadmin */}
+                                {userRole === 'superadmin' && (
+                                    <>
+                                        <hr className="my-4 border-gray-300" />
+                                        <NavLink
+                                            to="delete"
+                                            className={({ isActive }) =>
+                                                `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                                    ? "bg-red-50 text-red-700 border-r-2 border-red-500"
+                                                    : "text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                }`
+                                            }
+                                        >
+                                            Delete Account
+                                        </NavLink>
+                                    </>
+                                )}
                             </div>
                         </nav>
 

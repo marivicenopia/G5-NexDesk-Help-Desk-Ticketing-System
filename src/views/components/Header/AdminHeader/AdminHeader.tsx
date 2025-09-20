@@ -6,8 +6,8 @@ interface AdminHeaderProps {
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName }) => {
-  const [displayName, setDisplayName] = useState(userName || "User");
-  const [initials, setInitials] = useState("U");
+  const [displayName, setDisplayName] = useState(userName || "Staff");
+  const [initials, setInitials] = useState("S");
 
   useEffect(() => {
     const fetchCurrentUser = async () => {

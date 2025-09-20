@@ -44,30 +44,33 @@ const SettingsDelete: React.FC = () => {
             </button>
 
             {showDeleteModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                     {/* Dimmed background */}
-                    <div className="absolute inset-0 bg-black opacity-40"></div>
+                    <div
+                        className="absolute inset-0 backdrop-blur-sm bg-white bg-opacity-10"
+                        onClick={() => setShowDeleteModal(false)}
+                    ></div>
                     {/* Modal */}
-                    <div className="relative bg-white w-96 h-96 p-10 rounded-[16px] shadow-lg z-10 flex flex-col items-center justify-center text-center">
-                        <img src={warningSign} alt="Warning" className="w-32 h-32 mb-4" />
-                        <h4 className="text-2xl font-bold mb-4">Confirm Account Deletion</h4>
-                        <p className="mb-6 text-lg">
+                    <div className="relative bg-white max-w-md w-full mx-auto p-6 rounded-lg shadow-xl z-10 flex flex-col items-center justify-center text-center">
+                        <img src={warningSign} alt="Warning" className="w-16 h-16 mb-4" />
+                        <h4 className="text-xl font-bold mb-3 text-gray-900">Confirm Account Deletion</h4>
+                        <p className="mb-6 text-sm text-gray-600 leading-relaxed">
                             Are you sure you want to delete your account?
                             <br />
                             This action cannot be undone.
                         </p>
-                        <div className="flex gap-4 mt-4">
+                        <div className="flex flex-col sm:flex-row gap-3 w-full">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="font-bold px-5 py-2 text-lg cursor-pointer"
-                                style={{ borderRadius: "15px", backgroundColor: "#EDEDED", color: "#0B1215" }}
+                                className="flex-1 font-medium px-4 py-2 text-sm cursor-pointer border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                style={{ color: "#0B1215" }}
                             >
-                                No, Keep it.
+                                No, Keep it
                             </button>
                             <button
                                 onClick={handleDeleteAccount}
-                                className="text-white font-bold px-5 py-2 hover:bg-red-700 text-lg cursor-pointer"
-                                style={{ borderRadius: "15px", backgroundColor: "#FF0000" }}
+                                className="flex-1 text-white font-medium px-4 py-2 hover:bg-red-700 text-sm cursor-pointer rounded-lg transition-colors"
+                                style={{ backgroundColor: "#FF0000" }}
                             >
                                 Yes, Delete
                             </button>

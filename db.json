@@ -18,11 +18,12 @@
       "email": "liza.c@example.com",
       "username": "lizac",
       "password": "staff123",
-      "isActive": false,
+      "isActive": true,
       "role": "staff",
       "supportTeams": [
         "Software Support"
-      ]
+      ],
+      "department": "Finance"
     },
     {
       "id": "1003",
@@ -32,7 +33,7 @@
       "username": "benjieg",
       "password": "user1234",
       "isActive": true,
-      "role": "user",
+      "role": "staff",
       "department": "Marketing"
     },
     {
@@ -45,19 +46,6 @@
       "isActive": true,
       "role": "admin",
       "department": "Finance"
-    },
-    {
-      "id": "1005",
-      "firstname": "Jun",
-      "lastname": "Dela Cruz",
-      "email": "jun.dc@example.com",
-      "username": "jundc",
-      "password": "staff123",
-      "isActive": false,
-      "role": "staff",
-      "supportTeams": [
-        "Hardware Repair"
-      ]
     },
     {
       "id": "1006",
@@ -96,18 +84,6 @@
       ]
     },
     {
-      "id": "2060",
-      "username": "",
-      "password": "",
-      "firstname": "",
-      "lastname": "",
-      "email": "",
-      "isActive": true,
-      "role": "user",
-      "department": "",
-      "supportTeams": []
-    },
-    {
       "id": "1999",
       "username": "mcea",
       "password": "super123",
@@ -125,6 +101,18 @@
       "firstname": "Civiram",
       "lastname": "Ainope",
       "email": "civiram.it@itdept.nexdesk.com",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT",
+      "supportTeams": []
+    },
+    {
+      "id": "1757126742282",
+      "username": "test2",
+      "password": "12345",
+      "firstname": "Test 2",
+      "lastname": "Test",
+      "email": "test2@gmail.com",
       "isActive": true,
       "role": "agent",
       "department": "IT",
@@ -345,7 +333,47 @@
       "department": "IT Support",
       "submittedBy": "benjie.g@example.com",
       "submittedDate": "2025-09-05T05:23:29.696Z",
+      "status": "assigned",
+      "resolutionDescription": "Test 1",
+      "agentFeedback": "Test 1",
+      "resolvedBy": "civiram.it@itdept.nexdesk.com",
+      "resolvedDate": "2025-09-06T03:08:13.488Z",
+      "assignedTo": "civiram.it@itdept.nexdesk.com"
+    },
+    {
+      "id": "f387",
+      "title": "Password Reset",
+      "description": "Test Password Reset",
+      "priority": "medium",
+      "department": "IT Support",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-13T06:41:20.751Z",
       "status": "open"
+    },
+    {
+      "id": "3e85",
+      "title": "Test - File Upload ",
+      "description": "Test for file uploading",
+      "priority": "medium",
+      "category": "Technical Issues",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-14T05:22:23.216Z",
+      "status": "open",
+      "attachments": [
+        {
+          "id": "temp_1757827343216_0",
+          "name": "HLD_Document.docx",
+          "size": 20201,
+          "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadDate": "2025-09-14T05:22:23.216Z",
+          "url": ""
+        }
+      ],
+      "customerContact": {
+        "name": "",
+        "email": "benjie.g@example.com",
+        "phone": ""
+      }
     }
   ],
   "statistics": [

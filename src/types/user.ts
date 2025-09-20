@@ -1,4 +1,4 @@
-export type RoleOption = 'user' | 'admin' | 'agent' | 'staff' | 'superadmin';
+export type RoleOption = 'staff' | 'admin' | 'agent' | 'superadmin';
 
 export interface User {
     id: string | number;

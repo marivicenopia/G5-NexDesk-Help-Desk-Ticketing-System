@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import type { User, RoleOption } from '../../../../types/user';
 import { AuthService } from '../../../../services/auth/AuthService';
+import warningSign from '../../../../assets/warning_sign.png';
 
 interface Department {
     id: string;
@@ -12,14 +13,14 @@ interface Department {
 // Define available roles based on current user permissions
 const getAvailableRoles = (currentUserRole: string | null, targetUserRole: string): RoleOption[] => {
     if (currentUserRole === 'superadmin') {
-        return ['user', 'agent', 'admin'];
+        return ['staff', 'agent', 'admin'];
     }
     // Regular admins cannot change admin/superadmin roles
     if (targetUserRole === 'admin' || targetUserRole === 'superadmin') {
         return [targetUserRole as RoleOption]; // Keep current role, no changes allowed
     }
-    // Regular admins can change user/agent roles
-    return ['user', 'agent'];
+    // Regular admins can change staff/agent roles
+    return ['staff', 'agent'];
 };
 
 const EditUser: React.FC = () => {
@@ -45,6 +46,10 @@ const EditUser: React.FC = () => {
     ]);
 
     const [formData, setFormData] = useState({
+        username: '',
+        firstname: '',
+        lastname: '',
+        email: '',
         role: '',
         department: '',
         isActive: true
@@ -70,6 +75,10 @@ const EditUser: React.FC = () => {
 
             setUser(userData);
             setFormData({
+                username: userData.username || '',
+                firstname: userData.firstname || '',
+                lastname: userData.lastname || '',
+                email: userData.email || '',
                 role: userData.role || '',
                 department: userData.department || '',
                 isActive: userData.isActive !== false
@@ -85,10 +94,17 @@ const EditUser: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
         const { name, value, type } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-        }));
+        if (type === 'checkbox') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: (e.target as HTMLInputElement).checked
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSave = async () => {
@@ -161,27 +177,63 @@ const EditUser: React.FC = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit User</h1>
 
-                {/* User Info (Read-only) */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                {/* User Info (Editable) */}
+                <div className="mb-6">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3">User Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Name</label>
-                            <p className="text-gray-900">{user.firstname} {user.lastname}</p>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input
+                                type="text"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter Username"
+                                required
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Username</label>
-                            <p className="text-gray-900">{user.username}</p>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter Email"
+                                required
+                            />
                         </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700">Email</label>
-                            <p className="text-gray-900">{user.email}</p>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                            <input
+                                type="text"
+                                name="firstname"
+                                value={formData.firstname}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter First Name"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                            <input
+                                type="text"
+                                name="lastname"
+                                value={formData.lastname}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter Last Name"
+                                required
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Editable Fields */}
-                <div className="space-y-6">
+                {/* Role and Department */}
+                <div className="space-y-6">{/* Space added for visual separation */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Role
@@ -271,7 +323,7 @@ const EditUser: React.FC = () => {
 
             {/* Password Change Modal */}
             {showPasswordModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white bg-opacity-10 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h3 className="text-lg font-semibold mb-4">Change Password</h3>
                         <input
@@ -301,24 +353,36 @@ const EditUser: React.FC = () => {
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                        <h3 className="text-lg font-semibold mb-4 text-red-600">Delete User</h3>
-                        <p className="text-gray-700 mb-4">
-                            Are you sure you want to delete this user? This action cannot be undone.
+                <div className="fixed inset-0 backdrop-blur-sm bg-white bg-opacity-10 flex items-center justify-center z-50 p-4">
+                    {/* Dimmed background */}
+                    <div
+                        className="absolute inset-0"
+                        onClick={() => setShowDeleteModal(false)}
+                    ></div>
+
+                    {/* Modal */}
+                    <div className="relative bg-white max-w-md w-full mx-auto p-6 rounded-lg shadow-xl z-10 flex flex-col items-center justify-center text-center">
+                        <img src={warningSign} alt="Warning" className="w-16 h-16 mb-4" />
+                        <h4 className="text-xl font-bold mb-3 text-gray-900">Confirm User Deletion</h4>
+                        <p className="mb-6 text-sm text-gray-600 leading-relaxed">
+                            Are you sure you want to delete <strong>{user.firstname} {user.lastname}</strong>'s account?
+                            <br />
+                            This action cannot be undone.
                         </p>
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex flex-col sm:flex-row gap-3 w-full">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300"
+                                className="flex-1 font-medium px-4 py-2 text-sm cursor-pointer border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                style={{ color: "#0B1215" }}
                             >
-                                Cancel
+                                No, Keep it
                             </button>
                             <button
                                 onClick={handleDeleteUser}
-                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                className="flex-1 text-white font-medium px-4 py-2 hover:bg-red-700 text-sm cursor-pointer rounded-lg transition-colors"
+                                style={{ backgroundColor: "#FF0000" }}
                             >
-                                Delete User
+                                Yes, Delete
                             </button>
                         </div>
                     </div>

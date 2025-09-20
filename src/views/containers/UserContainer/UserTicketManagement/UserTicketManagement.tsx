@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthService } from "../../../../services/auth/AuthService";
 import { PATHS } from "../../../../routes/constant";
+import { DeleteModal } from "../../../components/DeleteModal";
 
 interface Ticket {
     id: string;
@@ -10,7 +11,7 @@ interface Ticket {
     description: string;
     status: string;
     priority: string;
-    department: string;
+    category: string;
     submittedBy: string;
     submittedDate: string;
     assignedTo?: string;
@@ -24,8 +25,9 @@ const UserTicketManagement: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [priorityFilter, setPriorityFilter] = useState("all");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -63,10 +65,8 @@ const UserTicketManagement: React.FC = () => {
     const filteredTickets = tickets.filter(ticket => {
         const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === "all" || ticket.status.toLowerCase() === statusFilter.toLowerCase();
-        const matchesPriority = priorityFilter === "all" || ticket.priority.toLowerCase() === priorityFilter.toLowerCase();
 
-        return matchesSearch && matchesStatus && matchesPriority;
+        return matchesSearch;
     });
 
     const handleViewTicket = (ticketId: string) => {
@@ -77,20 +77,79 @@ const UserTicketManagement: React.FC = () => {
         navigate(`/user/tickets/edit/${ticketId}`);
     };
 
-    const handleDeleteTicket = async (ticket: Ticket) => {
-        if (!confirm(`Are you sure you want to delete ticket #${ticket.id}?`)) {
+    const handleDeleteTicket = (ticket: Ticket) => {
+        // Check if ticket can be deleted
+        const canDelete = canDeleteTicket(ticket);
+        if (!canDelete.allowed) {
+            alert(canDelete.reason);
             return;
         }
 
+        setTicketToDelete(ticket);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!ticketToDelete) return;
+
+        setDeleteLoading(true);
         try {
-            await axios.delete(`http://localhost:3001/tickets/${ticket.id}`);
+            await axios.delete(`http://localhost:3001/tickets/${ticketToDelete.id}`);
 
             // Remove the deleted ticket from the list
-            setTickets(tickets.filter(t => t.id !== ticket.id));
-            alert('Ticket deleted successfully');
+            setTickets(tickets.filter(t => t.id !== ticketToDelete.id));
+            setShowDeleteModal(false);
+            setTicketToDelete(null);
         } catch (error) {
             console.error('Error deleting ticket:', error);
             alert('Failed to delete ticket. Please try again.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    // Function to check if a ticket can be deleted
+    const canDeleteTicket = (ticket: Ticket): { allowed: boolean; reason?: string } => {
+        const deletableStatuses = ['resolved', 'closed'];
+
+        if (!deletableStatuses.includes(ticket.status.toLowerCase())) {
+            const statusMessage = {
+                'open': 'This ticket is still open and may require further assistance.',
+                'assigned': 'This ticket has been assigned to an agent and is being processed.',
+                'in progress': 'This ticket is currently being worked on by our support team.',
+                'on hold': 'This ticket is temporarily on hold and may resume processing.'
+            };
+
+            const defaultMessage = `This ticket is currently "${ticket.status}" and cannot be deleted.`;
+            const specificMessage = statusMessage[ticket.status.toLowerCase() as keyof typeof statusMessage] || defaultMessage;
+
+            return {
+                allowed: false,
+                reason: `${specificMessage} You can only delete tickets that are resolved or closed.`
+            };
+        }
+
+        return { allowed: true };
+    };
+
+    // Function to get the appropriate action button text and styling
+    const getDeleteButtonProps = (ticket: Ticket) => {
+        const canDelete = canDeleteTicket(ticket);
+
+        if (canDelete.allowed) {
+            return {
+                enabled: true,
+                className: "text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1 rounded border border-red-600 hover:bg-red-50 transition-colors",
+                title: "Delete this resolved/closed ticket permanently",
+                text: "Delete"
+            };
+        } else {
+            return {
+                enabled: false,
+                className: "text-gray-400 font-medium text-sm px-3 py-1 rounded border border-gray-300 bg-gray-50 cursor-not-allowed",
+                title: canDelete.reason,
+                text: "Delete"
+            };
         }
     };
 
@@ -149,57 +208,39 @@ const UserTicketManagement: React.FC = () => {
                 </Link>
             </div>
 
-            {/* Filters */}
+            {/* Information Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                    <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">
+                            Ticket Deletion Policy
+                        </h3>
+                        <div className="mt-1 text-sm text-blue-700">
+                            <p>You can only delete tickets that have been <strong>resolved</strong> or <strong>closed</strong>. Active tickets cannot be deleted to maintain support continuity.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Search */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                            Search Tickets
-                        </label>
-                        <input
-                            id="search"
-                            type="text"
-                            placeholder="Search by title or description..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                            Status
-                        </label>
-                        <select
-                            id="status"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="open">Open</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="in progress">In Progress</option>
-                            <option value="on hold">On Hold</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
-                            Priority
-                        </label>
-                        <select
-                            id="priority"
-                            value={priorityFilter}
-                            onChange={(e) => setPriorityFilter(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="all">All Priorities</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
+                <div className="max-w-md">
+                    <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                        Search Tickets
+                    </label>
+                    <input
+                        id="search"
+                        type="text"
+                        placeholder="Search by title or description..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                 </div>
             </div>
 
@@ -226,7 +267,7 @@ const UserTicketManagement: React.FC = () => {
                                         <div className="flex items-center text-sm text-gray-500 space-x-4">
                                             <span>Created: {formatDate(ticket.submittedDate)}</span>
                                             <span>•</span>
-                                            <span>Department: {ticket.department}</span>
+                                            <span>Category: {ticket.category}</span>
                                         </div>
                                     </div>
                                     <div className="ml-6 flex-shrink-0">
@@ -243,12 +284,19 @@ const UserTicketManagement: React.FC = () => {
                                             >
                                                 Edit
                                             </button>
-                                            <button
-                                                onClick={() => handleDeleteTicket(ticket)}
-                                                className="text-red-600 hover:text-red-800 font-medium text-sm px-3 py-1 rounded border border-red-600 hover:bg-red-50 transition-colors"
-                                            >
-                                                Delete
-                                            </button>
+                                            {(() => {
+                                                const deleteProps = getDeleteButtonProps(ticket);
+                                                return (
+                                                    <button
+                                                        onClick={deleteProps.enabled ? () => handleDeleteTicket(ticket) : undefined}
+                                                        disabled={!deleteProps.enabled}
+                                                        className={deleteProps.className}
+                                                        title={deleteProps.title}
+                                                    >
+                                                        {deleteProps.text}
+                                                    </button>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -262,12 +310,12 @@ const UserTicketManagement: React.FC = () => {
                         </svg>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">No tickets found</h3>
                         <p className="text-gray-600 mb-4">
-                            {searchTerm || statusFilter !== "all" || priorityFilter !== "all"
-                                ? "Try adjusting your filters to find tickets."
+                            {searchTerm
+                                ? "Try adjusting your search to find tickets."
                                 : "You haven't created any tickets yet."
                             }
                         </p>
-                        {!searchTerm && statusFilter === "all" && priorityFilter === "all" && (
+                        {!searchTerm && (
                             <Link
                                 to={PATHS.USER.CREATE_TICKET.path}
                                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -343,6 +391,20 @@ const UserTicketManagement: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Ticket Modal */}
+            <DeleteModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setTicketToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                title="Confirm Ticket Deletion"
+                message={`Are you sure you want to delete ticket #${ticketToDelete?.id}: ${ticketToDelete?.title}?`}
+                confirmText="Yes, Delete Ticket"
+                loading={deleteLoading}
+            />
         </div>
     );
 };

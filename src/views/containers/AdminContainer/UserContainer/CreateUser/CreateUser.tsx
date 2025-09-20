@@ -9,12 +9,12 @@ const defaultUser: Omit<User, 'id'> = {
     lastname: '',
     email: '',
     isActive: true,
-    role: 'user',
+    role: 'staff',
     department: '',
     supportTeams: [],
 };
 
-const roles: RoleOption[] = ['user', 'admin', 'agent', 'staff'];
+const roles: RoleOption[] = ['staff', 'admin', 'agent'];
 
 const CreateUser: React.FC = () => {
     const [formData, setFormData] = useState<Omit<User, 'id'>>(defaultUser);

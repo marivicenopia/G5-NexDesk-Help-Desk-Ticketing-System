@@ -53,8 +53,8 @@ const Login: React.FC = () => {
             console.log("Navigating to agent dashboard");
             navigate("/agent/dashboard", { replace: true });
             break;
-          case "user":
-            console.log("Navigating to user dashboard");
+          case "staff":
+            console.log("Navigating to staff dashboard");
             navigate("/user/dashboard", { replace: true });
             break;
           default:

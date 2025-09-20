@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Pagination from '../../../views/components/Pagination/Pagination';
 
 interface Ticket {
     id: string;
@@ -34,6 +35,10 @@ const TicketAssignment: React.FC = () => {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     useEffect(() => {
         fetchData();
@@ -114,6 +119,21 @@ const TicketAssignment: React.FC = () => {
         return matchesSearch && matchesStatus;
     });
 
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, itemsPerPage]);
+
     const getStatusBadgeClass = (status: string) => {
         const statusClasses: { [key: string]: string } = {
             "open": "bg-green-100 text-green-800",
@@ -180,8 +200,29 @@ const TicketAssignment: React.FC = () => {
                             <option value="closed">Closed</option>
                         </select>
                     </div>
+                    <div>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value={5}>5 per page</option>
+                            <option value={10}>10 per page</option>
+                            <option value={20}>20 per page</option>
+                            <option value={50}>50 per page</option>
+                        </select>
+                    </div>
                 </div>
             </div>
+
+            {/* Results Summary */}
+            {!loading && (
+                <div className="mb-4 text-sm text-gray-600">
+                    Showing {startIndex + 1}-{Math.min(endIndex, filteredTickets.length)} of {filteredTickets.length} tickets
+                    {searchTerm && ` matching "${searchTerm}"`}
+                    {statusFilter !== 'all' && ` with status "${statusFilter}"`}
+                </div>
+            )}
 
             {/* Tickets Table */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -210,55 +251,77 @@ const TicketAssignment: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredTickets.map((ticket) => (
-                                <tr key={ticket.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div>
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {ticket.title}
+                            {paginatedTickets.length > 0 ? (
+                                paginatedTickets.map((ticket) => (
+                                    <tr key={ticket.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {ticket.title}
+                                                </div>
+                                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                                    {ticket.description}
+                                                </div>
+                                                <div className="text-xs text-gray-400">
+                                                    ID: {ticket.id}
+                                                </div>
                                             </div>
-                                            <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                {ticket.description}
-                                            </div>
-                                            <div className="text-xs text-gray-400">
-                                                ID: {ticket.id}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {ticket.submittedBy}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityBadgeClass(ticket.priority)}`}>
-                                            {ticket.priority}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(ticket.status)}`}>
-                                            {ticket.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {ticket.assignedTo || 'Unassigned'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button
-                                            onClick={() => handleAssignTicket(ticket.id)}
-                                            className="text-blue-600 hover:text-blue-900"
-                                        >
-                                            {ticket.assignedTo ? 'Reassign' : 'Assign'}
-                                        </button>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {ticket.submittedBy}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityBadgeClass(ticket.priority)}`}>
+                                                {ticket.priority}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(ticket.status)}`}>
+                                                {ticket.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {ticket.assignedTo || 'Unassigned'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button
+                                                onClick={() => handleAssignTicket(ticket.id)}
+                                                className="text-blue-600 hover:text-blue-900"
+                                            >
+                                                {ticket.assignedTo ? 'Reassign' : 'Assign'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                                        {filteredTickets.length === 0 ? 'No tickets found matching your criteria.' : 'No tickets to display.'}
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {paginatedTickets.length > 0 && (
+                    <div className="px-6 py-4 border-t border-gray-200">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={filteredTickets.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={handlePageChange}
+                            startIndex={startIndex}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Assignment Modal */}
             {showAssignModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white bg-opacity-10 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h3 className="text-lg font-semibold mb-4">Assign Ticket</h3>
 

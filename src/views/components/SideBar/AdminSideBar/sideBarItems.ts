@@ -14,7 +14,7 @@ export const AdminSideBarItems = [
       { label: "All Users", path: PATHS.ADMIN.MANAGE_USERS.path },
       { label: "Admins", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=admin` },
       { label: "Agents", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=agent` },
-      { label: "Users", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=user` },
+      { label: "Staff", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=staff` },
       { label: "Create User", path: `${PATHS.ADMIN.CREATE_USER.path}?role=admin` },
     ],
   },

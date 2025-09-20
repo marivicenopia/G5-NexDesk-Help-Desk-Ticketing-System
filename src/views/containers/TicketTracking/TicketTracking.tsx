@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiPlus, FiSearch, FiEye, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiEye, FiEdit, FiTrash2, FiUser, FiUserCheck } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import type { Ticket } from '../../../types/ticket';
+import type { User } from '../../../types/user';
+import { Pagination } from '../../components/Pagination';
+import { DeleteModal } from '../../components/DeleteModal';
+import { AuthService } from '../../../services/auth/AuthService';
 
 const TicketTracking: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [agents, setAgents] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -14,17 +19,30 @@ const TicketTracking: React.FC = () => {
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedPriority, setSelectedPriority] = useState('all');
     const [selectedDepartment, setSelectedDepartment] = useState('all');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedUser, setSelectedUser] = useState('all');
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [ticketToAssign, setTicketToAssign] = useState<Ticket | null>(null);
+    const [selectedAgent, setSelectedAgent] = useState('');
+    const [assignLoading, setAssignLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const ticketsPerPage = 10;
     const navigate = useNavigate();
 
+    // Get current user role for permissions
+    const currentUserRole = AuthService.getRole();
+
     useEffect(() => {
         fetchTickets();
+        fetchAgents();
     }, []);
 
     // Reset current page when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, selectedStatus, selectedPriority, selectedDepartment]);
+    }, [searchTerm, selectedStatus, selectedPriority, selectedDepartment, selectedCategory, selectedUser]);
 
     const fetchTickets = async () => {
         try {
@@ -40,6 +58,59 @@ const TicketTracking: React.FC = () => {
         }
     };
 
+    const fetchAgents = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/users');
+            const users = response.data || [];
+            // Filter for agents and admins who can be assigned tickets
+            const availableAgents = users.filter((user: User) =>
+                user.role === 'agent' || user.role === 'admin' || user.role === 'superadmin'
+            );
+            setAgents(availableAgents);
+        } catch (err) {
+            console.error('Error fetching agents:', err);
+        }
+    };
+
+    const handleAssign = (ticket: Ticket) => {
+        setTicketToAssign(ticket);
+        setSelectedAgent(ticket.assignedTo || '');
+        setShowAssignModal(true);
+    };
+
+    const confirmAssignment = async () => {
+        if (!ticketToAssign || !selectedAgent) return;
+
+        try {
+            setAssignLoading(true);
+            const agent = agents.find(a => a.id === selectedAgent);
+            const agentName = agent ? `${agent.firstname} ${agent.lastname}` : '';
+
+            await axios.put(`http://localhost:3001/tickets/${ticketToAssign.id}`, {
+                ...ticketToAssign,
+                assignedTo: agentName,
+                status: 'assigned'
+            });
+
+            alert('Ticket assigned successfully!');
+            setShowAssignModal(false);
+            setTicketToAssign(null);
+            setSelectedAgent('');
+            fetchTickets(); // Refresh the list
+        } catch (error) {
+            console.error('Error assigning ticket:', error);
+            alert('Failed to assign ticket');
+        } finally {
+            setAssignLoading(false);
+        }
+    };
+
+    const cancelAssignment = () => {
+        setShowAssignModal(false);
+        setTicketToAssign(null);
+        setSelectedAgent('');
+    };
+
     const handleView = (ticket: Ticket) => {
         navigate(`/admin/tickets/view/${ticket.id}`);
     };
@@ -49,21 +120,41 @@ const TicketTracking: React.FC = () => {
         alert(`Edit ticket #${ticket.id}: ${ticket.title}`);
     };
 
-    const handleDelete = async (ticket: Ticket) => {
-        if (window.confirm(`Are you sure you want to delete ticket #${ticket.id}?`)) {
-            try {
-                await axios.delete(`http://localhost:3001/tickets/${ticket.id}`);
-                alert('Ticket deleted successfully!');
-                fetchTickets(); // Refresh the list
-            } catch (error) {
-                console.error('Error deleting ticket:', error);
-                alert('Failed to delete ticket');
-            }
+    const handleDelete = (ticket: Ticket) => {
+        setTicketToDelete(ticket);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!ticketToDelete) return;
+
+        setDeleteLoading(true);
+        try {
+            await axios.delete(`http://localhost:3001/tickets/${ticketToDelete.id}`);
+            alert('Ticket deleted successfully!');
+            fetchTickets(); // Refresh the list
+            setShowDeleteModal(false);
+            setTicketToDelete(null);
+        } catch (error) {
+            console.error('Error deleting ticket:', error);
+            alert('Failed to delete ticket');
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
     const handleCreateTicket = () => {
         navigate('/admin/tickets/create');
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setSelectedStatus('all');
+        setSelectedPriority('all');
+        setSelectedDepartment('all');
+        setSelectedCategory('all');
+        setSelectedUser('all');
+        setCurrentPage(1);
     };
 
     // Get unique departments for filter dropdown
@@ -75,14 +166,27 @@ const TicketTracking: React.FC = () => {
             ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.submittedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            ticket.assignedTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             ticket.id?.toString().includes(searchTerm);
 
         const matchesStatus = selectedStatus === 'all' || ticket.status === selectedStatus;
         const matchesPriority = selectedPriority === 'all' || ticket.priority === selectedPriority;
         const matchesDepartment = selectedDepartment === 'all' || ticket.department === selectedDepartment;
+        const matchesCategory = selectedCategory === 'all' || ticket.category === selectedCategory;
+        const matchesUser = selectedUser === 'all' ||
+            ticket.submittedBy === selectedUser ||
+            ticket.assignedTo === selectedUser;
 
-        return matchesSearch && matchesStatus && matchesPriority && matchesDepartment;
+        return matchesSearch && matchesStatus && matchesPriority && matchesDepartment && matchesCategory && matchesUser;
     });
+
+    // Get unique categories from tickets
+    const uniqueCategories = [...new Set(tickets.filter(t => t.category).map(t => t.category))].sort();
+
+    // Get unique users from tickets (submitted by and assigned to)
+    const uniqueSubmitters = [...new Set(tickets.filter(t => t.submittedBy).map(t => t.submittedBy))];
+    const uniqueAssignees = [...new Set(tickets.filter(t => t.assignedTo).map(t => t.assignedTo))];
+    const uniqueUsers = [...new Set([...uniqueSubmitters, ...uniqueAssignees])].sort();
 
     // Paginate tickets
     const totalPages = Math.ceil(filteredTickets.length / ticketsPerPage);
@@ -164,7 +268,7 @@ const TicketTracking: React.FC = () => {
 
             {/* Filters */}
             <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                     {/* Search */}
                     <div className="lg:col-span-2">
                         <div className="relative">
@@ -225,6 +329,44 @@ const TicketTracking: React.FC = () => {
                             ))}
                         </select>
                     </div>
+
+                    {/* Category Filter */}
+                    <div>
+                        <select
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                        >
+                            <option value="all">All Categories</option>
+                            {uniqueCategories.map(category => (
+                                <option key={category} value={category}>{category}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* User Filter */}
+                    <div>
+                        <select
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={selectedUser}
+                            onChange={(e) => setSelectedUser(e.target.value)}
+                        >
+                            <option value="all">All Users</option>
+                            {uniqueUsers.map(user => (
+                                <option key={user} value={user}>{user}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={clearFilters}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                        Clear Filters
+                    </button>
                 </div>
             </div>
 
@@ -248,6 +390,9 @@ const TicketTracking: React.FC = () => {
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Submitted By
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Assigned To
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Date
@@ -293,6 +438,9 @@ const TicketTracking: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {ticket.submittedBy || 'N/A'}
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {ticket.assignedTo || 'Unassigned'}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {ticket.submittedDate ? new Date(ticket.submittedDate).toLocaleDateString() : 'N/A'}
                                     </td>
@@ -305,6 +453,16 @@ const TicketTracking: React.FC = () => {
                                             >
                                                 <FiEye size={16} />
                                             </button>
+                                            {/* Show assign/reassign based on current role and ticket status */}
+                                            {(currentUserRole === 'admin' || currentUserRole === 'superadmin') && (
+                                                <button
+                                                    onClick={() => handleAssign(ticket)}
+                                                    className="text-green-600 hover:text-green-900 p-1 rounded"
+                                                    title={ticket.assignedTo ? "Reassign Ticket" : "Assign Ticket"}
+                                                >
+                                                    {ticket.assignedTo ? <FiUserCheck size={16} /> : <FiUser size={16} />}
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleEdit(ticket)}
                                                 className="text-yellow-600 hover:text-yellow-900 p-1 rounded"
@@ -327,69 +485,65 @@ const TicketTracking: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                        <div className="flex-1 flex justify-between sm:hidden">
-                            <button
-                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                disabled={currentPage === 1}
-                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                {/* Unified Pagination */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredTickets.length}
+                    itemsPerPage={ticketsPerPage}
+                    onPageChange={setCurrentPage}
+                    startIndex={startIndex}
+                />
+            </div>
+
+            {/* Assignment Modal */}
+            {showAssignModal && ticketToAssign && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 backdrop-blur-sm bg-white bg-opacity-10" onClick={cancelAssignment}></div>
+                    <div className="relative bg-white w-96 p-6 rounded-lg shadow-lg z-10">
+                        <h3 className="text-lg font-semibold mb-4">
+                            {ticketToAssign.assignedTo ? 'Reassign Ticket' : 'Assign Ticket'}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Ticket #{ticketToAssign.id}: {ticketToAssign.title}
+                        </p>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Agent:
+                            </label>
+                            <select
+                                value={selectedAgent}
+                                onChange={(e) => setSelectedAgent(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={assignLoading}
                             >
-                                Previous
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                disabled={currentPage === totalPages}
-                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Next
-                            </button>
+                                <option value="">Select an agent...</option>
+                                {agents.map((agent) => (
+                                    <option key={agent.id} value={agent.id}>
+                                        {agent.firstname} {agent.lastname} ({agent.role})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                                    <span className="font-medium">
-                                        {Math.min(startIndex + ticketsPerPage, filteredTickets.length)}
-                                    </span>{' '}
-                                    of <span className="font-medium">{filteredTickets.length}</span> results
-                                </p>
-                            </div>
-                            <div>
-                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    <button
-                                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                        disabled={currentPage === 1}
-                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Previous
-                                    </button>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                                                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Next
-                                    </button>
-                                </nav>
-                            </div>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={cancelAssignment}
+                                disabled={assignLoading}
+                                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmAssignment}
+                                disabled={assignLoading || !selectedAgent}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {assignLoading ? 'Assigning...' : 'Assign'}
+                            </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Empty State */}
             {filteredTickets.length === 0 && !loading && (
@@ -412,6 +566,20 @@ const TicketTracking: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Delete Ticket Modal */}
+            <DeleteModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setTicketToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                title="Confirm Ticket Deletion"
+                message={`Are you sure you want to delete ticket #${ticketToDelete?.id}: ${ticketToDelete?.title}?`}
+                confirmText="Yes, Delete Ticket"
+                loading={deleteLoading}
+            />
         </div>
     );
 };

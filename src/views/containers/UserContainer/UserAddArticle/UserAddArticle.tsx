@@ -84,7 +84,7 @@ const UserAddArticle: React.FC = () => {
             const articleData = {
                 ...formData,
                 tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
-                author: "User", // In a real app, this would come from auth context
+                author: "Staff", // In a real app, this would come from auth context
                 views: 0,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()

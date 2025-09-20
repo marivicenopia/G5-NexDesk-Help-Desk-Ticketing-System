@@ -8,6 +8,7 @@ interface TicketTableProps {
     onDelete?: (ticket: Ticket) => void;
     onView?: (ticket: Ticket) => void;
     onResolve?: (ticket: Ticket) => void;
+    onAssign?: (ticket: Ticket) => void;
     itemsPerPage?: number;
     showResolveAction?: boolean;
 }
@@ -18,6 +19,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
     onDelete,
     onView,
     onResolve,
+    onAssign,
     itemsPerPage = 10,
     showResolveAction = false
 }) => {
@@ -181,7 +183,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
                                                 <FiEye size={16} />
                                             </button>
                                             <button
-                                                onClick={() => onEdit?.(ticket)}
+                                                onClick={() => onAssign?.(ticket)}
                                                 className="text-blue-600 hover:text-blue-800 p-1 rounded"
                                                 title="Assign Ticket"
                                             >

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiSearch } from 'react-icons/fi';
 import type { Ticket } from '../../../types/ticket';
 import TicketTable from '../../components/TicketTable';
+import { DeleteModal } from '../../components/DeleteModal';
 
 const TicketManagement: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -11,6 +12,11 @@ const TicketManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,13 +44,26 @@ const TicketManagement: React.FC = () => {
     const matchesSearch = ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.submittedBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
+      ticket.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.assignedTo?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
+    const matchesCategory = categoryFilter === 'all' || ticket.category === categoryFilter;
+    const matchesUser = userFilter === 'all' ||
+      ticket.submittedBy === userFilter ||
+      ticket.assignedTo === userFilter;
 
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesUser;
   });
+
+  // Get unique categories from tickets
+  const uniqueCategories = [...new Set(tickets.filter(t => t.category).map(t => t.category))].sort();
+
+  // Get unique users from tickets (submitted by and assigned to)
+  const uniqueSubmitters = [...new Set(tickets.filter(t => t.submittedBy).map(t => t.submittedBy))];
+  const uniqueAssignees = [...new Set(tickets.filter(t => t.assignedTo).map(t => t.assignedTo))];
+  const uniqueUsers = [...new Set([...uniqueSubmitters, ...uniqueAssignees])].sort();
 
   const handleView = (ticket: Ticket) => {
     // Navigate to ticket detail view
@@ -56,13 +75,17 @@ const TicketManagement: React.FC = () => {
     navigate('/admin/tickets/assignment', { state: { ticketId: ticket.id } });
   };
 
-  const handleDelete = async (ticket: Ticket) => {
-    if (!confirm(`Are you sure you want to delete ticket #${ticket.id}?`)) {
-      return;
-    }
+  const handleDelete = (ticket: Ticket) => {
+    setTicketToDelete(ticket);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!ticketToDelete) return;
+
+    setDeleteLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/tickets/${ticket.id}`, {
+      const response = await fetch(`http://localhost:3001/tickets/${ticketToDelete.id}`, {
         method: 'DELETE',
       });
 
@@ -70,11 +93,14 @@ const TicketManagement: React.FC = () => {
         throw new Error('Failed to delete ticket');
       }
 
-      setTickets(tickets.filter(t => t.id !== ticket.id));
-      alert('Ticket deleted successfully');
+      setTickets(tickets.filter(t => t.id !== ticketToDelete.id));
+      setShowDeleteModal(false);
+      setTicketToDelete(null);
     } catch (err) {
       alert('Failed to delete ticket');
       console.error('Delete error:', err);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -131,9 +157,9 @@ const TicketManagement: React.FC = () => {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative lg:col-span-2">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -173,10 +199,52 @@ const TicketManagement: React.FC = () => {
             <option value="critical">Critical</option>
           </select>
 
-          {/* Results Count */}
-          <div className="flex items-center text-sm text-gray-500">
+          {/* Category Filter */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">All Categories</option>
+            {uniqueCategories.map(category => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+
+          {/* User Filter */}
+          <select
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">All Users</option>
+            {uniqueUsers.map(user => (
+              <option key={user} value={user}>
+                {user}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Results Count */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-sm text-gray-500">
             Showing {filteredTickets.length} of {tickets.length} tickets
           </div>
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setPriorityFilter('all');
+              setCategoryFilter('all');
+              setUserFilter('all');
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
@@ -189,6 +257,20 @@ const TicketManagement: React.FC = () => {
           onDelete={handleDelete}
         />
       </div>
+
+      {/* Delete Ticket Modal */}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setTicketToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Confirm Ticket Deletion"
+        message={`Are you sure you want to delete ticket #${ticketToDelete?.id}: ${ticketToDelete?.title}?`}
+        confirmText="Yes, Delete Ticket"
+        loading={deleteLoading}
+      />
     </div>
   );
 };

@@ -10,6 +10,8 @@ const TicketManagement: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [userFilter, setUserFilter] = useState<string>('all');
 
     useEffect(() => {
         fetchTickets();
@@ -52,6 +54,14 @@ const TicketManagement: React.FC = () => {
         }
     };
 
+    const clearFilters = () => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setPriorityFilter('all');
+        setCategoryFilter('all');
+        setUserFilter('all');
+    };
+
     // Filter tickets based on search and filters
     const filteredTickets = tickets.filter(ticket => {
         const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,9 +70,21 @@ const TicketManagement: React.FC = () => {
 
         const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
         const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
+        const matchesCategory = categoryFilter === 'all' || ticket.category === categoryFilter;
+        const matchesUser = userFilter === 'all' ||
+            ticket.submittedBy === userFilter ||
+            ticket.assignedTo === userFilter;
 
-        return matchesSearch && matchesStatus && matchesPriority;
+        return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesUser;
     });
+
+    // Get unique categories from tickets
+    const uniqueCategories = [...new Set(tickets.filter(t => t.category).map(t => t.category))].sort();
+
+    // Get unique users from tickets (submitted by and assigned to)
+    const uniqueSubmitters = [...new Set(tickets.filter(t => t.submittedBy).map(t => t.submittedBy))];
+    const uniqueAssignees = [...new Set(tickets.filter(t => t.assignedTo).map(t => t.assignedTo))];
+    const uniqueUsers = [...new Set([...uniqueSubmitters, ...uniqueAssignees])].sort();
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -135,7 +157,7 @@ const TicketManagement: React.FC = () => {
 
             {/* Filters and Search */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                     {/* Search */}
                     <div className="relative">
                         <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -177,10 +199,44 @@ const TicketManagement: React.FC = () => {
                         <option value="critical">Critical</option>
                     </select>
 
+                    {/* Category Filter */}
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="all">All Categories</option>
+                        {uniqueCategories.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                        ))}
+                    </select>
+
+                    {/* User Filter */}
+                    <select
+                        value={userFilter}
+                        onChange={(e) => setUserFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="all">All Users</option>
+                        {uniqueUsers.map(user => (
+                            <option key={user} value={user}>{user}</option>
+                        ))}
+                    </select>
+
                     {/* Results Count */}
                     <div className="flex items-center text-sm text-gray-500">
                         Showing {filteredTickets.length} of {tickets.length} tickets
                     </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={clearFilters}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                        Clear Filters
+                    </button>
                 </div>
             </div>
 

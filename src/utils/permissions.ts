@@ -16,15 +16,15 @@ export const PERMISSIONS = {
 
     // Ticket Management
     TICKET_MANAGEMENT: {
-        CREATE: { roles: ['user'] as RoleOption[] },
-        EDIT_OWN: { roles: ['user'] as RoleOption[] },
-        DELETE_OWN: { roles: ['user'] as RoleOption[] },
-        VIEW_OWN: { roles: ['user'] as RoleOption[] },
+        CREATE: { roles: ['staff'] as RoleOption[] },
+        EDIT_OWN: { roles: ['staff'] as RoleOption[] },
+        DELETE_OWN: { roles: ['staff'] as RoleOption[] },
+        VIEW_OWN: { roles: ['staff'] as RoleOption[] },
         VIEW_ASSIGNED: { roles: ['agent'] as RoleOption[] },
         VIEW_ALL: { roles: ['admin', 'superadmin'] as RoleOption[] },
         ASSIGN: { roles: ['admin', 'agent'] as RoleOption[] },
         REASSIGN: { roles: ['admin', 'agent'] as RoleOption[] },
-        UPDATE_STATUS: { roles: ['user', 'agent'] as RoleOption[] },
+        UPDATE_STATUS: { roles: ['staff', 'agent'] as RoleOption[] },
         UPDATE_PRIORITY: { roles: ['agent', 'admin'] as RoleOption[] },
     },
 
@@ -35,7 +35,7 @@ export const PERMISSIONS = {
 
     // Settings & Preferences
     SETTINGS: {
-        PERSONAL_PREFERENCES: { roles: ['user', 'agent'] as RoleOption[] },
+        PERSONAL_PREFERENCES: { roles: ['staff', 'agent'] as RoleOption[] },
         SYSTEM_SETTINGS: { roles: ['admin', 'superadmin'] as RoleOption[] },
     },
 
@@ -49,12 +49,12 @@ export const PERMISSIONS = {
         CREATE_ARTICLE: { roles: ['agent', 'admin'] as RoleOption[] },
         EDIT_ARTICLE: { roles: ['agent', 'admin'] as RoleOption[] },
         DELETE_ARTICLE: { roles: ['admin'] as RoleOption[] }, // Only admin to avoid random removals
-        VIEW_ARTICLES: { roles: ['user', 'agent', 'admin', 'superadmin'] as RoleOption[] },
+        VIEW_ARTICLES: { roles: ['staff', 'agent', 'admin', 'superadmin'] as RoleOption[] },
     },
 
     // Customer Feedback
     FEEDBACK: {
-        SUBMIT: { roles: ['user'] as RoleOption[] },
+        SUBMIT: { roles: ['staff'] as RoleOption[] },
         VIEW: { roles: ['agent', 'admin', 'superadmin'] as RoleOption[] },
     },
 } as const;
@@ -72,10 +72,9 @@ export const hasPermission = (userRole: RoleOption | null, permission: Permissio
  */
 export const getRoleDisplayName = (role: RoleOption): string => {
     const roleLabels: Record<RoleOption, string> = {
-        'user': 'Standard User',
+        'staff': 'Staff Member',
         'admin': 'Administrator',
         'agent': 'Support Agent',
-        'staff': 'Staff Member',
         'superadmin': 'Super Administrator'
     };
     return roleLabels[role] || 'Unknown Role';

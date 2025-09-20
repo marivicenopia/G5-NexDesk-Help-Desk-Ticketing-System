@@ -4,6 +4,8 @@ import { FiPlus, FiSearch } from 'react-icons/fi';
 import type { Ticket } from '../../../../../types/ticket';
 import TicketTable from '../../../../components/TicketTable';
 import ResolveTicketModal from '../../../../components/ResolveTicketModal';
+import AssignTicketModal, { type AssignmentData } from '../../../../components/AssignTicketModal';
+import { DeleteModal } from '../../../../components/DeleteModal';
 import { AuthService } from '../../../../../services/auth/AuthService';
 import { PreferencesService } from '../../../../../services/preferences/PreferencesService';
 
@@ -14,9 +16,16 @@ const ViewTickets: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
   const [selectedTicketForResolve, setSelectedTicketForResolve] = useState<Ticket | null>(null);
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
+  const [selectedTicketForAssign, setSelectedTicketForAssign] = useState<Ticket | null>(null);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const navigate = useNavigate();
 
   // Load user preferences on component mount
@@ -24,8 +33,8 @@ const ViewTickets: React.FC = () => {
     const userId = AuthService.getToken();
     const userRole = AuthService.getRole();
 
-    // Only load preferences for agents
-    if (userId && userRole === 'agent') {
+    // Load preferences for staff and agents
+    if (userId && (userRole === 'staff' || userRole === 'agent')) {
       const preferences = PreferencesService.getPreferences(userId);
       setStatusFilter(preferences.defaultStatus);
       setPriorityFilter(preferences.defaultPriority);
@@ -94,9 +103,75 @@ const ViewTickets: React.FC = () => {
 
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
+    const matchesCategory = categoryFilter === 'all' || ticket.category === categoryFilter;
+    const matchesUser = userFilter === 'all' ||
+      ticket.submittedBy === userFilter ||
+      ticket.assignedTo === userFilter;
 
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesUser;
   });
+
+  // Apply user's preferred sorting
+  const sortedTickets = React.useMemo(() => {
+    const userId = AuthService.getToken();
+    const userRole = AuthService.getRole();
+
+    if (userId && (userRole === 'staff' || userRole === 'agent')) {
+      const preferences = PreferencesService.getPreferences(userId);
+      const sortBy = preferences.defaultSortBy;
+      const sortOrder = preferences.defaultSortOrder;
+
+      return [...filteredTickets].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortBy) {
+          case 'priority':
+            const priorityOrder = { 'critical': 4, 'urgent': 3, 'high': 2, 'medium': 1, 'low': 0 };
+            aValue = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+            bValue = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+            break;
+          case 'status':
+            aValue = a.status || '';
+            bValue = b.status || '';
+            break;
+          case 'submittedDate':
+            aValue = new Date(a.submittedDate || 0).getTime();
+            bValue = new Date(b.submittedDate || 0).getTime();
+            break;
+          case 'title':
+            aValue = a.title || '';
+            bValue = b.title || '';
+            break;
+          case 'department':
+            aValue = a.department || '';
+            bValue = b.department || '';
+            break;
+          default:
+            aValue = a.submittedDate || '';
+            bValue = b.submittedDate || '';
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortOrder === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      });
+    }
+
+    return filteredTickets;
+  }, [filteredTickets, statusFilter, priorityFilter]);
+
+  // Get unique categories from tickets
+  const uniqueCategories = [...new Set(tickets.filter(t => t.category).map(t => t.category))].sort();
+
+  // Get unique users from tickets (submitted by and assigned to)
+  const uniqueSubmitters = [...new Set(tickets.filter(t => t.submittedBy).map(t => t.submittedBy))];
+  const uniqueAssignees = [...new Set(tickets.filter(t => t.assignedTo).map(t => t.assignedTo))];
+  const uniqueUsers = [...new Set([...uniqueSubmitters, ...uniqueAssignees])].sort();
 
   const handleView = (ticket: Ticket) => {
     // Navigate to ticket detail view
@@ -108,13 +183,17 @@ const ViewTickets: React.FC = () => {
     alert(`Edit ticket #${ticket.id}: ${ticket.title}`);
   };
 
-  const handleDelete = async (ticket: Ticket) => {
-    if (!confirm(`Are you sure you want to delete ticket #${ticket.id}?`)) {
-      return;
-    }
+  const handleDelete = (ticket: Ticket) => {
+    setTicketToDelete(ticket);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!ticketToDelete) return;
+
+    setDeleteLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/tickets/${ticket.id}`, {
+      const response = await fetch(`http://localhost:3001/tickets/${ticketToDelete.id}`, {
         method: 'DELETE',
       });
 
@@ -122,11 +201,14 @@ const ViewTickets: React.FC = () => {
         throw new Error('Failed to delete ticket');
       }
 
-      setTickets(tickets.filter(t => t.id !== ticket.id));
-      alert('Ticket deleted successfully');
+      setTickets(tickets.filter(t => t.id !== ticketToDelete.id));
+      setShowDeleteModal(false);
+      setTicketToDelete(null);
     } catch (err) {
       alert('Failed to delete ticket');
       console.error('Delete error:', err);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -177,8 +259,64 @@ const ViewTickets: React.FC = () => {
     }
   };
 
+  const handleAssign = (ticket: Ticket) => {
+    console.log('Assignment button clicked for ticket:', ticket);
+    setSelectedTicketForAssign(ticket);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignConfirm = async (ticketId: string | number, assignmentData: AssignmentData) => {
+    try {
+      const ticketToUpdate = tickets.find(t => t.id === ticketId);
+      if (!ticketToUpdate) {
+        throw new Error('Ticket not found');
+      }
+
+      const updatedTicket: Ticket = {
+        ...ticketToUpdate,
+        assignedTo: assignmentData.assignedTo,
+        // Add assignment metadata if your ticket type supports it
+        // assignedBy: assignmentData.assignedBy,
+        // assignedDate: assignmentData.assignedDate,
+        // assignmentNotes: assignmentData.assignmentNotes
+      };
+
+      const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTicket)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to assign ticket');
+      }
+
+      // Update the tickets list with the assigned ticket
+      setTickets(tickets.map(t =>
+        t.id === ticketId ? updatedTicket : t
+      ));
+
+      setIsAssignModalOpen(false);
+      setSelectedTicketForAssign(null);
+      alert('Ticket assigned successfully!');
+    } catch (error) {
+      console.error('Error assigning ticket:', error);
+      throw error; // Re-throw to let the modal handle the error
+    }
+  };
+
   const handleAddTicket = () => {
     navigate('/admin/tickets/create');
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setCategoryFilter('all');
+    setUserFilter('all');
   };
 
   if (loading) {
@@ -230,7 +368,7 @@ const ViewTickets: React.FC = () => {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -272,21 +410,56 @@ const ViewTickets: React.FC = () => {
             <option value="critical">Critical</option>
           </select>
 
+          {/* Category Filter */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">All Categories</option>
+            {uniqueCategories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+
+          {/* User Filter */}
+          <select
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">All Users</option>
+            {uniqueUsers.map(user => (
+              <option key={user} value={user}>{user}</option>
+            ))}
+          </select>
+
           {/* Results Count */}
           <div className="flex items-center text-sm text-gray-500">
             Showing {filteredTickets.length} of {tickets.length} tickets
           </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
       {/* Tickets Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <TicketTable
-          data={filteredTickets}
+          data={sortedTickets}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onResolve={handleResolve}
+          onAssign={handleAssign}
           showResolveAction={true}
           itemsPerPage={itemsPerPage}
         />
@@ -298,6 +471,28 @@ const ViewTickets: React.FC = () => {
         isOpen={isResolveModalOpen}
         onClose={() => setIsResolveModalOpen(false)}
         onResolve={handleResolveConfirm}
+      />
+
+      {/* Assign Ticket Modal */}
+      <AssignTicketModal
+        ticket={selectedTicketForAssign}
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        onAssign={handleAssignConfirm}
+      />
+
+      {/* Delete Ticket Modal */}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setTicketToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Confirm Ticket Deletion"
+        message={`Are you sure you want to delete ticket #${ticketToDelete?.id}: ${ticketToDelete?.title}?`}
+        confirmText="Yes, Delete Ticket"
+        loading={deleteLoading}
       />
     </div>
   );

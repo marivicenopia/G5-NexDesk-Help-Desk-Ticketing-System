@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { FaArrowLeft, FaTicketAlt, FaUser, FaClock, FaExclamationTriangle, FaBuilding, FaUserCheck } from 'react-icons/fa';
+import { FaArrowLeft, FaTicketAlt, FaUser, FaClock, FaExclamationTriangle, FaBuilding, FaUserCheck, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import type { Ticket } from '../../../types/ticket';
 import { AuthService } from '../../../services/auth/AuthService';
 
@@ -11,9 +11,19 @@ const ViewTicketDetail: React.FC = () => {
     const [ticket, setTicket] = useState<Ticket | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isEditingStatus, setIsEditingStatus] = useState(false);
+    const [isEditingPriority, setIsEditingPriority] = useState(false);
+    const [newStatus, setNewStatus] = useState('');
+    const [newPriority, setNewPriority] = useState('');
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     // Get current user role for determining back navigation
     const currentUserRole = AuthService.getRole();
+
+    // Define status and priority options
+    const statusOptions = ['open', 'assigned', 'in progress', 'on hold', 'resolved', 'closed'];
+    const priorityOptions = ['low', 'medium', 'high', 'urgent', 'critical'];
 
     useEffect(() => {
         if (ticketId) {
@@ -27,12 +37,89 @@ const ViewTicketDetail: React.FC = () => {
             setError(null);
             const response = await axios.get(`http://localhost:3001/tickets/${ticketId}`);
             setTicket(response.data);
+            setNewStatus(response.data.status);
+            setNewPriority(response.data.priority);
         } catch (err) {
             console.error('Error fetching ticket details:', err);
             setError('Failed to load ticket details');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleStatusUpdate = async () => {
+        if (!ticket || newStatus === ticket.status) {
+            setIsEditingStatus(false);
+            return;
+        }
+
+        try {
+            setUpdateLoading(true);
+            const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, {
+                ...ticket,
+                status: newStatus,
+                lastUpdated: new Date().toISOString()
+            });
+            setTicket(response.data);
+            setIsEditingStatus(false);
+            setSuccessMessage('Ticket status updated successfully');
+            setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+            console.error('Error updating ticket status:', err);
+            setError('Failed to update ticket status');
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const handlePriorityUpdate = async () => {
+        if (!ticket || newPriority === ticket.priority) {
+            setIsEditingPriority(false);
+            return;
+        }
+
+        try {
+            setUpdateLoading(true);
+            const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, {
+                ...ticket,
+                priority: newPriority,
+                lastUpdated: new Date().toISOString()
+            });
+            setTicket(response.data);
+            setIsEditingPriority(false);
+            setSuccessMessage('Ticket priority updated successfully');
+            setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+            console.error('Error updating ticket priority:', err);
+            setError('Failed to update ticket priority');
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const canUpdateStatus = () => {
+        if (currentUserRole === 'admin' || currentUserRole === 'superadmin') return true;
+        if (currentUserRole === 'agent' && ticket?.assignedTo) return true;
+        if (currentUserRole === 'user' && ticket?.status === 'open') return true; // Users can only close their own tickets
+        return false;
+    };
+
+    const canUpdatePriority = () => {
+        return currentUserRole === 'admin' || currentUserRole === 'superadmin' || currentUserRole === 'agent';
+    };
+
+    const getAvailableStatusOptions = () => {
+        if (currentUserRole === 'user') {
+            // Users can only close their own tickets
+            return ['closed'];
+        }
+        return statusOptions;
+    };
+
+    const formatForDisplay = (text: string) => {
+        return text.split(' ').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
     };
 
     const handleAssignTicket = () => {
@@ -116,6 +203,13 @@ const ViewTicketDetail: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
+            {/* Success Message */}
+            {successMessage && (
+                <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                    {successMessage}
+                </div>
+            )}
+
             {/* Header */}
             <div className="mb-6">
                 <button
@@ -142,10 +236,10 @@ const ViewTicketDetail: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(ticket.priority)}`}>
-                                {ticket.priority}
+                                {formatForDisplay(ticket.priority)}
                             </span>
                             <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(ticket.status)}`}>
-                                {ticket.status}
+                                {formatForDisplay(ticket.status)}
                             </span>
                             {/* Show assign button for unassigned tickets and for agents/admins */}
                             {(!ticket.assignedTo || ticket.status === 'open') && (currentUserRole === 'admin' || currentUserRole === 'superadmin' || currentUserRole === 'agent') && (
@@ -187,21 +281,117 @@ const ViewTicketDetail: React.FC = () => {
 
                                 <div className="flex items-center">
                                     <FaExclamationTriangle className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
+                                    <div className="flex-grow">
                                         <label className="block text-sm font-medium text-gray-700">Priority</label>
-                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
-                                            {ticket.priority}
-                                        </span>
+                                        {isEditingPriority && canUpdatePriority() ? (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <select
+                                                    value={newPriority}
+                                                    onChange={(e) => setNewPriority(e.target.value)}
+                                                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    disabled={updateLoading}
+                                                >
+                                                    {priorityOptions.map((priority) => (
+                                                        <option key={priority} value={priority}>
+                                                            {formatForDisplay(priority)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    onClick={handlePriorityUpdate}
+                                                    disabled={updateLoading}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                    <FaSave className="w-3 h-3" />
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditingPriority(false);
+                                                        setNewPriority(ticket?.priority || '');
+                                                    }}
+                                                    disabled={updateLoading}
+                                                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                    <FaTimes className="w-3 h-3" />
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
+                                                    {formatForDisplay(ticket.priority)}
+                                                </span>
+                                                {canUpdatePriority() && (
+                                                    <button
+                                                        onClick={() => setIsEditingPriority(true)}
+                                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                                        title="Edit Priority"
+                                                    >
+                                                        <FaEdit className="w-3 h-3" />
+                                                        Edit
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="flex items-center">
                                     <FaClock className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
+                                    <div className="flex-grow">
                                         <label className="block text-sm font-medium text-gray-700">Status</label>
-                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket.status)}`}>
-                                            {ticket.status}
-                                        </span>
+                                        {isEditingStatus && canUpdateStatus() ? (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <select
+                                                    value={newStatus}
+                                                    onChange={(e) => setNewStatus(e.target.value)}
+                                                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    disabled={updateLoading}
+                                                >
+                                                    {getAvailableStatusOptions().map((status) => (
+                                                        <option key={status} value={status}>
+                                                            {formatForDisplay(status)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    onClick={handleStatusUpdate}
+                                                    disabled={updateLoading}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                    <FaSave className="w-3 h-3" />
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditingStatus(false);
+                                                        setNewStatus(ticket?.status || '');
+                                                    }}
+                                                    disabled={updateLoading}
+                                                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                    <FaTimes className="w-3 h-3" />
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket.status)}`}>
+                                                    {formatForDisplay(ticket.status)}
+                                                </span>
+                                                {canUpdateStatus() && (
+                                                    <button
+                                                        onClick={() => setIsEditingStatus(true)}
+                                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                                        title="Edit Status"
+                                                    >
+                                                        <FaEdit className="w-3 h-3" />
+                                                        Edit
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
