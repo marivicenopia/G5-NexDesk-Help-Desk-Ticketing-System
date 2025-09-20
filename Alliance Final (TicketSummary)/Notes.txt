@@ -1,0 +1,1 @@
+I tried changing the structure, it started getting really confusing. I did leave comments in each file if you are wondering what they are for.

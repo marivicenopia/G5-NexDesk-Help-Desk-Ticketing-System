@@ -1,10 +1,701 @@
 {
-  "statistics": [
+  "users": [
     {
-      "report1": "Sample Response 1"
+      "id": "1000",
+      "firstname": "James",
+      "lastname": "Quijano",
+      "email": "quijanojamesv@gmail.com",
+      "username": "jamesq",
+      "password": "admin123",
+      "isActive": true,
+      "role": "admin",
+      "department": "IT"
     },
     {
-      "report2": "Sample Response 2"
+      "id": "1002",
+      "firstname": "Liza",
+      "lastname": "Cruz",
+      "email": "liza.c@example.com",
+      "username": "lizac",
+      "password": "staff123",
+      "isActive": true,
+      "role": "staff",
+      "supportTeams": [
+        "Software Support"
+      ],
+      "department": "Finance"
+    },
+    {
+      "id": "1003",
+      "firstname": "Benjie",
+      "lastname": "Garcia",
+      "email": "benjie.g@example.com",
+      "username": "benjieg",
+      "password": "user1234",
+      "isActive": true,
+      "role": "staff",
+      "department": "Marketing"
+    },
+    {
+      "id": "1004",
+      "firstname": "Celia",
+      "lastname": "Lim",
+      "email": "celia.l@example.com",
+      "username": "celial",
+      "password": "admin123",
+      "isActive": true,
+      "role": "admin",
+      "department": "Finance"
+    },
+    {
+      "id": "1006",
+      "firstname": "Analyn",
+      "lastname": "Bautista",
+      "email": "analyn.b@example.com",
+      "username": "analynb",
+      "password": "user123",
+      "isActive": true,
+      "role": "agent",
+      "department": "HR"
+    },
+    {
+      "id": "1007",
+      "firstname": "Ricardo",
+      "lastname": "Gonzales",
+      "email": "ricardo.g@example.com",
+      "username": "ricardog",
+      "password": "admin123",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT"
+    },
+    {
+      "id": "1008",
+      "firstname": "Michelle",
+      "lastname": "Fernandez",
+      "email": "michelle.f@example.com",
+      "username": "michellef",
+      "password": "staff123",
+      "isActive": false,
+      "role": "agent",
+      "supportTeams": [
+        "General Support",
+        "Network"
+      ]
+    },
+    {
+      "id": "1999",
+      "username": "mcea",
+      "password": "super123",
+      "firstname": "Marivic",
+      "lastname": "Enopia",
+      "email": "super.admin@nexdesk.com",
+      "isActive": true,
+      "role": "superadmin",
+      "department": "IT Management"
+    },
+    {
+      "id": "1757049961388",
+      "username": "civiram.it",
+      "password": "marivic123",
+      "firstname": "Civiram",
+      "lastname": "Ainope",
+      "email": "civiram.it@itdept.nexdesk.com",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT",
+      "supportTeams": []
+    },
+    {
+      "id": "1757126742282",
+      "username": "test2",
+      "password": "12345",
+      "firstname": "Test 2",
+      "lastname": "Test",
+      "email": "test2@gmail.com",
+      "isActive": true,
+      "role": "agent",
+      "department": "IT",
+      "supportTeams": []
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TKT-001",
+      "title": "No Wi-Fi Connection in Office A",
+      "description": "Users in Office A are unable to connect to the Wi-Fi network. This is impacting productivity.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "john.doe@example.com",
+      "submittedDate": "2025-05-14T10:00:00Z",
+      "status": "assigned",
+      "assignedTo": "ricardo.g@example.com"
+    },
+    {
+      "id": "TKT-003",
+      "title": "Software Installation Request - New Employee",
+      "description": "Request to install necessary software (Microsoft Office Suite, Adobe Reader) on the new employee, Peter Jones's, laptop.",
+      "priority": "low",
+      "department": "Software Support",
+      "submittedBy": "hr.admin@example.com",
+      "submittedDate": "2025-05-14T14:45:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.charlie@example.com"
+    },
+    {
+      "id": "TKT-004",
+      "title": "Printer Jamming Frequently - Finance Department",
+      "description": "The main printer in the Finance department keeps jamming multiple times a day, causing delays.",
+      "priority": "medium",
+      "department": "Repair and Maintenance",
+      "submittedBy": "finance.manager@example.com",
+      "submittedDate": "2025-05-15T08:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-005",
+      "title": "Urgent: Server Down - Website Unavailable",
+      "description": "The main company website is currently down and inaccessible to users. This is a critical issue.",
+      "priority": "urgent",
+      "department": "Network Operations",
+      "submittedBy": "system.monitor@example.com",
+      "submittedDate": "2025-05-15T07:30:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.david@example.com"
+    },
+    {
+      "id": "TKT-006",
+      "title": "Password Reset Request - Account Locked",
+      "description": "User Sarah Miller has locked her account and needs a password reset.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "sarah.miller@example.com",
+      "submittedDate": "2025-05-13T16:00:00Z",
+      "status": "resolved",
+      "assignedTo": "agent.eve@example.com",
+      "resolvedBy": "agent.eve@example.com",
+      "resolvedDate": "2025-05-13T17:30:00Z",
+      "resolutionDescription": "Successfully reset the user's password and unlocked the account. The new temporary password was sent to the user's registered email address. User confirmed they can now access their account without any issues.",
+      "agentFeedback": "The account lockout was due to multiple failed login attempts. Recommended user to use strong passwords and enable two-factor authentication for enhanced security. User was educated about password security best practices."
+    },
+    {
+      "id": "TKT-007",
+      "title": "Email Delivery Failure - Multiple Users",
+      "description": "Several users in Sales are reporting emails not being sent or received.",
+      "priority": "high",
+      "department": "Email Support",
+      "submittedBy": "sales.manager@example.com",
+      "submittedDate": "2025-05-16T09:15:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-008",
+      "title": "Laptop Battery Not Charging",
+      "description": "The laptop of Mark Johnson is not charging properly, even when plugged in.",
+      "priority": "medium",
+      "department": "Hardware Support",
+      "submittedBy": "mark.johnson@example.com",
+      "submittedDate": "2025-05-16T10:30:00Z",
+      "status": "assigned",
+      "assignedTo": "agent.frank@example.com"
+    },
+    {
+      "id": "TKT-009",
+      "title": "Access Request to Confidential Files",
+      "description": "Request for access to confidential financial reports for audit purposes.",
+      "priority": "low",
+      "department": "Security",
+      "submittedBy": "audit.team@example.com",
+      "submittedDate": "2025-05-16T12:00:00Z",
+      "status": "in progress",
+      "assignedTo": "agent.grace@example.com"
+    },
+    {
+      "id": "TKT-010",
+      "title": "VPN Connection Timeout",
+      "description": "Users are experiencing VPN disconnections frequently during work hours.",
+      "priority": "high",
+      "department": "Network Operations",
+      "submittedBy": "network.admin@example.com",
+      "submittedDate": "2025-05-16T13:45:00Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-011",
+      "title": "New Software License Purchase Request",
+      "description": "Request to purchase additional licenses for Photoshop and Illustrator.",
+      "priority": "medium",
+      "department": "Software Support",
+      "submittedBy": "design.lead@example.com",
+      "submittedDate": "2025-05-16T15:00:00Z",
+      "status": "resolved",
+      "assignedTo": "agent.harry@example.com"
+    },
+    {
+      "id": "TKT-012",
+      "title": "Office A Air Conditioning Not Working",
+      "description": "Temperature in Office A is too high due to air conditioning malfunction.",
+      "priority": "medium",
+      "department": "Facility Management",
+      "submittedBy": "office.manager@example.com",
+      "submittedDate": "2025-05-16T16:20:00Z",
+      "status": "open"
+    },
+    {
+      "id": "4b54",
+      "title": "dasda",
+      "description": "dasdas",
+      "priority": "medium",
+      "department": "IT Support",
+      "submittedDate": "2025-05-23T22:04:22.172Z",
+      "status": "open"
+    },
+    {
+      "id": "TKT-014",
+      "submittedDate": "2025-05-09T14:00:00Z",
+      "submittedBy": "sarah.miller@example.com",
+      "description": "User Sarah Miller's email configuration has been successfully updated and is now working properly.",
+      "status": "closed",
+      "assignedTo": "agent.support@example.com",
+      "title": "Email Configuration Fixed",
+      "priority": "high",
+      "department": "IT Support"
+    },
+    {
+      "id": "TKT-016",
+      "title": "HR System Access Request",
+      "description": "Employee needs access to HR system for viewing payroll information.",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "employee@example.com",
+      "submittedDate": "2025-05-20T09:00:00Z",
+      "status": "assigned",
+      "assignedTo": "analyn.b@example.com"
+    },
+    {
+      "id": "TKT-017",
+      "title": "Network Connectivity Issues",
+      "description": "Multiple workstations experiencing intermittent network disconnections.",
+      "priority": "high",
+      "department": "IT Support",
+      "submittedBy": "manager@example.com",
+      "submittedDate": "2025-05-20T10:30:00Z",
+      "status": "in progress",
+      "assignedTo": "ricardo.g@example.com"
+    },
+    {
+      "id": "TKT-018",
+      "title": "Employee Onboarding Setup",
+      "description": "New employee needs laptop setup and account creation.",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "hr.manager@example.com",
+      "submittedDate": "2025-05-20T11:00:00Z",
+      "status": "open"
+    },
+    {
+      "id": "2aa4",
+      "title": "HR - For Analyn",
+      "description": "Assign to Analyn - HR",
+      "priority": "Medium",
+      "category": "Technical Support",
+      "status": "Open",
+      "userId": 1,
+      "createdAt": "2025-08-31T14:54:27.962Z",
+      "updatedAt": "2025-08-31T14:54:27.962Z"
+    },
+    {
+      "id": "6bba",
+      "title": "Test 2",
+      "description": "asdaasdasd",
+      "priority": "Medium",
+      "category": "General",
+      "status": "Open",
+      "userId": 1,
+      "createdAt": "2025-08-31T15:01:53.779Z",
+      "updatedAt": "2025-08-31T15:01:53.779Z"
+    },
+    {
+      "id": "72c0",
+      "title": "Test for HR",
+      "description": "Hello Analyn",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-08-31T15:12:11.737Z",
+      "status": "open"
+    },
+    {
+      "id": "d472",
+      "title": "Printer not working",
+      "description": "The printer is on fire! Needed to be replaced immediately or I lose my job :((",
+      "priority": "urgent",
+      "department": "IT Support",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-05T05:23:29.696Z",
+      "status": "assigned",
+      "resolutionDescription": "Test 1",
+      "agentFeedback": "Test 1",
+      "resolvedBy": "civiram.it@itdept.nexdesk.com",
+      "resolvedDate": "2025-09-06T03:08:13.488Z",
+      "assignedTo": "civiram.it@itdept.nexdesk.com"
+    },
+    {
+      "id": "f387",
+      "title": "Password Reset",
+      "description": "Test Password Reset",
+      "priority": "medium",
+      "department": "IT Support",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-13T06:41:20.751Z",
+      "status": "open"
+    },
+    {
+      "id": "3e85",
+      "title": "Test - File Upload ",
+      "description": "Test for file uploading",
+      "priority": "medium",
+      "category": "Technical Issues",
+      "submittedBy": "benjie.g@example.com",
+      "submittedDate": "2025-09-14T05:22:23.216Z",
+      "status": "open",
+      "attachments": [
+        {
+          "id": "temp_1757827343216_0",
+          "name": "HLD_Document.docx",
+          "size": 20201,
+          "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "uploadDate": "2025-09-14T05:22:23.216Z",
+          "url": ""
+        }
+      ],
+      "customerContact": {
+        "name": "",
+        "email": "benjie.g@example.com",
+        "phone": ""
+      }
+    }
+  ],
+  "statistics": [
+    {
+      "report1": "Sample Response 1",
+      "id": "72d4"
+    },
+    {
+      "report2": "Sample Response 2",
+      "id": "177d"
+    }
+  ],
+  "feedback": [
+    {
+      "id": "1",
+      "name": "Liam Miller",
+      "title": "Exceeded My Expectations – Awesome Experience!",
+      "message": "I had a fantastic experience from start to finish. The team was incredibly professional, friendly, and attentive to my needs...",
+      "date": "2025-01-17"
+    },
+    {
+      "id": "2",
+      "name": "Larry Hills",
+      "title": "Highly Satisfied with the Service!",
+      "message": "Service was quick, staff were polite, and I got the help I needed in no time.",
+      "date": "2025-01-18"
+    },
+    {
+      "id": "3",
+      "name": "Liam Miller",
+      "title": "Disappointed with the Service – Not What I Expected",
+      "date": "2025-01-20"
+    },
+    {
+      "id": "4",
+      "name": "Liam Miller",
+      "title": "Too Many Issues – Will Not Return",
+      "date": "2025-02-17"
+    },
+    {
+      "id": "5",
+      "name": "Liam Miller",
+      "title": "Reliable and Efficient – Highly Recommend!",
+      "date": "2025-03-19"
+    },
+    {
+      "id": "1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "title": "Great Service!",
+      "message": "Really loved the support.",
+      "experience": "😊",
+      "date": "2025-05-24"
+    },
+    {
+      "id": "b823",
+      "name": "Benjie Garcia",
+      "email": "benjie.g@example.com",
+      "title": "Test Benj",
+      "message": "I dont like it!",
+      "experience": "😡",
+      "date": "2025-08-31"
+    },
+    {
+      "id": "test1",
+      "title": "Excellent Support!",
+      "ticketId": null,
+      "name": "Benjie Garcia",
+      "date": "2025-05-24",
+      "message": "The support team was very helpful in resolving my account access issue. Everything works perfectly now!",
+      "experience": "??",
+      "email": "benjie.g@example.com"
+    },
+    {
+      "id": "mezsjjwl9wsyd11u7bl",
+      "name": "Benjie Garcia",
+      "email": "benjie.g@example.com",
+      "title": "Test Resolved TKT - 013",
+      "message": "Test Resolved TKT - 013",
+      "experience": "😡",
+      "date": "2025-08-31",
+      "ticketId": null
+    }
+  ],
+  "articles": [
+    {
+      "id": "2",
+      "category": "Introduction to I.T",
+      "title": "Basics of Computer Hardware and Software",
+      "author": "Alex Rivera",
+      "content": "A computer system is made up of two main elements: hardware and software. Understanding both is important for anyone interested in technology.\n\nComputer hardware refers to the physical parts of a computer system. This includes:\n• Central Processing Unit (CPU) – the brain of the computer that processes instructions.\n• Random Access Memory (RAM) – temporary memory used to run programs quickly.\n• Hard Drive (HDD) or Solid-State Drive (SSD) – where files and programs are stored.\n• Motherboard – the main circuit board connecting all components.\n• Input Devices – like keyboards, mice, and scanners.\n• Output Devices – like monitors, printers, and speakers.\n\nSoftware, on the other hand, is a set of instructions that tells the hardware what to do. Software can be divided into two types:\n• System software – like operating systems (Windows, macOS, Linux) that manage hardware and allow other programs to run.\n• Application software – like Microsoft Word, web browsers, or games that let users perform specific tasks.\n\nWithout software, hardware is useless. And without hardware, software has nothing to run on. Both work together to make computers useful tools in business, education, and personal life.",
+      "status": "Pending Review"
+    },
+    {
+      "id": "3",
+      "category": "Introduction to I.T",
+      "title": "Understanding Operating Systems",
+      "author": "Alex Rivera",
+      "content": "An Operating System (OS) is essential software that acts as a bridge between the user, applications, and the computer hardware. It controls the system’s memory, processes, devices, and software.\n\nSome of the most common operating systems include:\n• Microsoft Windows – widely used in homes and offices.\n• macOS – used on Apple’s desktop and laptop computers.\n• Linux – popular in servers and tech environments.\n• Android and iOS – used in mobile phones and tablets.\n\nThe OS performs several important functions:\n• Manages hardware resources, like the CPU, memory, and storage.\n• Provides a user interface, such as a desktop or command line.\n• Handles system security, including user permissions and virus protection.\n• Manages files, allowing users to create, delete, and organize data.\n• Runs applications, ensuring software can access needed resources.\n\nWithout an operating system, you would not be able to use your computer. It plays a central role in everything from browsing the internet to playing music or writing a report.",
+      "status": "On Track"
+    },
+    {
+      "id": "4",
+      "category": "Introduction to I.T",
+      "title": "Introduction to Networking",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "5",
+      "category": "Introduction to I.T",
+      "title": "IT Career Paths and Specializations",
+      "author": "John Doe",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "6",
+      "category": "Coding & Dev",
+      "title": "Intro to Programming",
+      "author": "Jane Smith",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "7",
+      "category": "Coding & Dev",
+      "title": "Software Dev Tips",
+      "author": "Alex Rivera",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "8",
+      "category": "Coding & Dev",
+      "title": "Git & GitHub Basics",
+      "author": "John Doe",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "9",
+      "category": "Coding & Dev",
+      "title": "Debugging Code",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "10",
+      "category": "Coding & Dev",
+      "title": "APIs Explained",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "11",
+      "category": "Cybersecurity",
+      "title": "What is Cybersecurity?",
+      "author": "Emily Davis",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "12",
+      "category": "Cybersecurity",
+      "title": "Ethical Hacking 101",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "13",
+      "category": "Cybersecurity",
+      "title": "Firewalls & Security",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "14",
+      "category": "Cybersecurity",
+      "title": "Protecting Accounts",
+      "author": "Jane Smith",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "15",
+      "category": "Cybersecurity",
+      "title": "Common Cyber Threats",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "16",
+      "category": "Databases",
+      "title": "SQL Basics",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "17",
+      "category": "Databases",
+      "title": "Database Design",
+      "author": "Emily Davis",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "18",
+      "category": "Databases",
+      "title": "Writing SQL Queries",
+      "author": "Jane Smith",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "19",
+      "category": "Databases",
+      "title": "SQL vs. NoSQL",
+      "author": "Michael Chen",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "20",
+      "category": "Databases",
+      "title": "Database Security",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "21",
+      "category": "Cloud & DevOps",
+      "title": "Cloud Basics",
+      "author": "Michael Chen",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "22",
+      "category": "Cloud & DevOps",
+      "title": "What is DevOps?",
+      "author": "John Doe",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "23",
+      "category": "Cloud & DevOps",
+      "title": "Virtualization 101",
+      "author": "Alex Rivera",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "24",
+      "category": "Cloud & DevOps",
+      "title": "CI/CD Explained",
+      "author": "Olivia Brown",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "25",
+      "category": "Cloud & DevOps",
+      "title": "Cloud Security",
+      "author": "Jane Smith",
+      "status": "Pending Review",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "26",
+      "category": "Networking",
+      "title": "What is networking?",
+      "author": "Jacob Lee",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "27",
+      "category": "Networking",
+      "title": "IP addresses & DNS basics",
+      "author": "Emily Davis",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "28",
+      "category": "Networking",
+      "title": "LAN vs. WAN",
+      "author": "Samantha Cruz",
+      "status": "On Track",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "29",
+      "category": "Networking",
+      "title": "How Wi-Fi works",
+      "author": "Michael Chen",
+      "status": "Delayed",
+      "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
+    },
+    {
+      "id": "8867",
+      "title": "sadsadsadsad",
+      "category": "Introduction to I.T",
+      "author": "Monico Wembanyama",
+      "content": "dsadsadasd"
+    },
+    {
+      "id": "6380",
+      "title": "Big Data",
+      "category": "Introduction to I.T",
+      "author": "James",
+      "content": "Hello World"
     }
   ]
 }

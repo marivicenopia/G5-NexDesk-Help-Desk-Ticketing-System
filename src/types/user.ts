@@ -1,6 +1,6 @@
-export type RoleOption = 'user' | 'admin' | 'agent' | 'staff';
+export type RoleOption = 'staff' | 'admin' | 'agent' | 'superadmin';
 
-export interface User{
+export interface User {
     id: string | number;
     username: string;
     password: string;
@@ -8,7 +8,7 @@ export interface User{
     lastname: string;
     email: string;
     isActive: boolean;
-    role: RoleOption; 
+    role: RoleOption;
     department?: string;
     supportTeams?: string[];
 }

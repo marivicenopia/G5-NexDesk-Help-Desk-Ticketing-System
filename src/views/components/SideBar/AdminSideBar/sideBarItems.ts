@@ -1,11 +1,11 @@
-import { FaUsers, FaTachometerAlt, FaTicketAlt, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaUsers, FaTachometerAlt, FaTicketAlt, FaCog, FaSignOutAlt, FaBook, FaCommentDots } from "react-icons/fa";
 import { PATHS } from "../../../../routes/constant";
 
 export const AdminSideBarItems = [
   {
     label: "Dashboard",
     icon: FaTachometerAlt,
-    path: PATHS.ADMIN.MANAGE_USERS.path,
+    path: PATHS.ADMIN.DASHBOARD.path,
   },
   {
     label: "Users",
@@ -14,7 +14,7 @@ export const AdminSideBarItems = [
       { label: "All Users", path: PATHS.ADMIN.MANAGE_USERS.path },
       { label: "Admins", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=admin` },
       { label: "Agents", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=agent` },
-      { label: "Users", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=user` },
+      { label: "Staff", path: `${PATHS.ADMIN.MANAGE_USERS.path}?role=staff` },
       { label: "Create User", path: `${PATHS.ADMIN.CREATE_USER.path}?role=admin` },
     ],
   },
@@ -22,9 +22,22 @@ export const AdminSideBarItems = [
     label: "Tickets",
     icon: FaTicketAlt,
     children: [
-      { label: "View Tickets", path: PATHS.ADMIN.MANAGE_TICKETS.path },
-      { label: "Create Ticket", path: `${PATHS.ADMIN.CREATE_TICKET.path}?role=admin` },
+      { label: "Manage Tickets", path: "/admin/tickets" },
+      { label: "Ticket Assignment", path: "/admin/tickets/assignment" },
+      { label: "Ticket Tracking", path: "/admin/tickets/tracking" },
+      { label: "Ticket Summary", path: "/admin/tickets/analytics" },
+      { label: "Create Ticket", path: "/admin/tickets/create" },
     ],
+  },
+  {
+    label: "Knowledgebase",
+    icon: FaBook,
+    path: PATHS.ADMIN.KNOWLEDGEBASE.path,
+  },
+  {
+    label: "Feedback",
+    icon: FaCommentDots,
+    path: PATHS.ADMIN.VIEW_FEEDBACK.path,
   },
 ];
 
