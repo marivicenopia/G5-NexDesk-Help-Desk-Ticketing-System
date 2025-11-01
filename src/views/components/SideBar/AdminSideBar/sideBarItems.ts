@@ -1,4 +1,5 @@
 import { FaUsers, FaTachometerAlt, FaTicketAlt, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaHouse } from "react-icons/fa6"; // FA6 icons live under fa6
 import { PATHS } from "../../../../routes/constant";
 
 export const AdminSideBarItems = [
