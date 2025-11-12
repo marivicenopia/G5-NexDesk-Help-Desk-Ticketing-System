@@ -23,17 +23,25 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // Fetch all users and find matching credentials
-      const response = await fetch(`http://localhost:3001/users`);
-      const users = await response.json();
+      // Make API call to authenticate user
+      const response = await fetch(`/api/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password.trim()
+        })
+      });
 
-      console.log("Available users:", users.map((u: any) => ({ username: u.username, role: u.role, isActive: u.isActive })));
-      console.log("Looking for:", { username: username.trim(), password: password.trim() });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Login failed');
+      }
 
-      // Find user with matching username and password
-      const user = users.find((u: any) =>
-        u.username === username.trim() && u.password === password.trim()
-      );
+      const data = await response.json();
+      const user = data.user;
 
       console.log("Found user:", user);
 
@@ -42,20 +50,19 @@ const Login: React.FC = () => {
         // Store authentication data
         AuthService.login(user.id.toString(), user.role, user.email, user.department);
 
-        // Navigate based on role
+        // Navigate based on rolei
         switch (user.role) {
-          case "admin":
-          case "superadmin":
+          case "Admin":
             console.log("Navigating to admin dashboard");
-            navigate("/admin/dashboard", { replace: true });
+            navigate("/admin", { replace: true });
             break;
-          case "agent":
+          case "Agent":
             console.log("Navigating to agent dashboard");
-            navigate("/agent/dashboard", { replace: true });
+            navigate("/agent", { replace: true });
             break;
-          case "staff":
+          case "Staff":
             console.log("Navigating to staff dashboard");
-            navigate("/user/dashboard", { replace: true });
+            navigate("/user", { replace: true });
             break;
           default:
             console.log("Unknown role, navigating to home");

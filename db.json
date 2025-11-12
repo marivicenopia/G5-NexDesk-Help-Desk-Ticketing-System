@@ -2,85 +2,107 @@
   "users": [
     {
       "id": "1000",
+      "username": "jamesq",
+      "password": "admin123",
       "firstname": "James",
       "lastname": "Quijano",
       "email": "quijanojamesv@gmail.com",
-      "username": "jamesq",
-      "password": "admin123",
       "isActive": true,
       "role": "admin",
-      "department": "IT"
+      "department": "IT",
+      "supportTeams": [
+        "IT Support",
+        "Hardware Support",
+        "Software Support"
+      ]
     },
     {
       "id": "1002",
+      "username": "lizac",
+      "password": "staff123",
       "firstname": "Liza",
       "lastname": "Cruz",
       "email": "liza.c@example.com",
-      "username": "lizac",
-      "password": "staff123",
       "isActive": true,
       "role": "staff",
+      "department": "Finance",
       "supportTeams": [
-        "Software Support"
-      ],
-      "department": "Finance"
+        "Financial Support"
+      ]
     },
     {
       "id": "1003",
+      "username": "benjieg",
+      "password": "user1234",
       "firstname": "Benjie",
       "lastname": "Garcia",
       "email": "benjie.g@example.com",
-      "username": "benjieg",
-      "password": "user1234",
       "isActive": true,
       "role": "staff",
-      "department": "Marketing"
+      "department": "Marketing",
+      "supportTeams": [
+        "Marketing Support"
+      ]
     },
     {
       "id": "1004",
+      "username": "celial",
+      "password": "admin123",
       "firstname": "Celia",
       "lastname": "Lim",
       "email": "celia.l@example.com",
-      "username": "celial",
-      "password": "admin123",
       "isActive": true,
       "role": "admin",
-      "department": "Finance"
+      "department": "Finance",
+      "supportTeams": [
+        "Financial Support",
+        "General Support"
+      ]
     },
     {
       "id": "1006",
+      "username": "analynb",
+      "password": "user123",
       "firstname": "Analyn",
       "lastname": "Bautista",
       "email": "analyn.b@example.com",
-      "username": "analynb",
-      "password": "user123",
       "isActive": true,
       "role": "agent",
-      "department": "HR"
+      "department": "Human Resources",
+      "supportTeams": [
+        "HR Support",
+        "Employee Onboarding"
+      ]
     },
     {
       "id": "1007",
+      "username": "ricardog",
+      "password": "admin123",
       "firstname": "Ricardo",
       "lastname": "Gonzales",
       "email": "ricardo.g@example.com",
-      "username": "ricardog",
-      "password": "admin123",
       "isActive": true,
       "role": "agent",
-      "department": "IT"
+      "department": "IT Support",
+      "supportTeams": [
+        "IT Support",
+        "Network Support",
+        "Hardware Support"
+      ]
     },
     {
       "id": "1008",
+      "username": "michellef",
+      "password": "staff123",
       "firstname": "Michelle",
       "lastname": "Fernandez",
       "email": "michelle.f@example.com",
-      "username": "michellef",
-      "password": "staff123",
       "isActive": false,
       "role": "agent",
+      "department": "IT Support",
       "supportTeams": [
         "General Support",
-        "Network"
+        "Network Support"
       ]
     },
     {
@@ -92,7 +114,10 @@
       "email": "super.admin@nexdesk.com",
       "isActive": true,
       "role": "superadmin",
-      "department": "IT Management"
+      "department": "IT Management",
+      "supportTeams": [
+        "All Departments"
+      ]
     },
     {
       "id": "1757049961388",
@@ -103,20 +128,25 @@
       "email": "civiram.it@itdept.nexdesk.com",
       "isActive": true,
       "role": "agent",
-      "department": "IT",
-      "supportTeams": []
+      "department": "IT Support",
+      "supportTeams": [
+        "IT Support",
+        "Technical Support"
+      ]
     },
     {
       "id": "1757126742282",
       "username": "test2",
       "password": "12345",
-      "firstname": "Test 2",
-      "lastname": "Test",
+      "firstname": "Test User",
+      "lastname": "Agent",
       "email": "test2@gmail.com",
       "isActive": true,
       "role": "agent",
-      "department": "IT",
-      "supportTeams": []
+      "department": "IT Support",
+      "supportTeams": [
+        "General Support"
+      ]
     }
   ],
   "tickets": [
@@ -127,198 +157,185 @@
       "priority": "high",
       "department": "IT Support",
       "submittedBy": "john.doe@example.com",
-      "submittedDate": "2025-05-14T10:00:00Z",
+      "submittedDate": "2025-05-14T10:00:00.000Z",
       "status": "assigned",
       "assignedTo": "ricardo.g@example.com"
     },
     {
-      "id": "TKT-003",
+      "id": "TKT-002",
       "title": "Software Installation Request - New Employee",
       "description": "Request to install necessary software (Microsoft Office Suite, Adobe Reader) on the new employee, Peter Jones's, laptop.",
       "priority": "low",
       "department": "Software Support",
       "submittedBy": "hr.admin@example.com",
-      "submittedDate": "2025-05-14T14:45:00Z",
+      "submittedDate": "2025-05-14T14:45:00.000Z",
       "status": "in progress",
-      "assignedTo": "agent.charlie@example.com"
+      "assignedTo": "ricardo.g@example.com"
     },
     {
-      "id": "TKT-004",
+      "id": "TKT-003",
       "title": "Printer Jamming Frequently - Finance Department",
       "description": "The main printer in the Finance department keeps jamming multiple times a day, causing delays.",
       "priority": "medium",
-      "department": "Repair and Maintenance",
+      "department": "Hardware Support",
       "submittedBy": "finance.manager@example.com",
-      "submittedDate": "2025-05-15T08:00:00Z",
+      "submittedDate": "2025-05-15T08:00:00.000Z",
       "status": "open"
     },
     {
-      "id": "TKT-005",
+      "id": "TKT-004",
       "title": "Urgent: Server Down - Website Unavailable",
       "description": "The main company website is currently down and inaccessible to users. This is a critical issue.",
       "priority": "urgent",
-      "department": "Network Operations",
+      "department": "IT Support",
       "submittedBy": "system.monitor@example.com",
-      "submittedDate": "2025-05-15T07:30:00Z",
+      "submittedDate": "2025-05-15T07:30:00.000Z",
       "status": "in progress",
-      "assignedTo": "agent.david@example.com"
+      "assignedTo": "ricardo.g@example.com"
     },
     {
-      "id": "TKT-006",
+      "id": "TKT-005",
       "title": "Password Reset Request - Account Locked",
       "description": "User Sarah Miller has locked her account and needs a password reset.",
       "priority": "high",
       "department": "IT Support",
       "submittedBy": "sarah.miller@example.com",
-      "submittedDate": "2025-05-13T16:00:00Z",
+      "submittedDate": "2025-05-13T16:00:00.000Z",
       "status": "resolved",
-      "assignedTo": "agent.eve@example.com",
-      "resolvedBy": "agent.eve@example.com",
-      "resolvedDate": "2025-05-13T17:30:00Z",
+      "assignedTo": "ricardo.g@example.com",
+      "resolvedBy": "ricardo.g@example.com",
+      "resolvedDate": "2025-05-13T17:30:00.000Z",
       "resolutionDescription": "Successfully reset the user's password and unlocked the account. The new temporary password was sent to the user's registered email address. User confirmed they can now access their account without any issues.",
       "agentFeedback": "The account lockout was due to multiple failed login attempts. Recommended user to use strong passwords and enable two-factor authentication for enhanced security. User was educated about password security best practices."
     },
     {
-      "id": "TKT-007",
+      "id": "TKT-006",
       "title": "Email Delivery Failure - Multiple Users",
       "description": "Several users in Sales are reporting emails not being sent or received.",
       "priority": "high",
-      "department": "Email Support",
+      "department": "IT Support",
       "submittedBy": "sales.manager@example.com",
-      "submittedDate": "2025-05-16T09:15:00Z",
+      "submittedDate": "2025-05-16T09:15:00.000Z",
       "status": "open"
     },
     {
-      "id": "TKT-008",
+      "id": "TKT-007",
       "title": "Laptop Battery Not Charging",
       "description": "The laptop of Mark Johnson is not charging properly, even when plugged in.",
       "priority": "medium",
       "department": "Hardware Support",
       "submittedBy": "mark.johnson@example.com",
-      "submittedDate": "2025-05-16T10:30:00Z",
+      "submittedDate": "2025-05-16T10:30:00.000Z",
       "status": "assigned",
-      "assignedTo": "agent.frank@example.com"
+      "assignedTo": "ricardo.g@example.com"
     },
     {
-      "id": "TKT-009",
+      "id": "TKT-008",
       "title": "Access Request to Confidential Files",
       "description": "Request for access to confidential financial reports for audit purposes.",
       "priority": "low",
-      "department": "Security",
+      "department": "Human Resources",
       "submittedBy": "audit.team@example.com",
-      "submittedDate": "2025-05-16T12:00:00Z",
+      "submittedDate": "2025-05-16T12:00:00.000Z",
       "status": "in progress",
-      "assignedTo": "agent.grace@example.com"
+      "assignedTo": "analyn.b@example.com"
     },
     {
-      "id": "TKT-010",
+      "id": "TKT-009",
       "title": "VPN Connection Timeout",
       "description": "Users are experiencing VPN disconnections frequently during work hours.",
       "priority": "high",
-      "department": "Network Operations",
+      "department": "IT Support",
       "submittedBy": "network.admin@example.com",
-      "submittedDate": "2025-05-16T13:45:00Z",
+      "submittedDate": "2025-05-16T13:45:00.000Z",
       "status": "open"
     },
     {
-      "id": "TKT-011",
+      "id": "TKT-010",
       "title": "New Software License Purchase Request",
       "description": "Request to purchase additional licenses for Photoshop and Illustrator.",
       "priority": "medium",
       "department": "Software Support",
       "submittedBy": "design.lead@example.com",
-      "submittedDate": "2025-05-16T15:00:00Z",
+      "submittedDate": "2025-05-16T15:00:00.000Z",
       "status": "resolved",
-      "assignedTo": "agent.harry@example.com"
+      "assignedTo": "ricardo.g@example.com",
+      "resolvedBy": "ricardo.g@example.com",
+      "resolvedDate": "2025-05-17T10:00:00.000Z",
+      "resolutionDescription": "Software licenses purchased and delivered to the design team.",
+      "agentFeedback": "Purchase approved and completed successfully."
     },
     {
-      "id": "TKT-012",
+      "id": "TKT-011",
       "title": "Office A Air Conditioning Not Working",
       "description": "Temperature in Office A is too high due to air conditioning malfunction.",
       "priority": "medium",
       "department": "Facility Management",
       "submittedBy": "office.manager@example.com",
-      "submittedDate": "2025-05-16T16:20:00Z",
+      "submittedDate": "2025-05-16T16:20:00.000Z",
       "status": "open"
     },
     {
-      "id": "4b54",
-      "title": "dasda",
-      "description": "dasdas",
-      "priority": "medium",
-      "department": "IT Support",
-      "submittedDate": "2025-05-23T22:04:22.172Z",
-      "status": "open"
-    },
-    {
-      "id": "TKT-014",
-      "submittedDate": "2025-05-09T14:00:00Z",
-      "submittedBy": "sarah.miller@example.com",
-      "description": "User Sarah Miller's email configuration has been successfully updated and is now working properly.",
-      "status": "closed",
-      "assignedTo": "agent.support@example.com",
+      "id": "TKT-012",
       "title": "Email Configuration Fixed",
+      "description": "User Sarah Miller's email configuration has been successfully updated and is now working properly.",
       "priority": "high",
-      "department": "IT Support"
+      "department": "IT Support",
+      "submittedBy": "sarah.miller@example.com",
+      "submittedDate": "2025-05-09T14:00:00.000Z",
+      "status": "closed",
+      "assignedTo": "ricardo.g@example.com",
+      "resolvedBy": "ricardo.g@example.com",
+      "resolvedDate": "2025-05-09T16:00:00.000Z",
+      "resolutionDescription": "Email configuration updated successfully.",
+      "agentFeedback": "Issue resolved without complications."
     },
     {
-      "id": "TKT-016",
+      "id": "TKT-013",
       "title": "HR System Access Request",
       "description": "Employee needs access to HR system for viewing payroll information.",
       "priority": "medium",
       "department": "Human Resources",
       "submittedBy": "employee@example.com",
-      "submittedDate": "2025-05-20T09:00:00Z",
+      "submittedDate": "2025-05-20T09:00:00.000Z",
       "status": "assigned",
       "assignedTo": "analyn.b@example.com"
     },
     {
-      "id": "TKT-017",
+      "id": "TKT-014",
       "title": "Network Connectivity Issues",
       "description": "Multiple workstations experiencing intermittent network disconnections.",
       "priority": "high",
       "department": "IT Support",
       "submittedBy": "manager@example.com",
-      "submittedDate": "2025-05-20T10:30:00Z",
+      "submittedDate": "2025-05-20T10:30:00.000Z",
       "status": "in progress",
       "assignedTo": "ricardo.g@example.com"
     },
     {
-      "id": "TKT-018",
+      "id": "TKT-015",
       "title": "Employee Onboarding Setup",
       "description": "New employee needs laptop setup and account creation.",
       "priority": "medium",
       "department": "Human Resources",
       "submittedBy": "hr.manager@example.com",
-      "submittedDate": "2025-05-20T11:00:00Z",
+      "submittedDate": "2025-05-20T11:00:00.000Z",
       "status": "open"
     },
     {
-      "id": "2aa4",
-      "title": "HR - For Analyn",
-      "description": "Assign to Analyn - HR",
-      "priority": "Medium",
-      "category": "Technical Support",
-      "status": "Open",
-      "userId": 1,
-      "createdAt": "2025-08-31T14:54:27.962Z",
-      "updatedAt": "2025-08-31T14:54:27.962Z"
+      "id": "TKT-016",
+      "title": "HR Department Support Request",
+      "description": "General support request for HR department operations.",
+      "priority": "medium",
+      "department": "Human Resources",
+      "submittedBy": "hr.admin@example.com",
+      "submittedDate": "2025-08-31T14:54:27.962Z",
+      "status": "open"
     },
     {
-      "id": "6bba",
-      "title": "Test 2",
-      "description": "asdaasdasd",
-      "priority": "Medium",
-      "category": "General",
-      "status": "Open",
-      "userId": 1,
-      "createdAt": "2025-08-31T15:01:53.779Z",
-      "updatedAt": "2025-08-31T15:01:53.779Z"
-    },
-    {
-      "id": "72c0",
-      "title": "Test for HR",
-      "description": "Hello Analyn",
+      "id": "TKT-017",
+      "title": "Test for HR Department",
+      "description": "Test ticket for HR department workflow validation.",
       "priority": "medium",
       "department": "Human Resources",
       "submittedBy": "benjie.g@example.com",
@@ -326,24 +343,24 @@
       "status": "open"
     },
     {
-      "id": "d472",
-      "title": "Printer not working",
-      "description": "The printer is on fire! Needed to be replaced immediately or I lose my job :((",
+      "id": "TKT-018",
+      "title": "Printer Hardware Issue",
+      "description": "The office printer requires immediate attention due to hardware malfunction affecting daily operations.",
       "priority": "urgent",
       "department": "IT Support",
       "submittedBy": "benjie.g@example.com",
       "submittedDate": "2025-09-05T05:23:29.696Z",
-      "status": "assigned",
-      "resolutionDescription": "Test 1",
-      "agentFeedback": "Test 1",
+      "status": "resolved",
+      "assignedTo": "civiram.it@itdept.nexdesk.com",
       "resolvedBy": "civiram.it@itdept.nexdesk.com",
       "resolvedDate": "2025-09-06T03:08:13.488Z",
-      "assignedTo": "civiram.it@itdept.nexdesk.com"
+      "resolutionDescription": "Printer hardware issue resolved. Replaced faulty components and performed system diagnostics.",
+      "agentFeedback": "Hardware replacement completed successfully. Printer is fully operational."
     },
     {
-      "id": "f387",
-      "title": "Password Reset",
-      "description": "Test Password Reset",
+      "id": "TKT-019",
+      "title": "Password Reset Request",
+      "description": "User requesting password reset due to login issues.",
       "priority": "medium",
       "department": "IT Support",
       "submittedBy": "benjie.g@example.com",
@@ -351,11 +368,11 @@
       "status": "open"
     },
     {
-      "id": "3e85",
-      "title": "Test - File Upload ",
-      "description": "Test for file uploading",
+      "id": "TKT-020",
+      "title": "File Upload System Testing",
+      "description": "Testing file upload functionality and attachment handling for the ticketing system.",
       "priority": "medium",
-      "category": "Technical Issues",
+      "department": "IT Support",
       "submittedBy": "benjie.g@example.com",
       "submittedDate": "2025-09-14T05:22:23.216Z",
       "status": "open",
@@ -366,13 +383,13 @@
           "size": 20201,
           "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           "uploadDate": "2025-09-14T05:22:23.216Z",
-          "url": ""
+          "url": "/uploads/HLD_Document.docx"
         }
       ],
       "customerContact": {
-        "name": "",
+        "name": "Benjie Garcia",
         "email": "benjie.g@example.com",
-        "phone": ""
+        "phone": "+1-555-0123"
       }
     }
   ],
@@ -388,74 +405,44 @@
   ],
   "feedback": [
     {
-      "id": "1",
+      "id": "FB-001",
       "name": "Liam Miller",
+      "email": "liam.miller@example.com",
       "title": "Exceeded My Expectations – Awesome Experience!",
-      "message": "I had a fantastic experience from start to finish. The team was incredibly professional, friendly, and attentive to my needs...",
-      "date": "2025-01-17"
+      "message": "I had a fantastic experience from start to finish. The team was incredibly professional, friendly, and attentive to my needs. The support provided was exceptional.",
+      "experience": "😊",
+      "date": "2025-01-17",
+      "ticketId": "TKT-001"
     },
     {
-      "id": "2",
+      "id": "FB-002",
       "name": "Larry Hills",
+      "email": "larry.hills@example.com",
       "title": "Highly Satisfied with the Service!",
       "message": "Service was quick, staff were polite, and I got the help I needed in no time.",
-      "date": "2025-01-18"
-    },
-    {
-      "id": "3",
-      "name": "Liam Miller",
-      "title": "Disappointed with the Service – Not What I Expected",
-      "date": "2025-01-20"
-    },
-    {
-      "id": "4",
-      "name": "Liam Miller",
-      "title": "Too Many Issues – Will Not Return",
-      "date": "2025-02-17"
-    },
-    {
-      "id": "5",
-      "name": "Liam Miller",
-      "title": "Reliable and Efficient – Highly Recommend!",
-      "date": "2025-03-19"
-    },
-    {
-      "id": "1",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "title": "Great Service!",
-      "message": "Really loved the support.",
       "experience": "😊",
-      "date": "2025-05-24"
+      "date": "2025-01-18",
+      "ticketId": "TKT-002"
     },
     {
-      "id": "b823",
-      "name": "Benjie Garcia",
-      "email": "benjie.g@example.com",
-      "title": "Test Benj",
-      "message": "I dont like it!",
-      "experience": "😡",
-      "date": "2025-08-31"
-    },
-    {
-      "id": "test1",
-      "title": "Excellent Support!",
-      "ticketId": null,
-      "name": "Benjie Garcia",
+      "id": "FB-003",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "title": "Great Service!",
+      "message": "Really loved the support. The team was responsive and solved my issue quickly.",
+      "experience": "😊",
       "date": "2025-05-24",
-      "message": "The support team was very helpful in resolving my account access issue. Everything works perfectly now!",
-      "experience": "??",
-      "email": "benjie.g@example.com"
+      "ticketId": "TKT-005"
     },
     {
-      "id": "mezsjjwl9wsyd11u7bl",
+      "id": "FB-004",
       "name": "Benjie Garcia",
       "email": "benjie.g@example.com",
-      "title": "Test Resolved TKT - 013",
-      "message": "Test Resolved TKT - 013",
-      "experience": "😡",
+      "title": "Excellent Support Team!",
+      "message": "The support team was very helpful in resolving my account access issue. Everything works perfectly now!",
+      "experience": "�",
       "date": "2025-08-31",
-      "ticketId": null
+      "ticketId": "TKT-018"
     }
   ],
   "articles": [
@@ -684,18 +671,12 @@
       "content": "This article provides an overview of the topic. It includes key concepts, practical applications, and helpful examples. Understanding this material is important for both technical and non-technical audiences."
     },
     {
-      "id": "8867",
-      "title": "sadsadsadsad",
+      "id": "30",
       "category": "Introduction to I.T",
-      "author": "Monico Wembanyama",
-      "content": "dsadsadasd"
-    },
-    {
-      "id": "6380",
-      "title": "Big Data",
-      "category": "Introduction to I.T",
-      "author": "James",
-      "content": "Hello World"
+      "title": "Big Data Fundamentals",
+      "author": "James Quijano",
+      "status": "On Track",
+      "content": "Big Data refers to extremely large datasets that require specialized tools and techniques to process, analyze, and extract meaningful insights. This article covers the fundamentals of Big Data technologies, including storage solutions, processing frameworks, and analytics platforms used in modern organizations."
     }
   ]
 }

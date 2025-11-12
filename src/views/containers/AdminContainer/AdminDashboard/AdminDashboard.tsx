@@ -60,14 +60,14 @@ const AdminDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       const [ticketsRes, usersRes] = await Promise.all([
-        axios.get('http://localhost:3001/tickets'),
-        axios.get('http://localhost:3001/users')
+        axios.get('/api/tickets'),
+        axios.get('/api/users')
       ]);
       setTickets(ticketsRes.data || []);
       setUsers(usersRes.data || []);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      console.error('Error fetching data from API:', err);
+      setError('Unable to connect to server. Please ensure C# API is running on http://localhost:5000');
     } finally {
       setLoading(false);
     }
