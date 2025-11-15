@@ -42,7 +42,11 @@ export const dummyUsers: User[] = [
     username: 'benjieg',
     password: 'user123',
     isActive: true,
+<<<<<<< HEAD
     role: 'user',
+=======
+    role: 'staff',
+>>>>>>> origin/main
     department: 'Marketing',
   },
   {
@@ -75,7 +79,11 @@ export const dummyUsers: User[] = [
     username: 'analynb',
     password: 'user123',
     isActive: true,
+<<<<<<< HEAD
     role: 'user',
+=======
+    role: 'staff',
+>>>>>>> origin/main
     department: 'HR',
   },
   {
@@ -108,7 +116,11 @@ export const dummyUsers: User[] = [
     username: 'danilos',
     password: 'user123',
     isActive: true,
+<<<<<<< HEAD
     role: 'user',
+=======
+    role: 'staff',
+>>>>>>> origin/main
     department: 'Sales',
   },
 ];
