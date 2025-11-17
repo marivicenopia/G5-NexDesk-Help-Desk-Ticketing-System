@@ -125,7 +125,7 @@ const UserTable: React.FC<UserTableProps> = ({ data }) => {
 
                 {/* Department */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.department || '-'}
+                  {user.departmentId || '-'}
                 </td>
 
                 {/* Actions */}

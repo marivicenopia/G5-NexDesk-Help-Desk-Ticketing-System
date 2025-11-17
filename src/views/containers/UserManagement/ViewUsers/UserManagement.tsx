@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from 'axios';
 import type { User } from '../../../../types/user';
 import { AuthService } from '../../../../services/auth/AuthService';
+import { UserService } from '../../../../services/users/UserService';
+import { DepartmentService, type Department } from '../../../../services/departments/DepartmentService';
 import { Pagination } from '../../../components/Pagination';
 import { DeleteAccountModal } from '../../../components/DeleteAccountModal';
 
 const UserManagementContainer: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,7 +43,31 @@ const UserManagementContainer: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
+        loadDepartments();
     }, []);
+
+    const loadDepartments = async () => {
+        try {
+            const deptList = await DepartmentService.getActive();
+            console.log('Loaded departments from API:', deptList);
+            // Sort departments by ID to ensure consistent ordering
+            const sortedDeptList = deptList.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+            setDepartments(sortedDeptList);
+        } catch (error) {
+            console.error('Error loading departments:', error);
+            // Set fallback departments if API fails - updated to match database
+            const fallbackDepts = [
+                { id: '1', name: 'IT' },
+                { id: '2', name: 'HR' },
+                { id: '3', name: 'Finance' },
+                { id: '4', name: 'Marketing' },
+                { id: '5', name: 'Operations' },
+                { id: '6', name: 'Customer Support' }
+            ];
+            console.log('Using fallback departments:', fallbackDepts);
+            setDepartments(fallbackDepts);
+        }
+    };
 
     // Reset current page when filters change
     useEffect(() => {
@@ -52,8 +78,14 @@ const UserManagementContainer: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get('http://localhost:3001/users');
-            setUsers(response.data || []);
+            const users = await UserService.getAll();
+            console.log('Fetched users:', users);
+            // Log first user to see structure
+            if (users && users.length > 0) {
+                console.log('First user object:', users[0]);
+                console.log('First user departmentId:', users[0].departmentId);
+            }
+            setUsers(users || []);
         } catch (err) {
             console.error('Error fetching users:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch users');
@@ -67,11 +99,11 @@ const UserManagementContainer: React.FC = () => {
             alert('You do not have permission to edit this user.');
             return;
         }
-        navigate(`/admin/users/edit/${user.id}`, { state: { currentUserRole } });
+        navigate(`/admin/users/edit/${user.userId}`, { state: { currentUserRole } });
     };
 
     const handleView = (user: User) => {
-        navigate(`/admin/users/view/${user.id}`, { state: { currentUserRole } });
+        navigate(`/admin/users/view/${user.userId}`, { state: { currentUserRole } });
     };
 
     const handleDelete = (user: User) => {
@@ -90,7 +122,7 @@ const UserManagementContainer: React.FC = () => {
 
         try {
             setDeleteLoading(true);
-            await axios.delete(`http://localhost:3001/users/${userToDelete.id}`);
+            await UserService.delete(userToDelete.userId || userToDelete.id);
             alert('User account deleted successfully!');
             setShowDeleteModal(false);
             setUserToDelete(null);
@@ -108,13 +140,39 @@ const UserManagementContainer: React.FC = () => {
         setUserToDelete(null);
     };
 
+    const toggleUserStatus = async (user: User) => {
+        if (!canModifyUser(user)) {
+            alert('You do not have permission to modify this user.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const userId = user.userId || user.id;
+
+            if (user.isActive) {
+                await UserService.deactivate(userId);
+                alert(`User ${user.username} has been deactivated.`);
+            } else {
+                await UserService.activate(userId);
+                alert(`User ${user.username} has been activated.`);
+            }
+
+            fetchUsers(); // Refresh the list
+        } catch (error) {
+            console.error('Error toggling user status:', error);
+            alert('Failed to update user status');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleAddUser = () => {
         // Pass current user role to restrict options in CreateUser component
         navigate('/admin/create/user', { state: { currentUserRole } });
     };
 
-    // Get unique departments for filter dropdown
-    const uniqueDepartments = [...new Set(users.map(user => user.department).filter(Boolean))];
+    // Use centralized departments for filter dropdown instead of extracting from users
 
     // Reset all filters
     const handleResetFilters = () => {
@@ -128,12 +186,12 @@ const UserManagementContainer: React.FC = () => {
     // Filter users based on role, department, status and search term
     const filteredUsers = users.filter(user => {
         const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-        const matchesDepartment = selectedDepartment === 'all' || user.department === selectedDepartment;
+        const matchesDepartment = selectedDepartment === 'all' || user.departmentId === selectedDepartment;
         const matchesStatus = selectedStatus === 'all' ||
             (selectedStatus === 'active' && user.isActive) ||
             (selectedStatus === 'inactive' && !user.isActive);
-        const matchesSearch = user.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch = (user.firstName || user.firstname)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.lastName || user.lastname)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.username?.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesRole && matchesDepartment && matchesStatus && matchesSearch;
@@ -162,6 +220,12 @@ const UserManagementContainer: React.FC = () => {
         return isActive
             ? 'bg-green-100 text-green-800'
             : 'bg-red-100 text-red-800';
+    };
+
+    const getDepartmentName = (departmentId?: string) => {
+        if (!departmentId) return 'N/A';
+        const department = departments.find(dept => dept.id === departmentId);
+        return department ? department.name : 'N/A';
     };
 
     if (loading) {
@@ -232,9 +296,9 @@ const UserManagementContainer: React.FC = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Departments</option>
-                            {uniqueDepartments.map((dept) => (
-                                <option key={dept} value={dept}>
-                                    {dept}
+                            {departments.map((dept) => (
+                                <option key={dept.id} value={dept.id}>
+                                    {dept.name}
                                 </option>
                             ))}
                         </select>
@@ -307,13 +371,13 @@ const UserManagementContainer: React.FC = () => {
                                             <div className="flex-shrink-0 h-10 w-10">
                                                 <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
                                                     <span className="text-white font-medium">
-                                                        {user.firstname?.[0]}{user.lastname?.[0]}
+                                                        {(user.firstName || user.firstname)?.[0]}{(user.lastName || user.lastname)?.[0]}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-gray-900">
-                                                    {user.firstname} {user.lastname}
+                                                    {user.firstName || user.firstname} {user.lastName || user.lastname}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
                                                     @{user.username}
@@ -330,7 +394,7 @@ const UserManagementContainer: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {user.department || 'N/A'}
+                                        {getDepartmentName(user.departmentId)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(user.isActive)}`}>
@@ -352,6 +416,12 @@ const UserManagementContainer: React.FC = () => {
                                                         className="text-indigo-600 hover:text-indigo-900"
                                                     >
                                                         Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleUserStatus(user)}
+                                                        className={user.isActive ? "text-orange-600 hover:text-orange-900" : "text-green-600 hover:text-green-900"}
+                                                    >
+                                                        {user.isActive ? 'Deactivate' : 'Activate'}
                                                     </button>
                                                     {/* Only superadmin can delete accounts */}
                                                     {currentUserRole === 'superadmin' && (
@@ -393,7 +463,7 @@ const UserManagementContainer: React.FC = () => {
                 isOpen={showDeleteModal}
                 onClose={cancelDelete}
                 onConfirm={confirmDelete}
-                userFullName={userToDelete ? `${userToDelete.firstname} ${userToDelete.lastname}` : ''}
+                userFullName={userToDelete ? `${userToDelete.firstName || userToDelete.firstname} ${userToDelete.lastName || userToDelete.lastname}` : ''}
                 loading={deleteLoading}
             />
         </div>

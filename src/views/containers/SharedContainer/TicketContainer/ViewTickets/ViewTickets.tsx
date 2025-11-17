@@ -58,7 +58,7 @@ const ViewTickets: React.FC = () => {
       // Filter tickets based on user role
       const userRole = AuthService.getRole();
       const userEmail = AuthService.getUserEmail();
-      const userDepartment = AuthService.getUserDepartment();
+      const userDepartment = AuthService.getUserDepartmentId();
 
       let filteredData = data;
 

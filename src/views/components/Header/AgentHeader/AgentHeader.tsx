@@ -25,18 +25,41 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ title = "Dashboard" }) => {
 
     const fetchCurrentUser = async () => {
         try {
-            const userId = AuthService.getToken();
+            // First, try to get user info from stored authentication data
+            const storedFullName = AuthService.getUserFullName();
+            const userId = AuthService.getUserId();
 
+            if (storedFullName && storedFullName.trim() !== '') {
+                setDisplayName(storedFullName);
+                // Generate initials from stored full name
+                const nameParts = storedFullName.split(' ');
+                const firstInitial = nameParts[0]?.[0] || '';
+                const lastInitial = nameParts[nameParts.length - 1]?.[0] || '';
+                setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'A');
+                return; // Exit early if we have stored data
+            }
+
+            // Fallback: try to fetch from API if no stored data
             if (userId) {
                 const response = await fetch(`http://localhost:3001/users/${userId}`);
                 if (response.ok) {
                     const user = await response.json();
-                    setDisplayName(`${user.firstname} ${user.lastname}`);
-                    setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
+                    const fullName = `${user.firstname} ${user.lastname}`.trim();
+                    setDisplayName(fullName || user.email || 'Agent');
+                    setInitials(`${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() || 'A');
+                } else {
+                    // Final fallback to email or generic name
+                    const userEmail = AuthService.getUserEmail();
+                    setDisplayName(userEmail || 'Agent');
+                    setInitials('A');
                 }
             }
         } catch (error) {
             console.error('Error fetching current user:', error);
+            // Fallback to basic stored data
+            const userEmail = AuthService.getUserEmail();
+            setDisplayName(userEmail || 'Agent');
+            setInitials('A');
         }
     };
 
