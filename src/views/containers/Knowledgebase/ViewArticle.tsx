@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaArrowLeft } from 'react-icons/fa';
+import { API_CONFIG } from '../../../config/api';
 
 interface Article {
-  id: number;
+  id: string;
   title: string;
-  content?: string;
-  author?: string;
+  content: string;
+  author: string;
+  status: string;
+  categoryId: string;
+  categoryName: string;
 }
 
 const ViewArticle = () => {
@@ -21,8 +25,8 @@ const ViewArticle = () => {
   const basePath = isAdminRoute ? '/admin' : '/agent';
 
   useEffect(() => {
-    if (id && /^\d+$/.test(id)) {
-      axios.get(`http://localhost:3001/articles/${id}`)
+    if (id) {
+      axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_ARTICLE(id)}`)
         .then((res) => setArticle(res.data))
         .catch(() => setArticle(null))
         .finally(() => setLoading(false));

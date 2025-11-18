@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { PATHS } from "../../../../routes/constant";
+import { API_CONFIG } from "../../../../config/api";
 
 interface Article {
-    id: number;
+    id: string;
     title: string;
     content: string;
     category: string;
+    categoryName: string;
     author: string;
-    tags?: string[];
-    views?: number;
-    createdAt?: string;
-    updatedAt?: string;
+    status: string;
 }
 
 const UserViewArticle: React.FC = () => {
@@ -29,27 +28,40 @@ const UserViewArticle: React.FC = () => {
                 setLoading(true);
 
                 // Fetch the specific article
-                const response = await fetch(`http://localhost:3001/articles/${id}`);
+                const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_ARTICLE(id)}`);
                 if (response.ok) {
                     const articleData = await response.json();
-                    setArticle(articleData);
+                    const formattedArticle: Article = {
+                        id: articleData.id,
+                        title: articleData.title,
+                        content: articleData.content,
+                        category: articleData.categoryId,
+                        categoryName: articleData.categoryName || articleData.categoryId,
+                        author: articleData.author,
+                        status: articleData.status
+                    };
+                    setArticle(formattedArticle);
 
                     // Fetch related articles from the same category
-                    const allArticlesResponse = await fetch('http://localhost:3001/articles');
-                    const allArticles = await allArticlesResponse.json();
-                    const related = allArticles
-                        .filter((a: Article) => a.category === articleData.category && a.id !== articleData.id)
-                        .slice(0, 4);
-                    setRelatedArticles(related);
-
-                    // Increment view count (optional - for analytics)
-                    if (articleData.views !== undefined) {
-                        fetch(`http://localhost:3001/articles/${id}`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ views: (articleData.views || 0) + 1 })
+                    const categoriesResponse = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_CATEGORIES}`);
+                    const categories = await categoriesResponse.json();
+                    const allArticles: Article[] = [];
+                    categories.forEach((category: any) => {
+                        category.articles.forEach((art: any) => {
+                            if (art.id !== articleData.id && art.categoryId === articleData.categoryId) {
+                                allArticles.push({
+                                    id: art.id,
+                                    title: art.title,
+                                    content: '',
+                                    category: category.categoryId,
+                                    categoryName: category.name,
+                                    author: art.author,
+                                    status: art.status
+                                });
+                            }
                         });
-                    }
+                    });
+                    setRelatedArticles(allArticles.slice(0, 4));
                 } else {
                     console.error('Article not found');
                     navigate(PATHS.USER.KNOWLEDGEBASE.path);
@@ -65,14 +77,6 @@ const UserViewArticle: React.FC = () => {
         fetchArticle();
     }, [id, navigate]);
 
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return "Unknown";
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
 
     if (loading) {
         return (
@@ -119,23 +123,15 @@ const UserViewArticle: React.FC = () => {
                         <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-3">
                                 <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
-                                    {article.category}
+                                    {article.categoryName}
                                 </span>
-                                {article.views && (
-                                    <span className="text-sm text-gray-500">
-                                        {article.views} views
-                                    </span>
-                                )}
+                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                    Status: {article.status}
+                                </span>
                             </div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-3">{article.title}</h1>
                             <div className="flex items-center text-sm text-gray-500 space-x-4">
                                 <span>By {article.author}</span>
-                                {article.updatedAt && (
-                                    <>
-                                        <span>•</span>
-                                        <span>Updated {formatDate(article.updatedAt)}</span>
-                                    </>
-                                )}
                             </div>
                         </div>
                         <button
@@ -148,19 +144,6 @@ const UserViewArticle: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Tags */}
-                    {article.tags && article.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-4">
-                            {article.tags.map((tag, index) => (
-                                <span
-                                    key={index}
-                                    className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
-                                >
-                                    #{tag}
-                                </span>
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 {/* Article Body */}
@@ -202,13 +185,15 @@ const UserViewArticle: React.FC = () => {
                                 className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
                             >
                                 <h4 className="font-medium text-gray-900 mb-2">{relatedArticle.title}</h4>
-                                <p className="text-sm text-gray-600 mb-2">
-                                    {relatedArticle.content.substring(0, 100)}...
-                                </p>
+                                {relatedArticle.content && (
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {relatedArticle.content.substring(0, 100)}...
+                                    </p>
+                                )}
                                 <div className="flex items-center justify-between text-xs text-gray-500">
                                     <span>By {relatedArticle.author}</span>
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                                        {relatedArticle.category}
+                                        {relatedArticle.categoryName}
                                     </span>
                                 </div>
                             </Link>

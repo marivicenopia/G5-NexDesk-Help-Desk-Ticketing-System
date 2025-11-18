@@ -1,17 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { PATHS } from '../../../routes/constant'; // Update the path if needed
+import { PATHS } from '../../../routes/constant';
+import { API_CONFIG } from '../../../config/api';
+
+interface Category {
+  categoryId: string;
+  name: string;
+}
 
 const AddArticle = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     author: '',
     title: '',
-    category: '',
+    categoryId: '',
     content: '',
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_CATEGORIES}`);
+        setCategories(res.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -21,21 +41,28 @@ const AddArticle = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const article = {
       title: formData.title,
-      category: formData.category,
+      categoryId: formData.categoryId,
       author: formData.author,
       content: formData.content,
     };
 
     try {
-      await axios.post('http://localhost:3001/articles', article);
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_ADD_ARTICLE}`,
+        article,
+        { withCredentials: true }
+      );
       alert('Article added successfully!');
-      navigate(PATHS.ADMIN.KNOWLEDGEBASE.path); // ← Redirect here
-    } catch (error) {
+      navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+    } catch (error: any) {
       console.error('Failed to submit article', error);
-      alert('Something went wrong.');
+      alert(error.response?.data?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,19 +105,18 @@ const AddArticle = () => {
         <div>
           <label className="block font-semibold text-sm mb-1">Category Type</label>
           <select
-            name="category"
-            value={formData.category}
+            name="categoryId"
+            value={formData.categoryId}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
             <option value="">Select Category</option>
-            <option value="Introduction to I.T">Introduction to I.T</option>
-            <option value="Coding & Dev">Coding & Dev</option>
-            <option value="Cybersecurity">Cybersecurity</option>
-            <option value="Databases">Databases</option>
-            <option value="Cloud & DevOps">Cloud & DevOps</option>
-            <option value="Networking">Networking</option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryId}>
+                {category.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -110,9 +136,10 @@ const AddArticle = () => {
         <div className="text-right">
           <button
             type="submit"
-            className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800"
+            disabled={loading}
+            className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800 disabled:opacity-50"
           >
-            SUBMIT
+            {loading ? 'SUBMITTING...' : 'SUBMIT'}
           </button>
         </div>
       </form>

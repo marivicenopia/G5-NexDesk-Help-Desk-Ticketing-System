@@ -2,8 +2,8 @@
 // This configuration connects the React frontend to the C# ASP.NET Core backend
 
 export const API_CONFIG = {
-    // Base URL for all API calls
-    BASE_URL: "", // Empty string uses relative URLs with Vite proxy
+    // Base URL for all API calls - C# backend
+    BASE_URL: "https://localhost:5001",
 
     // API endpoints
     ENDPOINTS: {
@@ -22,6 +22,12 @@ export const API_CONFIG = {
         USERS_BY_ID: (id: string) => `/api/users/${id}`,
         USERS_BY_ROLE: (role: string) => `/api/users/by-role/${role}`,
         USERS_BY_DEPARTMENT: (department: string) => `/api/users/by-department/${department}`,
+
+        // Knowledge Base
+        KNOWLEDGE_BASE_GET_CATEGORIES: "/api/KnowledgeBase/GetCategories",
+        KNOWLEDGE_BASE_GET_ARTICLE: (id: string) => `/api/KnowledgeBase/GetArticle/${id}`,
+        KNOWLEDGE_BASE_ADD_ARTICLE: "/api/KnowledgeBase/AddArticle",
+        KNOWLEDGE_BASE_DELETE_ARTICLE: (id: string) => `/api/KnowledgeBase/DeleteArticle/${id}`,
     },
 
     // Common headers

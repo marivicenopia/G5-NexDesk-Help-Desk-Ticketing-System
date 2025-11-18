@@ -3,9 +3,25 @@ import axios from 'axios';
 import { MdArticle, MdDelete, MdAdd, MdEdit } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '../../../routes/constant';
+import { API_CONFIG } from '../../../config/api';
+
+interface ArticleSummary {
+  id: string;
+  title: string;
+  author: string;
+  status: string;
+}
+
+interface Category {
+  categoryId: string;
+  name: string;
+  description: string;
+  displayOrder: number;
+  articles: ArticleSummary[];
+}
 
 interface Article {
-  id: number;
+  id: string;
   category: string;
   title: string;
 }
@@ -20,35 +36,55 @@ const categoryStyles: Record<string, { bg: string; text: string; iconBg: string 
 };
 
 const Knowledgebase = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchArticles = async () => {
-    const res = await axios.get('http://localhost:3001/articles');
-    setArticles(res.data);
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_CATEGORIES}`);
+      setCategories(res.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      alert('Failed to load categories');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchArticles();
+    fetchCategories();
   }, []);
 
   const handleAdd = () => {
     navigate(PATHS.ADMIN.ADD_ARTICLE.path);
   };
 
-  const handleEdit = (id: number) => {
-    navigate(PATHS.ADMIN.EDIT_ARTICLE.path.replace(':id', id.toString()));
+  const handleEdit = (id: string) => {
+    navigate(PATHS.ADMIN.EDIT_ARTICLE.path.replace(':id', id));
   };
 
   const handleRedirectToDeletePage = () => {
     navigate(PATHS.ADMIN.DELETE_ARTICLE.path);
   };
 
-  const grouped = articles.reduce((acc: Record<string, Article[]>, article) => {
-    if (!acc[article.category]) acc[article.category] = [];
-    acc[article.category].push(article);
-    return acc;
-  }, {});
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this article?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_DELETE_ARTICLE(id)}`, {
+        withCredentials: true
+      });
+      alert('Article deleted successfully');
+      fetchCategories();
+    } catch (error: any) {
+      console.error('Error deleting article:', error);
+      alert(error.response?.data?.message || 'Failed to delete article');
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -79,67 +115,84 @@ const Knowledgebase = () => {
         </div>
       </div>
 
-      {/* Article Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Object.entries(grouped).map(([category, articles]) => {
-          const styles = categoryStyles[category] || {
-            bg: 'bg-gray-100',
-            text: 'text-gray-700',
-            iconBg: 'bg-gray-500',
-          };
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <>
+          {/* Article Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => {
+              const styles = categoryStyles[category.name] || {
+                bg: 'bg-gray-100',
+                text: 'text-gray-700',
+                iconBg: 'bg-gray-500',
+              };
 
-          return (
-            <div key={category} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              {/* Category Header */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`rounded-lg p-3 ${styles.iconBg} text-white`}>
-                  <MdArticle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className={`text-lg font-semibold ${styles.text}`}>{category}</h3>
-                  <p className="text-sm text-gray-500">{articles.length} article{articles.length !== 1 ? 's' : ''}</p>
-                </div>
-              </div>
-
-              {/* Article List */}
-              <div className="space-y-3">
-                {articles.map((article) => (
-                  <div
-                    key={article.id}
-                    className="flex justify-between items-center group p-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3 flex-1">
-                      <MdArticle className="text-gray-400 mt-1 w-4 h-4 flex-shrink-0" />
-                      <button
-                        onClick={() =>
-                          navigate(PATHS.ADMIN.VIEW_ARTICLE.path.replace(':id', article.id.toString()))
-                        }
-                        className="text-left text-sm text-gray-900 hover:text-blue-600 transition-colors font-medium line-clamp-2"
-                      >
-                        {article.title}
-                      </button>
+              return (
+                <div key={category.categoryId} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  {/* Category Header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className={`rounded-lg p-3 ${styles.iconBg} text-white`}>
+                      <MdArticle className="w-5 h-5" />
                     </div>
-                    <button
-                      onClick={() => handleEdit(article.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-blue-600"
-                      title="Edit Article"
-                    >
-                      <MdEdit className="w-4 h-4" />
-                    </button>
+                    <div>
+                      <h3 className={`text-lg font-semibold ${styles.text}`}>{category.name}</h3>
+                      <p className="text-sm text-gray-500">{category.articles.length} article{category.articles.length !== 1 ? 's' : ''}</p>
+                    </div>
                   </div>
-                ))}
-                {articles.length === 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">No articles in this category</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {Object.keys(grouped).length === 0 && (
+                  {/* Article List */}
+                  <div className="space-y-3">
+                    {category.articles.map((article) => (
+                      <div
+                        key={article.id}
+                        className="flex justify-between items-center group p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3 flex-1">
+                          <MdArticle className="text-gray-400 mt-1 w-4 h-4 flex-shrink-0" />
+                          <button
+                            onClick={() =>
+                              navigate(PATHS.ADMIN.VIEW_ARTICLE.path.replace(':id', article.id))
+                            }
+                            className="text-left text-sm text-gray-900 hover:text-blue-600 transition-colors font-medium line-clamp-2"
+                          >
+                            {article.title}
+                          </button>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleEdit(article.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-blue-600"
+                            title="Edit Article"
+                          >
+                            <MdEdit className="w-4 h-4" />
+                          </button>
+                          {article.status !== 'COMPLETED' && (
+                            <button
+                              onClick={() => handleDelete(article.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-red-600"
+                              title="Delete Article"
+                            >
+                              <MdDelete className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {category.articles.length === 0 && (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-gray-500">No articles in this category</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {categories.length === 0 && (
         <div className="text-center py-12">
           <MdArticle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
@@ -152,6 +205,8 @@ const Knowledgebase = () => {
             Add First Article
           </button>
         </div>
+      )}
+        </>
       )}
     </div>
   );

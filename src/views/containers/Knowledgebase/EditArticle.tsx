@@ -2,23 +2,48 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { PATHS } from '../../../routes/constant';
+import { API_CONFIG } from '../../../config/api';
+
+interface Category {
+  categoryId: string;
+  name: string;
+}
 
 const EditArticle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     author: '',
     title: '',
-    category: '',
+    categoryId: '',
     content: '',
   });
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_CATEGORIES}`);
+        setCategories(res.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await axios.get(`http://localhost:3001/articles/${id}`);
-        setFormData(res.data);
+        const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_GET_ARTICLE(id!)}`);
+        setFormData({
+          author: res.data.author || '',
+          title: res.data.title || '',
+          categoryId: res.data.categoryId || '',
+          content: res.data.content || '',
+        });
       } catch (err) {
         console.error('Failed to fetch article');
         alert('Article not found.');
@@ -37,13 +62,17 @@ const EditArticle = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      await axios.put(`http://localhost:3001/articles/${id}`, formData);
-      alert('Article updated successfully!');
+      // Note: Update endpoint not yet implemented in C# backend
+      // For now, this will show an error
+      alert('Update functionality is not yet available. Please delete and recreate the article.');
       navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
     } catch (error) {
       console.error('Update failed', error);
       alert('Failed to update the article.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,19 +115,18 @@ const EditArticle = () => {
         <div>
           <label className="block font-semibold text-sm mb-1">Category Type</label>
           <select
-            name="category"
-            value={formData.category}
+            name="categoryId"
+            value={formData.categoryId}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
             <option value="">Select Category</option>
-            <option value="Introduction to I.T">Introduction to I.T</option>
-            <option value="Coding & Dev">Coding & Dev</option>
-            <option value="Cybersecurity">Cybersecurity</option>
-            <option value="Databases">Databases</option>
-            <option value="Cloud & DevOps">Cloud & DevOps</option>
-            <option value="Networking">Networking</option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryId}>
+                {category.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -118,9 +146,10 @@ const EditArticle = () => {
         <div className="text-right">
           <button
             type="submit"
-            className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800"
+            disabled={loading}
+            className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800 disabled:opacity-50"
           >
-            SUBMIT
+            {loading ? 'UPDATING...' : 'UPDATE'}
           </button>
         </div>
       </form>

@@ -24,9 +24,25 @@ const UserKnowledgeBase: React.FC = () => {
         const fetchArticles = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:3001/articles');
-                const data = await response.json();
-                setArticles(data);
+                const response = await fetch('https://localhost:5001/api/KnowledgeBase/GetCategories');
+                const categories = await response.json();
+                
+                // Flatten categories to get all articles
+                const allArticles: Article[] = [];
+                categories.forEach((category: any) => {
+                    category.articles.forEach((article: any) => {
+                        allArticles.push({
+                            id: article.id,
+                            title: article.title,
+                            content: '',
+                            category: category.name,
+                            author: article.author,
+                            status: article.status
+                        });
+                    });
+                });
+                
+                setArticles(allArticles);
             } catch (error) {
                 console.error('Error fetching articles:', error);
             } finally {
