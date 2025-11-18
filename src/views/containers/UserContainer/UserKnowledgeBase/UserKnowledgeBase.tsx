@@ -24,8 +24,21 @@ const UserKnowledgeBase: React.FC = () => {
         const fetchArticles = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:3001/articles');
-                const data = await response.json();
+                const response = await fetch('/api/articles', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    const txt = await response.text();
+                    console.warn('Articles fetch failed', response.status, txt);
+                    setArticles([]);
+                    return;
+                }
+                let raw = await response.text();
+                let parsed: any;
+                try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+                const data = Array.isArray(parsed) ? parsed : (parsed.response || []);
                 setArticles(data);
             } catch (error) {
                 console.error('Error fetching articles:', error);

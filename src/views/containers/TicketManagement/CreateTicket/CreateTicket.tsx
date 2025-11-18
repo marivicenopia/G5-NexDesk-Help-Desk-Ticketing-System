@@ -60,33 +60,45 @@ const CreateTicket: React.FC = () => {
         }
 
         try {
-            // Create the ticket object
-            const newTicket: Partial<Ticket> = {
-                id: Date.now().toString(), // Simple ID generation
+            // Map UI data to backend CreateTicketDto (C# expects PascalCase/enums)
+            const toPascal = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+            const createDto = {
                 title: formData.title,
                 description: formData.description,
-                priority: formData.priority as PriorityOption,
+                priority: toPascal(String(formData.priority)), // Low/Medium/High/Urgent/Critical
                 department: formData.department || 'General',
                 submittedBy: formData.customerEmail,
-                submittedDate: new Date(),
-                status: 'open',
+                assignedTo: '',
                 customerName: formData.customerName,
                 customerEmail: formData.customerEmail,
                 contactNumber: formData.contactNumber,
                 category: formData.category,
             };
 
-            // Submit to API
-            const response = await fetch('http://localhost:3001/tickets', {
+            // Submit to C# REST API via Vite proxy
+            const response = await fetch('/api/tickets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify(newTicket),
+                credentials: 'include',
+                body: JSON.stringify(createDto),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create ticket');
+                try {
+                    const ct = response.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        const errJson = await response.json();
+                        throw new Error(errJson?.message || 'Failed to create ticket');
+                    } else {
+                        const errText = await response.text();
+                        throw new Error(errText || 'Failed to create ticket');
+                    }
+                } catch (e: any) {
+                    throw new Error(e?.message || 'Failed to create ticket');
+                }
             }
 
             // Success

@@ -58,17 +58,33 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
 
     const fetchAvailableAgents = async () => {
         try {
-            const response = await fetch('http://localhost:3001/users');
+            const response = await fetch('/api/users', { credentials: 'include', headers: { 'Accept': 'application/json' } });
             if (response.ok) {
-                const users: User[] = await response.json();
-                // Filter for active agents and admins
-                const agents = users.filter(user =>
-                    user.isActive && (user.role === 'agent' || user.role === 'admin')
+                const raw = await response.text();
+                let parsed: any;
+                try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+                const users: any[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
+                const normalized: User[] = users.map((u: any) => ({
+                    id: u.id ?? u.userId ?? u.email,
+                    username: u.username ?? u.userName ?? u.email ?? '',
+                    password: '',
+                    firstName: u.firstName ?? u.firstname ?? '',
+                    lastName: u.lastName ?? u.lastname ?? '',
+                    email: u.email ?? '',
+                    isActive: u.isActive ?? true,
+                    role: (u.role ?? (Array.isArray(u.roles) ? u.roles[0] : '') ?? '').toLowerCase(),
+                }));
+                const agents = normalized.filter(user =>
+                    user.isActive && (user.role === 'agent' || user.role === 'admin' || user.role === 'superadmin')
                 );
                 setAvailableAgents(agents);
+            } else {
+                console.warn('Users endpoint not available', response.status);
+                setAvailableAgents([]);
             }
         } catch (error) {
             console.error('Error fetching agents:', error);
+            setAvailableAgents([]);
         }
     };
 
@@ -172,9 +188,8 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
                                 >
                                     <option value="">Choose an agent...</option>
                                     {availableAgents.map((agent) => (
-                                        <option key={agent.id} value={agent.email}>
-                                            {agent.firstname} {agent.lastname} ({agent.email})
-                                            {agent.department && ` - ${agent.department}`}
+                                        <option key={String(agent.id)} value={agent.email}>
+                                            {(agent.firstname || agent.firstName) || ''} {(agent.lastname || agent.lastName) || ''} ({agent.email})
                                         </option>
                                     ))}
                                 </select>

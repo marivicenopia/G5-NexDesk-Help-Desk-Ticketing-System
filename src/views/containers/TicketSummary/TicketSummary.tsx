@@ -4,7 +4,7 @@ import type { TicketSummaryItem, TicketSummaryStatus, TicketSummaryPriority } fr
 import TicketList from './TicketList';
 import styles from './TicketSummary.module.css';
 
-const API_URL = 'http://localhost:3001/tickets'; // URL for your json-server
+const API_URL = '/api/tickets';
 
 const TicketSummary: React.FC = () => {
     const [tickets, setTickets] = useState<TicketSummaryItem[]>([]);
@@ -33,11 +33,12 @@ const TicketSummary: React.FC = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await fetch(API_URL);
+                const response = await fetch(API_URL, { credentials: 'include' });
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const data: any[] = await response.json();
+                const raw: any = await response.json();
+                const data: any[] = Array.isArray(raw) ? raw : (raw.response ?? []);
                 const convertedTickets = convertToTicketSummaryFormat(data);
                 setTickets(convertedTickets);
             } catch (e) {
@@ -83,10 +84,11 @@ const TicketSummary: React.FC = () => {
 
         try {
             const response = await fetch(`${API_URL}/${ticketId}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     status: statusMapping[newStatus],
                     priority: priorityMapping[newPriority]

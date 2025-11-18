@@ -35,10 +35,11 @@ const ViewTicketDetail: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get(`http://localhost:3001/tickets/${ticketId}`);
-            setTicket(response.data);
-            setNewStatus(response.data.status);
-            setNewPriority(response.data.priority);
+            const response = await axios.get(`/api/tickets/${ticketId}`, { withCredentials: true });
+            const data = response.data?.response ?? response.data;
+            setTicket(data);
+            setNewStatus(data.status);
+            setNewPriority(data.priority);
         } catch (err) {
             console.error('Error fetching ticket details:', err);
             setError('Failed to load ticket details');
@@ -55,12 +56,12 @@ const ViewTicketDetail: React.FC = () => {
 
         try {
             setUpdateLoading(true);
-            const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, {
+            const response = await axios.put(`/api/tickets/${ticketId}`, {
                 ...ticket,
                 status: newStatus,
                 lastUpdated: new Date().toISOString()
-            });
-            setTicket(response.data);
+            }, { withCredentials: true });
+            setTicket((response.data?.response ?? response.data));
             setIsEditingStatus(false);
             setSuccessMessage('Ticket status updated successfully');
             setTimeout(() => setSuccessMessage(null), 3000);
@@ -80,12 +81,12 @@ const ViewTicketDetail: React.FC = () => {
 
         try {
             setUpdateLoading(true);
-            const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, {
+            const response = await axios.put(`/api/tickets/${ticketId}`, {
                 ...ticket,
                 priority: newPriority,
                 lastUpdated: new Date().toISOString()
-            });
-            setTicket(response.data);
+            }, { withCredentials: true });
+            setTicket((response.data?.response ?? response.data));
             setIsEditingPriority(false);
             setSuccessMessage('Ticket priority updated successfully');
             setTimeout(() => setSuccessMessage(null), 3000);

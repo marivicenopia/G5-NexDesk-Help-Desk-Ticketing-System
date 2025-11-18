@@ -42,9 +42,21 @@ const UserTicketManagement: React.FC = () => {
                     return;
                 }
 
-                // Fetch all tickets and filter by user email
-                const ticketsResponse = await axios.get('http://localhost:3001/tickets');
-                const allTickets = ticketsResponse.data;
+                // Fetch all tickets from C# backend (via Vite proxy)
+                const ticketsResponse = await fetch('/api/tickets', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!ticketsResponse.ok) {
+                    const text = await ticketsResponse.text();
+                    console.warn('Failed to fetch tickets status:', ticketsResponse.status, 'body:', text);
+                    throw new Error('Failed to load tickets');
+                }
+                let raw = await ticketsResponse.text();
+                let parsed: any;
+                try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+                const allTickets = Array.isArray(parsed) ? parsed : (parsed.response || []);
 
                 // Filter tickets submitted by the current user
                 const userTickets = allTickets.filter((ticket: Ticket) =>
@@ -94,7 +106,16 @@ const UserTicketManagement: React.FC = () => {
 
         setDeleteLoading(true);
         try {
-            await axios.delete(`http://localhost:3001/tickets/${ticketToDelete.id}`);
+            const deleteResp = await fetch(`/api/tickets/${ticketToDelete.id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!deleteResp.ok) {
+                const body = await deleteResp.text();
+                console.error('Delete failed', deleteResp.status, body);
+                throw new Error('Delete failed');
+            }
 
             // Remove the deleted ticket from the list
             setTickets(tickets.filter(t => t.id !== ticketToDelete.id));

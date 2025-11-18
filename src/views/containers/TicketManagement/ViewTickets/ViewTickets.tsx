@@ -49,44 +49,47 @@ const ViewTickets: React.FC = () => {
     const fetchTickets = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:3001/tickets');
-            if (!response.ok) {
-                throw new Error('Failed to fetch tickets');
+            const resp = await fetch('/api/tickets', {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Failed to fetch tickets (${resp.status}): ${text || 'No body'}`);
             }
-            const data = await response.json();
+            const raw = await resp.text();
+            let parsed: any;
+            try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+            const data: Ticket[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
 
             // Filter tickets based on user role
             const userRole = AuthService.getRole();
             const userEmail = AuthService.getUserEmail();
             const userDepartment = AuthService.getUserDepartmentId();
 
-            let filteredData = data;
+            let filteredData: Ticket[] = data;
 
-            // For agents, only show tickets assigned to them or in their department
             if (userRole === 'agent' && userEmail) {
                 filteredData = data.filter((ticket: Ticket) => {
-                    // Show tickets assigned to this agent
                     const isAssignedToAgent = ticket.assignedTo === userEmail;
-
-                    // Show tickets in the same department (with department mapping)
-                    const isDepartmentMatch = userDepartment &&
-                        (ticket.department === userDepartment ||
-                            // Map common department names
-                            (userDepartment === 'IT' && (
-                                ticket.department === 'IT Support' ||
-                                ticket.department === 'Software Support' ||
-                                ticket.department === 'Hardware Support' ||
-                                ticket.department === 'Network Operations' ||
-                                ticket.department === 'Email Support'
-                            )) ||
-                            (userDepartment === 'HR' && (
-                                ticket.department === 'Human Resources' ||
-                                ticket.department === 'Facility Management'
-                            )));
-
-                    return isAssignedToAgent || isDepartmentMatch;
+                    const isDepartmentMatch = userDepartment && (
+                        ticket.department === userDepartment ||
+                        (userDepartment === 'IT' && (
+                            ticket.department === 'IT Support' ||
+                            ticket.department === 'Software Support' ||
+                            ticket.department === 'Hardware Support' ||
+                            ticket.department === 'Network Operations' ||
+                            ticket.department === 'Email Support'
+                        )) ||
+                        (userDepartment === 'HR' && (
+                            ticket.department === 'Human Resources' ||
+                            ticket.department === 'Facility Management'
+                        ))
+                    );
+                    return Boolean(isAssignedToAgent || isDepartmentMatch);
                 });
-            } setTickets(filteredData);
+            }
+            setTickets(filteredData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
         } finally {
@@ -143,38 +146,30 @@ const ViewTickets: React.FC = () => {
                 throw new Error('Ticket not found');
             }
 
-            const updatedTicket: Ticket = {
-                ...ticketToUpdate,
+            const payload = {
                 assignedTo: assignmentData.assignedTo,
-                // Add assignment metadata if your ticket type supports it
-                // assignedBy: assignmentData.assignedBy,
-                // assignedDate: assignmentData.assignedDate,
-                // assignmentNotes: assignmentData.assignmentNotes
+                status: ticketToUpdate.status === 'resolved' || ticketToUpdate.status === 'closed' ? ticketToUpdate.status : 'assigned'
             };
 
-            const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+            const resp = await fetch(`/api/tickets/${ticketId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedTicket)
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(payload)
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to assign ticket');
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(`Failed to assign ticket (${resp.status}): ${txt || 'No body'}`);
             }
 
-            // Update the tickets list with the assigned ticket
-            setTickets(tickets.map(t =>
-                t.id === ticketId ? updatedTicket : t
-            ));
-
+            const updated: Ticket = { ...ticketToUpdate, ...payload } as Ticket;
+            setTickets(tickets.map(t => (t.id === ticketId ? updated : t)));
             setIsAssignModalOpen(false);
             setSelectedTicketForAssign(null);
             alert('Ticket assigned successfully!');
         } catch (error) {
             console.error('Error assigning ticket:', error);
-            throw error; // Re-throw to let the modal handle the error
+            throw error;
         }
     };
 
@@ -188,12 +183,15 @@ const ViewTickets: React.FC = () => {
 
         setDeleteLoading(true);
         try {
-            const response = await fetch(`http://localhost:3001/tickets/${ticketToDelete.id}`, {
+            const response = await fetch(`/api/tickets/${ticketToDelete.id}`, {
                 method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete ticket');
+                const txt = await response.text();
+                throw new Error(`Failed to delete ticket (${response.status}): ${txt || 'No body'}`);
             }
 
             setTickets(tickets.filter(t => t.id !== ticketToDelete.id));
@@ -230,10 +228,12 @@ const ViewTickets: React.FC = () => {
                 ...resolutionData
             };
 
-            const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+            const response = await fetch(`/api/tickets/${ticketId}`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(updatedTicket)
             });

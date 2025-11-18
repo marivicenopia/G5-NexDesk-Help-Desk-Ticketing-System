@@ -68,13 +68,15 @@ export const AuthService = {
   // Create authenticated fetch wrapper
   authenticatedFetch: async (url: string, options: RequestInit = {}) => {
     const authHeaders = AuthService.getAuthHeader();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...authHeaders,
+      ...(options.headers as any),
+    };
     return fetch(url, {
+      credentials: 'include',
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      },
+      headers,
     });
   },
 };

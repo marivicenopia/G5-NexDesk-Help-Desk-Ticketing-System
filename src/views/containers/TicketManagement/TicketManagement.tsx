@@ -26,12 +26,12 @@ const TicketManagement: React.FC = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/tickets');
+      const response = await fetch('/api/tickets', { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
       const data = await response.json();
-      setTickets(data);
+      setTickets(Array.isArray(data) ? data : (data.response ?? []));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
     } finally {
@@ -85,8 +85,9 @@ const TicketManagement: React.FC = () => {
 
     setDeleteLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/tickets/${ticketToDelete.id}`, {
+      const response = await fetch(`/api/tickets/${ticketToDelete.id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
