@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import type { User } from '../../../../types/user';
 import { AuthService } from '../../../../services/auth/AuthService';
+import { UserService } from '../../../../services/users/UserService';
+import { DepartmentService, type Department } from '../../../../services/departments/DepartmentService';
 
 const ViewUser: React.FC = () => {
     const navigate = useNavigate();
@@ -10,6 +11,7 @@ const ViewUser: React.FC = () => {
     const { userId } = useParams();
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    const [departments, setDepartments] = useState<Department[]>([]);
 
     // Get current user role for permission checking
     const currentUserRole = location.state?.currentUserRole || AuthService.getRole();
@@ -25,7 +27,38 @@ const ViewUser: React.FC = () => {
         return currentUserRole === 'admin';
     };
 
+    const getDepartmentName = (departmentId?: string) => {
+        if (!departmentId) return 'N/A';
+        const department = departments.find(dept => dept.id === departmentId);
+        return department ? department.name : 'N/A';
+    };
+
     useEffect(() => {
+        const loadDepartments = async () => {
+            try {
+                const deptList = await DepartmentService.getActive();
+                console.log('ViewUser - Loaded departments from API:', deptList);
+                // Sort departments by ID to ensure consistent ordering
+                const sortedDeptList = deptList.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                setDepartments(sortedDeptList);
+            } catch (error) {
+                console.error('ViewUser - Error loading departments:', error);
+                // Set fallback departments if API fails - updated to match database
+                const fallbackDepts = [
+                    { id: '1', name: 'IT' },
+                    { id: '2', name: 'HR' },
+                    { id: '3', name: 'Finance' },
+                    { id: '4', name: 'Marketing' },
+                    { id: '5', name: 'Operations' },
+                    { id: '6', name: 'Customer Support' }
+                ];
+                console.log('ViewUser - Using fallback departments:', fallbackDepts);
+                setDepartments(fallbackDepts);
+            }
+        };
+
+        loadDepartments();
+
         if (userId) {
             fetchUser();
         }
@@ -33,8 +66,8 @@ const ViewUser: React.FC = () => {
 
     const fetchUser = async () => {
         try {
-            const response = await axios.get(`http://localhost:3001/users/${userId}`);
-            setUser(response.data);
+            const foundUser = await UserService.getById(userId!);
+            setUser(foundUser);
         } catch (error) {
             console.error('Error fetching user:', error);
             alert('Failed to load user data');
@@ -175,7 +208,7 @@ const ViewUser: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Department</label>
-                            <p className="text-gray-900">{user.department || 'N/A'}</p>
+                            <p className="text-gray-900">{getDepartmentName(user.departmentId)}</p>
                         </div>
 
                         <div>

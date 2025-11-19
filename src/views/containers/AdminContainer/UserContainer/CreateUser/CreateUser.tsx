@@ -5,8 +5,8 @@ import { UserService } from '../../../../../services/users/UserService';
 const defaultUser: Omit<User, 'id'> = {
     username: '',
     password: '',
-    firstname: '',
-    lastname: '',
+    firstName: '',
+    lastName: '',
     email: '',
     isActive: true,
     role: 'staff',
@@ -75,33 +75,38 @@ const CreateUser: React.FC = () => {
                         value={formData.username}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        required
                     />
 
                     <input
                         type="password"
                         name="password"
-                        placeholder="Password"
+                        placeholder="Password (min 6 characters)"
                         value={formData.password}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        minLength={6}
+                        required
                     />
 
                     <input
                         type="text"
-                        name="firstname"
+                        name="firstName"
                         placeholder="First Name"
-                        value={formData.firstname}
+                        value={formData.firstName}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        required
                     />
 
                     <input
                         type="text"
-                        name="lastname"
+                        name="lastName"
                         placeholder="Last Name"
-                        value={formData.lastname}
+                        value={formData.lastName}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        required
                     />
 
                     <input
@@ -111,6 +116,7 @@ const CreateUser: React.FC = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        required
                     />
 
                     <select
@@ -118,6 +124,7 @@ const CreateUser: React.FC = () => {
                         value={formData.role}
                         onChange={handleInputChange}
                         className="border p-2 rounded w-full"
+                        required
                     >
                         {roles.map(role => (
                             <option key={role} value={role}>

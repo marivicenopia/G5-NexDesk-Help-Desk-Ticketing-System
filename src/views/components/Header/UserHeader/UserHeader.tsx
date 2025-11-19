@@ -1,27 +1,49 @@
 import React, { useEffect, useState } from "react";
 import type { User } from "../../../../types/user";
 import { getRoleDisplayName } from "../../../../utils/permissions";
+import { AuthService } from "../../../../services/auth/AuthService";
 
 interface UserHeaderProps {
     title: string;
 }
 
 const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
-    const [displayName, setDisplayName] = useState("Staff");
-    const [initials, setInitials] = useState("S");
-    const [departmentDisplay, setDepartmentDisplay] = useState("Staff");
+    const [displayName, setDisplayName] = useState("User");
+    const [initials, setInitials] = useState("U");
+    const [departmentDisplay, setDepartmentDisplay] = useState("User");
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
             try {
-                const userId = localStorage.getItem("userId");
+                // First, try to get user info from stored authentication data
+                const storedFullName = AuthService.getUserFullName();
+                const storedRole = AuthService.getRole();
+                const userId = AuthService.getUserId();
 
+                if (storedFullName && storedFullName.trim() !== '') {
+                    setDisplayName(storedFullName);
+                    // Generate initials from stored full name
+                    const nameParts = storedFullName.split(' ');
+                    const firstInitial = nameParts[0]?.[0] || '';
+                    const lastInitial = nameParts[nameParts.length - 1]?.[0] || '';
+                    setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'U');
+
+                    // Set department display from stored role
+                    if (storedRole) {
+                        setDepartmentDisplay(getRoleDisplayName(storedRole));
+                    }
+                    return; // Exit early if we have stored data
+                }
+
+                // Fallback: try to fetch from API if no stored data
                 if (userId) {
                     const response = await fetch(`http://localhost:3001/users/${userId}`);
                     if (response.ok) {
                         const user: User = await response.json();
-                        setDisplayName(`${user.firstname} ${user.lastname}`);
-                        setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
+                        const fullName = `${user.firstname} ${user.lastname}`.trim();
+                        setDisplayName(fullName || user.email || 'User');
+                        setInitials(`${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() || 'U');
+
                         // Display department instead of role for staff
                         if (user.role === 'staff' && user.department) {
                             setDepartmentDisplay(user.department);
@@ -35,8 +57,10 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
                         const foundUser = allUsers.find((u: User) => u.id.toString() === userId);
 
                         if (foundUser) {
-                            setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
-                            setInitials(`${foundUser.firstname[0] || ''}${foundUser.lastname[0] || ''}`.toUpperCase());
+                            const fullName = `${foundUser.firstname} ${foundUser.lastname}`.trim();
+                            setDisplayName(fullName || foundUser.email || 'User');
+                            setInitials(`${foundUser.firstname?.[0] || ''}${foundUser.lastname?.[0] || ''}`.toUpperCase() || 'U');
+
                             // Display department instead of role for staff
                             if (foundUser.role === 'staff' && foundUser.department) {
                                 setDepartmentDisplay(foundUser.department);
@@ -48,7 +72,14 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
                 }
             } catch (error) {
                 console.error('Error fetching current user:', error);
-                // Keep default values if fetch fails
+                // Fallback to basic stored data
+                const userEmail = AuthService.getUserEmail();
+                const storedRole = AuthService.getRole();
+                setDisplayName(userEmail || 'User');
+                setInitials('U');
+                if (storedRole) {
+                    setDepartmentDisplay(getRoleDisplayName(storedRole));
+                }
             }
         };
 

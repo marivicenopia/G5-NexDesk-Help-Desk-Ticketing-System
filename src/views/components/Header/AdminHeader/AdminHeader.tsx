@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { AuthService } from "../../../../services/auth/AuthService";
+import { UserService } from "../../../../services/users/UserService";
 
 interface AdminHeaderProps {
   title?: string;
@@ -6,35 +8,53 @@ interface AdminHeaderProps {
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName }) => {
-  const [displayName, setDisplayName] = useState(userName || "Staff");
-  const [initials, setInitials] = useState("S");
+  const [displayName, setDisplayName] = useState(userName || "User");
+  const [initials, setInitials] = useState("U");
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const userId = localStorage.getItem("userId");
+        // First, try to get user info from stored authentication data
+        const storedFullName = AuthService.getUserFullName();
+        const storedRole = AuthService.getRole();
+        const userId = AuthService.getUserId();
 
+        if (storedFullName && storedFullName.trim() !== '') {
+          setDisplayName(storedFullName);
+          setUserRole(storedRole || '');
+
+          // Generate initials from stored full name
+          const nameParts = storedFullName.split(' ');
+          const firstInitial = nameParts[0]?.[0] || '';
+          const lastInitial = nameParts[nameParts.length - 1]?.[0] || '';
+          setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'U');
+          return; // Exit early if we have stored data
+        }
+
+        // Fallback: try to fetch from API if no stored data
         if (userId) {
-          const response = await fetch(`http://localhost:3001/users/${userId}`);
-          if (response.ok) {
-            const user = await response.json();
-            setDisplayName(`${user.firstname} ${user.lastname}`);
-            setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
-          } else {
-            // Fallback: try to find user by role if direct ID lookup fails
-            const allUsersResponse = await fetch('http://localhost:3001/users');
-            const allUsers = await allUsersResponse.json();
-            const foundUser = allUsers.find((u: any) => u.id.toString() === userId);
+          const users = await UserService.getAll();
+          const foundUser = users.find((u: any) => u.id === userId);
 
-            if (foundUser) {
-              setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
-              setInitials(`${foundUser.firstname[0] || ''}${foundUser.lastname[0] || ''}`.toUpperCase());
-            }
+          if (foundUser) {
+            const fullName = `${foundUser.firstname || ''} ${foundUser.lastname || ''}`.trim();
+            setDisplayName(fullName || foundUser.email || 'User');
+            setUserRole(foundUser.role || storedRole || '');
+
+            const firstInitial = foundUser.firstname?.[0] || '';
+            const lastInitial = foundUser.lastname?.[0] || '';
+            setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'U');
           }
         }
       } catch (error) {
         console.error('Error fetching current user:', error);
-        // Keep default values if fetch fails
+        // Fallback to basic stored data
+        const storedRole = AuthService.getRole();
+        const userEmail = AuthService.getUserEmail();
+        setDisplayName(userEmail || 'User');
+        setUserRole(storedRole || '');
+        setInitials('U');
       }
     };
 
@@ -42,6 +62,12 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName
       fetchCurrentUser();
     } else {
       setDisplayName(userName);
+      setUserRole(AuthService.getRole() || '');
+      // Generate initials from provided userName
+      const nameParts = userName.split(' ');
+      const firstInitial = nameParts[0]?.[0] || '';
+      const lastInitial = nameParts[nameParts.length - 1]?.[0] || '';
+      setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'U');
     }
   }, [userName]);
 
@@ -54,7 +80,12 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName
       <div className="flex items-center gap-4">
         {/* User Info */}
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-600">Welcome, {displayName}</span>
+          <div className="text-right">
+            <span className="text-sm font-medium text-gray-800">Welcome, {displayName}</span>
+            {userRole && (
+              <div className="text-xs text-gray-500 capitalize">{userRole}</div>
+            )}
+          </div>
           <div className="w-10 h-10 rounded-full bg-[#1e3a8a] flex items-center justify-center text-white font-bold">
             {initials}
           </div>
