@@ -55,17 +55,35 @@ const TicketAssignment: React.FC = () => {
 
     const fetchData = async () => {
         try {
-            const [ticketsRes, usersRes] = await Promise.all([
-                axios.get('/api/tickets', { withCredentials: true }),
-                axios.get('http://localhost:3001/users')
-            ]);
+            const ticketsResp = await fetch('/api/tickets', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            let ticketsArr: any[] = [];
+            if (ticketsResp.ok) {
+                const txt = await ticketsResp.text();
+                let parsed: any; try { parsed = txt ? JSON.parse(txt) : []; } catch { parsed = []; }
+                ticketsArr = Array.isArray(parsed) ? parsed : (parsed.response || parsed.tickets || parsed.items || parsed.data || []);
+            }
+            setTickets(ticketsArr as Ticket[]);
 
-            setTickets(ticketsRes.data);
-            // Filter only active agents
-            const activeAgents = usersRes.data.filter((user: Agent) =>
-                user.isActive && user.role === 'agent'
-            );
-            setAgents(activeAgents);
+            // Attempt primary users endpoint
+            const usersResp = await fetch('/api/user', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            let agentsList: Agent[] = [];
+            if (usersResp.ok) {
+                const utxt = await usersResp.text();
+                let uParsed: any; try { uParsed = utxt ? JSON.parse(utxt) : []; } catch { uParsed = []; }
+                const rawUsers: any[] = Array.isArray(uParsed) ? uParsed : (uParsed.response || uParsed.users || uParsed.user || []);
+                agentsList = rawUsers.map(u => ({
+                    id: String(u.id ?? u.userId ?? u.email ?? Math.random()),
+                    firstname: String(u.firstName ?? u.firstname ?? '').trim(),
+                    lastname: String(u.lastName ?? u.lastname ?? '').trim(),
+                    email: String(u.email ?? u.userName ?? u.username ?? ''),
+                    department: String(u.departmentId ?? u.department ?? ''),
+                    isActive: u.isActive ?? true,
+                    role: String((u.role ?? (Array.isArray(u.roles) ? u.roles[0] : '')) || '').toLowerCase()
+                })).filter(a => a.isActive && (a.role === 'agent' || a.role === 'admin' || a.role === 'superadmin'));
+            } else {
+                console.warn('[TicketAssignment] /api/user missing (status', usersResp.status, '). Ensure controller route matches frontend.');
+            }
+            setAgents(agentsList);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -85,19 +103,61 @@ const TicketAssignment: React.FC = () => {
         try {
             const ticket = tickets.find(t => t.id === assigningTicket);
             if (!ticket) return;
-
-            const updatedTicket = {
+            // Build full payload to satisfy backend validation (may require all fields)
+            const fullPayload: any = {
                 ...ticket,
                 assignedTo: selectedAgent,
-                status: 'assigned'
+                status: ticket.status === 'resolved' || ticket.status === 'closed' ? ticket.status : 'assigned'
             };
-
-            await axios.put(`/api/tickets/${assigningTicket}`, updatedTicket, { withCredentials: true });
-
-            // Update local state
-            setTickets(prev => prev.map(t =>
-                t.id === assigningTicket ? updatedTicket : t
-            ));
+            // Normalize date fields to ISO strings if they are Date objects
+            if (fullPayload.submittedDate instanceof Date) {
+                fullPayload.submittedDate = fullPayload.submittedDate.toISOString();
+            }
+            // Attempt full PUT first
+            let resp = await fetch(`/api/tickets/${assigningTicket}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(fullPayload)
+            });
+            if (!resp.ok) {
+                const txt1 = await resp.text();
+                console.warn('[TicketAssignment] Full PUT failed, trying minimal payload. Status:', resp.status, 'Body:', txt1);
+                // Fallback: minimal assignment payload
+                const minimalPayload = { assignedTo: selectedAgent, status: 'assigned' };
+                resp = await fetch(`/api/tickets/${assigningTicket}`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(minimalPayload)
+                });
+                if (!resp.ok) {
+                    // Second fallback: attempt PATCH if supported
+                    const txt2 = await resp.text();
+                    console.warn('[TicketAssignment] Minimal PUT failed. Status:', resp.status, 'Body:', txt2);
+                    const patchResp = await fetch(`/api/tickets/${assigningTicket}`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(minimalPayload)
+                    }).catch(err => {
+                        console.error('[TicketAssignment] PATCH attempt error:', err);
+                        return null;
+                    });
+                    if (!patchResp || !patchResp.ok) {
+                        const patchTxt = patchResp ? await patchResp.text() : 'No response';
+                        throw new Error(`Assign failed after retries. PUT(Full) & PUT(Minimal) & PATCH all failed. Last status ${patchResp?.status ?? 'n/a'}: ${patchTxt}`);
+                    }
+                    // Success via PATCH
+                    setTickets(prev => prev.map(t => t.id === assigningTicket ? { ...t, ...minimalPayload } : t));
+                } else {
+                    // Success via minimal PUT
+                    setTickets(prev => prev.map(t => t.id === assigningTicket ? { ...t, ...minimalPayload } : t));
+                }
+            } else {
+                // Success via full PUT
+                setTickets(prev => prev.map(t => t.id === assigningTicket ? { ...fullPayload } : t));
+            }
 
             setShowAssignModal(false);
             setAssigningTicket(null);
@@ -105,7 +165,9 @@ const TicketAssignment: React.FC = () => {
             alert('Ticket assigned successfully!');
         } catch (error) {
             console.error('Error assigning ticket:', error);
-            alert('Failed to assign ticket');
+            // Try to surface structured server error if available in message
+            const msg = error instanceof Error ? error.message : String(error);
+            alert(`Failed to assign ticket. Details: ${msg}`);
         }
     };
 
@@ -342,18 +404,24 @@ const TicketAssignment: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Select Agent
                             </label>
-                            <select
-                                value={selectedAgent}
-                                onChange={(e) => setSelectedAgent(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Choose an agent...</option>
-                                {agents.map(agent => (
-                                    <option key={agent.id} value={agent.email}>
-                                        {agent.firstname} {agent.lastname} ({agent.department})
-                                    </option>
-                                ))}
-                            </select>
+                            {agents.length === 0 ? (
+                                <div className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+                                    No agents available. Backend /api/users endpoint not found (404). Implement users API or create agent accounts.
+                                </div>
+                            ) : (
+                                <select
+                                    value={selectedAgent}
+                                    onChange={(e) => setSelectedAgent(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Choose an agent...</option>
+                                    {agents.map(agent => (
+                                        <option key={agent.id} value={agent.email}>
+                                            {agent.firstname} {agent.lastname} ({agent.department || agent.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         <div className="flex gap-2 justify-end">

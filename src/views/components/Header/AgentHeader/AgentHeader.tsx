@@ -25,82 +25,64 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ title = "Dashboard" }) => {
 
     const fetchCurrentUser = async () => {
         try {
-            // First, try to get user info from stored authentication data
             const storedFullName = AuthService.getUserFullName();
-            const userId = AuthService.getUserId();
-
-            if (storedFullName && storedFullName.trim() !== '') {
+            if (storedFullName) {
                 setDisplayName(storedFullName);
-                // Generate initials from stored full name
-                const nameParts = storedFullName.split(' ');
-                const firstInitial = nameParts[0]?.[0] || '';
-                const lastInitial = nameParts[nameParts.length - 1]?.[0] || '';
-                setInitials(`${firstInitial}${lastInitial}`.toUpperCase() || 'A');
-                return; // Exit early if we have stored data
+                const parts = storedFullName.split(' ');
+                setInitials(`${parts[0]?.[0] || ''}${parts[parts.length - 1]?.[0] || ''}`.toUpperCase() || 'A');
+                return;
             }
-
-            // Fallback: try to fetch from API if no stored data
-            if (userId) {
-                const response = await fetch(`http://localhost:3001/users/${userId}`);
-                if (response.ok) {
-                    const user = await response.json();
-                    const fullName = `${user.firstname} ${user.lastname}`.trim();
-                    setDisplayName(fullName || user.email || 'Agent');
-                    setInitials(`${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() || 'A');
-                } else {
-                    // Final fallback to email or generic name
-                    const userEmail = AuthService.getUserEmail();
-                    setDisplayName(userEmail || 'Agent');
-                    setInitials('A');
-                }
+            // Attempt backend current-user endpoint
+            const resp = await fetch('/api/user/me', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            if (resp.ok) {
+                const user = await resp.json();
+                const first = user.firstName || user.firstname || '';
+                const last = user.lastName || user.lastname || '';
+                const full = `${first} ${last}`.trim();
+                setDisplayName(full || user.email || 'Agent');
+                setInitials(`${first?.[0] || ''}${last?.[0] || ''}`.toUpperCase() || 'A');
+            } else {
+                const email = AuthService.getUserEmail();
+                setDisplayName(email || 'Agent');
+                setInitials((email ? email[0] : 'A').toUpperCase());
             }
-        } catch (error) {
-            console.error('Error fetching current user:', error);
-            // Fallback to basic stored data
-            const userEmail = AuthService.getUserEmail();
-            setDisplayName(userEmail || 'Agent');
-            setInitials('A');
+        } catch (e) {
+            console.error('Error fetching current user:', e);
+            const email = AuthService.getUserEmail();
+            setDisplayName(email || 'Agent');
+            setInitials((email ? email[0] : 'A').toUpperCase());
         }
     };
 
     const fetchAgentStats = async () => {
         try {
-            const userId = AuthService.getToken();
-            if (userId) {
-                const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
-                const user = userResponse.data;
-                const agentName = `${user.firstname} ${user.lastname}`;
-
-                const ticketsResponse = await axios.get('http://localhost:3001/tickets');
-                const tickets = ticketsResponse.data || [];
-
-                const agentTickets = tickets.filter((t: any) => t.assignedTo === agentName);
-                const activeTasks = agentTickets.filter((t: any) =>
-                    ['assigned', 'in progress'].includes(t.status)
-                ).length;
-
-                const today = new Date().toDateString();
-                const completedToday = agentTickets.filter((t: any) =>
-                    t.status === 'resolved' &&
-                    new Date(t.resolvedDate || '').toDateString() === today
-                ).length;
-
-                setAgentStats({
-                    activeTasks,
-                    completedToday
-                });
+            const resp = await fetch('/api/tickets', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            let tickets: any[] = [];
+            if (resp.ok) {
+                const body = await resp.text();
+                let parsed: any;
+                try { parsed = body ? JSON.parse(body) : []; } catch { parsed = []; }
+                tickets = Array.isArray(parsed) ? parsed : (parsed.response || parsed.tickets || parsed.items || parsed.data || []);
             }
-        } catch (error) {
-            console.error('Error fetching agent stats:', error);
+            const email = AuthService.getUserEmail();
+            const fullName = AuthService.getUserFullName();
+            const agentTickets = tickets.filter(t => t.assignedTo === email || t.assignedTo === fullName);
+            const activeTasks = agentTickets.filter(t => ['assigned', 'in progress'].includes((t.status || '').toLowerCase())).length;
+            const today = new Date().toDateString();
+            const completedToday = agentTickets.filter(t => (t.status || '').toLowerCase() === 'resolved' && new Date(t.resolvedDate || '').toDateString() === today).length;
+            setAgentStats({ activeTasks, completedToday });
+        } catch (e) {
+            console.error('Error fetching agent stats:', e);
         }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("userId");
-        navigate("/login");
+        AuthService.logout && AuthService.logout();
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userId');
+        navigate('/login');
     };
 
     return (

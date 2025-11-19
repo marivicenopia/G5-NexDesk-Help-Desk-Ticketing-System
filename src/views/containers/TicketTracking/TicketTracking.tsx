@@ -69,33 +69,48 @@ const TicketTracking: React.FC = () => {
 
     const fetchAgents = async () => {
         try {
-            const resp = await fetch('/api/users', {
+            const resp = await fetch('/api/user', {
                 method: 'GET',
                 credentials: 'include',
                 headers: { 'Accept': 'application/json' }
             });
             if (!resp.ok) {
-                const txt = await resp.text();
-                console.warn('Agents fetch failed', resp.status, txt);
-                setAgents([]);
+                // Fallback: attempt /api/user/all or provide empty list
+                const alt = await fetch('/api/user/all', { credentials: 'include', headers: { 'Accept': 'application/json' } }).catch(() => null);
+                let finalResp: Response | null = null;
+                if (alt && alt.ok) finalResp = alt;
+                if (!finalResp) {
+                    console.warn('[TicketTracking] Agents endpoint missing (404). Backend route likely /api/user not /api/users; ensure controller route matches.');
+                    setAgents([]);
+                    return;
+                }
+                const bodyAlt = await finalResp.text();
+                let parsedAlt: any; try { parsedAlt = bodyAlt ? JSON.parse(bodyAlt) : []; } catch { parsedAlt = []; }
+                const arrAlt: any[] = Array.isArray(parsedAlt) ? parsedAlt : (parsedAlt.response || parsedAlt.users || []);
+                setAgents(arrAlt.map((u: any) => ({
+                    id: String(u.id ?? u.userId ?? u.email ?? Math.random()),
+                    firstname: String(u.firstName ?? u.firstname ?? '').trim(),
+                    lastname: String(u.lastName ?? u.lastname ?? '').trim(),
+                    email: String(u.email ?? ''),
+                    role: String((u.role ?? (Array.isArray(u.roles) ? u.roles[0] : '')) || '').toLowerCase(),
+                    isActive: u.isActive ?? true
+                })).filter(a => a.isActive && ['agent','admin','superadmin'].includes(a.role)));
                 return;
             }
             const raw = await resp.text();
-            let parsed: any;
-            try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
-            const arr: any[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
+            let parsed: any; try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+            const arr: any[] = Array.isArray(parsed) ? parsed : (parsed.response || parsed.users || parsed.user || []);
             const normalized: AgentOption[] = arr.map((u: any) => ({
-                id: String(u.id ?? u.userId ?? u.email ?? u.username ?? crypto.randomUUID?.() ?? Math.random()),
+                id: String(u.id ?? u.userId ?? u.email ?? u.username ?? Math.random()),
                 firstname: String(u.firstName ?? u.firstname ?? '').trim(),
                 lastname: String(u.lastName ?? u.lastname ?? '').trim(),
                 email: String(u.email ?? u.userName ?? u.username ?? ''),
                 role: String((u.role ?? (Array.isArray(u.roles) ? u.roles[0] : '')) || '').toLowerCase(),
                 isActive: u.isActive ?? u.active ?? true,
             }));
-            const available = normalized.filter(u => u.isActive && ['agent','admin','superadmin'].includes(u.role));
-            setAgents(available);
+            setAgents(normalized.filter(u => u.isActive && ['agent','admin','superadmin'].includes(u.role)));
         } catch (err) {
-            console.error('Error fetching agents:', err);
+            console.error('[TicketTracking] Error fetching agents:', err);
             setAgents([]);
         }
     };
@@ -108,26 +123,67 @@ const TicketTracking: React.FC = () => {
 
     const confirmAssignment = async () => {
         if (!ticketToAssign || !selectedAgent) return;
-
         try {
             setAssignLoading(true);
             const agent = agents.find(a => a.id === selectedAgent);
-            const agentName = agent ? `${agent.firstname} ${agent.lastname}`.trim() : '';
-
-            await axios.put(`/api/tickets/${ticketToAssign.id}`, {
+            // Prefer email; fallback to id if backend expects identifier like USRxxx
+            const assignedValue = agent?.email || agent?.id || selectedAgent;
+            const fullPayload: any = {
                 ...ticketToAssign,
-                assignedTo: agentName,
-                status: 'assigned'
-            }, { withCredentials: true });
-
-            alert('Ticket assigned successfully!');
+                assignedTo: assignedValue,
+                status: ticketToAssign.status === 'resolved' || ticketToAssign.status === 'closed' ? ticketToAssign.status : 'assigned'
+            };
+            if (fullPayload.submittedDate instanceof Date) {
+                fullPayload.submittedDate = fullPayload.submittedDate.toISOString();
+            }
+            let resp = await fetch(`/api/tickets/${ticketToAssign.id}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(fullPayload)
+            });
+            if (!resp.ok) {
+                const txt1 = await resp.text();
+                console.warn('[TicketTracking] Full PUT failed, attempting minimal payload. Status:', resp.status, 'Body:', txt1);
+                const minimalPayload = { assignedTo: assignedValue, status: 'assigned' };
+                resp = await fetch(`/api/tickets/${ticketToAssign.id}`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(minimalPayload)
+                });
+                if (!resp.ok) {
+                    const txt2 = await resp.text();
+                    console.warn('[TicketTracking] Minimal PUT failed, attempting PATCH. Status:', resp.status, 'Body:', txt2);
+                    const patchResp = await fetch(`/api/tickets/${ticketToAssign.id}`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(minimalPayload)
+                    }).catch(err => {
+                        console.error('[TicketTracking] PATCH attempt error:', err);
+                        return null;
+                    });
+                    if (!patchResp || !patchResp.ok) {
+                        const patchTxt = patchResp ? await patchResp.text() : 'No response';
+                        throw new Error(`Assign failed after retries. PUT(Full) & PUT(Minimal) & PATCH all failed. Last status ${patchResp?.status ?? 'n/a'}: ${patchTxt}`);
+                    }
+                    // Success via PATCH
+                    alert('Ticket assigned successfully!');
+                } else {
+                    alert('Ticket assigned successfully!');
+                }
+            } else {
+                alert('Ticket assigned successfully!');
+            }
             setShowAssignModal(false);
             setTicketToAssign(null);
             setSelectedAgent('');
-            fetchTickets(); // Refresh the list
-        } catch (error) {
-            console.error('Error assigning ticket:', error);
-            alert('Failed to assign ticket');
+            fetchTickets();
+        } catch (e) {
+            console.error('Error assigning ticket:', e);
+            const msg = e instanceof Error ? e.message : String(e);
+            alert(`Failed to assign ticket. Details: ${msg}`);
         } finally {
             setAssignLoading(false);
         }
@@ -539,19 +595,25 @@ const TicketTracking: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Select Agent:
                             </label>
-                            <select
-                                value={selectedAgent}
-                                onChange={(e) => setSelectedAgent(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={assignLoading}
-                            >
-                                <option value="">Select an agent...</option>
-                                {agents.map((agent) => (
-                                    <option key={agent.id} value={agent.id}>
-                                        {agent.firstname} {agent.lastname} ({agent.role})
-                                    </option>
-                                ))}
-                            </select>
+                            {agents.length === 0 ? (
+                                <div className="text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+                                    No agents loaded (backend /api/users 404). Implement users endpoint or add agent accounts.
+                                </div>
+                            ) : (
+                                <select
+                                    value={selectedAgent}
+                                    onChange={(e) => setSelectedAgent(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    disabled={assignLoading}
+                                >
+                                    <option value="">Select an agent...</option>
+                                    {agents.map((agent) => (
+                                        <option key={agent.id} value={agent.id}>
+                                            {agent.firstname} {agent.lastname} ({agent.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                         <div className="flex gap-3 justify-end">
                             <button

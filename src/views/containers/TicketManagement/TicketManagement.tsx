@@ -254,7 +254,7 @@ const TicketManagement: React.FC = () => {
         <TicketTable
           data={filteredTickets}
           onView={handleView}
-          onEdit={handleAssign}
+          onAssign={handleAssign}
           onDelete={handleDelete}
         />
       </div>

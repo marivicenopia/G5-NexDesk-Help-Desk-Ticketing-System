@@ -58,12 +58,12 @@ const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
 
     const fetchAvailableAgents = async () => {
         try {
-            const response = await fetch('/api/users', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            const response = await fetch('/api/user', { credentials: 'include', headers: { 'Accept': 'application/json' } });
             if (response.ok) {
                 const raw = await response.text();
                 let parsed: any;
                 try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
-                const users: any[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
+                const users: any[] = Array.isArray(parsed) ? parsed : (parsed.response || parsed.users || parsed.user || []);
                 const normalized: User[] = users.map((u: any) => ({
                     id: u.id ?? u.userId ?? u.email,
                     username: u.username ?? u.userName ?? u.email ?? '',

@@ -24,28 +24,31 @@ const AgentSidebar: React.FC = () => {
 
     const fetchAgentStats = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/tickets');
-            const tickets = response.data || [];
-            const userId = AuthService.getToken();
-
-            if (userId) {
-                const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
-                const user = userResponse.data;
-                const agentName = `${user.firstname} ${user.lastname}`;
-
-                const assigned = tickets.filter((t: any) => t.assignedTo === agentName).length;
-                const pending = tickets.filter((t: any) =>
-                    t.assignedTo === agentName && ['open', 'assigned', 'in progress'].includes(t.status)
-                ).length;
-                const today = new Date().toDateString();
-                const resolvedToday = tickets.filter((t: any) =>
-                    t.assignedTo === agentName &&
-                    t.status === 'resolved' &&
-                    new Date(t.resolvedDate || '').toDateString() === today
-                ).length;
-
-                setAgentStats({ assignedTickets: assigned, pendingTickets: pending, resolvedToday });
+            // Fetch tickets from backend API (supports array or wrapped response)
+            const resp = await fetch('/api/tickets', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            let rawTickets: any = [];
+            if (resp.ok) {
+                const body = await resp.text();
+                let parsed: any;
+                try { parsed = body ? JSON.parse(body) : []; } catch { parsed = []; }
+                rawTickets = Array.isArray(parsed) ? parsed : (parsed.response || parsed.tickets || parsed.items || parsed.data || []);
             }
+
+            const userEmail = AuthService.getUserEmail();
+            const userFullName = AuthService.getUserFullName();
+            // Prefer email match; fallback to fullname
+            const assigned = rawTickets.filter((t: any) => t.assignedTo === userEmail || t.assignedTo === userFullName).length;
+            const pending = rawTickets.filter((t: any) =>
+                (t.assignedTo === userEmail || t.assignedTo === userFullName) && ['open', 'assigned', 'in progress'].includes((t.status || '').toLowerCase())
+            ).length;
+            const today = new Date().toDateString();
+            const resolvedToday = rawTickets.filter((t: any) =>
+                (t.assignedTo === userEmail || t.assignedTo === userFullName) &&
+                (t.status || '').toLowerCase() === 'resolved' &&
+                new Date(t.resolvedDate || '').toDateString() === today
+            ).length;
+
+            setAgentStats({ assignedTickets: assigned, pendingTickets: pending, resolvedToday });
         } catch (error) {
             console.error('Error fetching agent stats:', error);
         }
@@ -53,22 +56,34 @@ const AgentSidebar: React.FC = () => {
 
     const fetchUserInfo = async () => {
         try {
-            const userId = AuthService.getToken();
-            if (userId) {
-                const response = await axios.get(`http://localhost:3001/users/${userId}`);
-                setUserInfo(response.data);
+            // Use AuthService cached values instead of calling legacy json-server
+            const fullName = AuthService.getUserFullName();
+            if (fullName) {
+                const parts = fullName.split(' ');
+                setUserInfo({ firstname: parts[0] || '', lastname: parts.slice(1).join(' ') || '' });
+                return;
+            }
+            // Fallback attempt to backend current user endpoint if available
+            const resp = await fetch('/api/user/me', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+            if (resp.ok) {
+                const user = await resp.json();
+                setUserInfo({ firstname: user.firstName || user.firstname || '', lastname: user.lastName || user.lastname || '' });
+            } else {
+                setUserInfo({ firstname: (AuthService.getUserEmail() || 'Agent').split('@')[0], lastname: '' });
             }
         } catch (error) {
             console.error('Error fetching user info:', error);
+            setUserInfo({ firstname: (AuthService.getUserEmail() || 'Agent').split('@')[0], lastname: '' });
         }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("userId");
-        navigate("/login");
+        AuthService.logout && AuthService.logout();
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userId');
+        navigate('/login');
     };
 
     const handleToggle = (label: string, hasChildren: boolean) => {

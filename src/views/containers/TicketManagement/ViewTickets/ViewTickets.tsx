@@ -55,20 +55,38 @@ const ViewTickets: React.FC = () => {
             });
             if (!resp.ok) {
                 const text = await resp.text();
+                console.warn('[ManageTickets] /api/tickets failed:', resp.status, text);
                 throw new Error(`Failed to fetch tickets (${resp.status}): ${text || 'No body'}`);
             }
             const raw = await resp.text();
+            console.debug('[ManageTickets] Raw response:', raw);
             let parsed: any;
-            try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
-            const data: Ticket[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
+            try { parsed = raw ? JSON.parse(raw) : []; } catch (e) {
+                console.error('[ManageTickets] JSON parse error:', e);
+                parsed = [];
+            }
 
-            // Filter tickets based on user role
+            // Support multiple wrapper patterns
+            let data: Ticket[] = [];
+            if (Array.isArray(parsed)) data = parsed;
+            else if (Array.isArray(parsed.response)) data = parsed.response;
+            else if (Array.isArray(parsed.tickets)) data = parsed.tickets;
+            else if (Array.isArray(parsed.items)) data = parsed.items;
+            else if (parsed.data && Array.isArray(parsed.data)) data = parsed.data;
+            else if (parsed && typeof parsed === 'object') {
+                const looksLikeTicket = ['id', 'title', 'description'].some(k => k in parsed);
+                if (looksLikeTicket) data = [parsed as Ticket];
+                else console.warn('[ManageTickets] Unrecognized response keys:', Object.keys(parsed));
+            }
+
+            console.debug('[ManageTickets] Tickets parsed count:', data.length);
+
+            // Role-based filter (agents)
             const userRole = AuthService.getRole();
             const userEmail = AuthService.getUserEmail();
             const userDepartment = AuthService.getUserDepartmentId();
 
             let filteredData: Ticket[] = data;
-
             if (userRole === 'agent' && userEmail) {
                 filteredData = data.filter((ticket: Ticket) => {
                     const isAssignedToAgent = ticket.assignedTo === userEmail;
@@ -89,6 +107,7 @@ const ViewTickets: React.FC = () => {
                     return Boolean(isAssignedToAgent || isDepartmentMatch);
                 });
             }
+
             setTickets(filteredData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
@@ -134,7 +153,7 @@ const ViewTickets: React.FC = () => {
     };
 
     const handleAssign = (ticket: Ticket) => {
-        console.log('Assignment button clicked for ticket:', ticket);
+        console.log('[ManageTickets] Assign icon clicked for ticket:', ticket.id, ticket.title);
         setSelectedTicketForAssign(ticket);
         setIsAssignModalOpen(true);
     };
@@ -427,6 +446,17 @@ const ViewTickets: React.FC = () => {
                 onClose={() => setIsAssignModalOpen(false)}
                 onAssign={handleAssignConfirm}
             />
+
+            {/* Debug helper: shows state when assign clicked but modal not visible */}
+            {isAssignModalOpen && selectedTicketForAssign && (
+                <div className="fixed bottom-2 right-2 bg-blue-50 border border-blue-200 text-xs text-blue-800 px-3 py-2 rounded shadow z-40">
+                    <div>Assign Modal State:</div>
+                    <div>ticketId: {String(selectedTicketForAssign.id)}</div>
+                    <div>title: {selectedTicketForAssign.title || 'N/A'}</div>
+                    <div>status: {selectedTicketForAssign.status}</div>
+                    <button className="mt-1 text-blue-600 underline" onClick={() => setIsAssignModalOpen(false)}>Close</button>
+                </div>
+            )}
 
             {/* Delete Ticket Modal */}
             <DeleteModal
