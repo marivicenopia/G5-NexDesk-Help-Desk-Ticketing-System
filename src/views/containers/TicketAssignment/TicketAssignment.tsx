@@ -56,7 +56,7 @@ const TicketAssignment: React.FC = () => {
     const fetchData = async () => {
         try {
             const [ticketsRes, usersRes] = await Promise.all([
-                axios.get('http://localhost:3001/tickets'),
+                axios.get('/api/tickets', { withCredentials: true }),
                 axios.get('http://localhost:3001/users')
             ]);
 
@@ -92,7 +92,7 @@ const TicketAssignment: React.FC = () => {
                 status: 'assigned'
             };
 
-            await axios.patch(`http://localhost:3001/tickets/${assigningTicket}`, updatedTicket);
+            await axios.put(`/api/tickets/${assigningTicket}`, updatedTicket, { withCredentials: true });
 
             // Update local state
             setTickets(prev => prev.map(t =>

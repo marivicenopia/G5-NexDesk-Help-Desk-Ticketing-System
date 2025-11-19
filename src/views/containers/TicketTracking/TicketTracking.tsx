@@ -4,14 +4,22 @@ import axios from 'axios';
 import { FiPlus, FiSearch, FiEye, FiEdit, FiTrash2, FiUser, FiUserCheck } from 'react-icons/fi';
 import { FaTicketAlt } from 'react-icons/fa';
 import type { Ticket } from '../../../types/ticket';
-import type { User } from '../../../types/user';
+// Local lightweight agent type for assignment list
+type AgentOption = {
+    id: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    role: string;
+    isActive?: boolean;
+};
 import { Pagination } from '../../components/Pagination';
 import { DeleteModal } from '../../components/DeleteModal';
 import { AuthService } from '../../../services/auth/AuthService';
 
 const TicketTracking: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [agents, setAgents] = useState<User[]>([]);
+    const [agents, setAgents] = useState<AgentOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -48,8 +56,9 @@ const TicketTracking: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get('http://localhost:3001/tickets');
-            setTickets(response.data || []);
+            const response = await axios.get('/api/tickets', { withCredentials: true });
+            const data = Array.isArray(response.data) ? response.data : (response.data?.response ?? []);
+            setTickets(data);
         } catch (err) {
             console.error('Error fetching tickets:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
@@ -60,15 +69,34 @@ const TicketTracking: React.FC = () => {
 
     const fetchAgents = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/users');
-            const users = response.data || [];
-            // Filter for agents and admins who can be assigned tickets
-            const availableAgents = users.filter((user: User) =>
-                user.role === 'agent' || user.role === 'admin' || user.role === 'superadmin'
-            );
-            setAgents(availableAgents);
+            const resp = await fetch('/api/users', {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!resp.ok) {
+                const txt = await resp.text();
+                console.warn('Agents fetch failed', resp.status, txt);
+                setAgents([]);
+                return;
+            }
+            const raw = await resp.text();
+            let parsed: any;
+            try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+            const arr: any[] = Array.isArray(parsed) ? parsed : (parsed.response || []);
+            const normalized: AgentOption[] = arr.map((u: any) => ({
+                id: String(u.id ?? u.userId ?? u.email ?? u.username ?? crypto.randomUUID?.() ?? Math.random()),
+                firstname: String(u.firstName ?? u.firstname ?? '').trim(),
+                lastname: String(u.lastName ?? u.lastname ?? '').trim(),
+                email: String(u.email ?? u.userName ?? u.username ?? ''),
+                role: String((u.role ?? (Array.isArray(u.roles) ? u.roles[0] : '')) || '').toLowerCase(),
+                isActive: u.isActive ?? u.active ?? true,
+            }));
+            const available = normalized.filter(u => u.isActive && ['agent','admin','superadmin'].includes(u.role));
+            setAgents(available);
         } catch (err) {
             console.error('Error fetching agents:', err);
+            setAgents([]);
         }
     };
 
@@ -84,13 +112,13 @@ const TicketTracking: React.FC = () => {
         try {
             setAssignLoading(true);
             const agent = agents.find(a => a.id === selectedAgent);
-            const agentName = agent ? `${agent.firstname} ${agent.lastname}` : '';
+            const agentName = agent ? `${agent.firstname} ${agent.lastname}`.trim() : '';
 
-            await axios.put(`http://localhost:3001/tickets/${ticketToAssign.id}`, {
+            await axios.put(`/api/tickets/${ticketToAssign.id}`, {
                 ...ticketToAssign,
                 assignedTo: agentName,
                 status: 'assigned'
-            });
+            }, { withCredentials: true });
 
             alert('Ticket assigned successfully!');
             setShowAssignModal(false);
@@ -130,7 +158,7 @@ const TicketTracking: React.FC = () => {
 
         setDeleteLoading(true);
         try {
-            await axios.delete(`http://localhost:3001/tickets/${ticketToDelete.id}`);
+            await axios.delete(`/api/tickets/${ticketToDelete.id}`, { withCredentials: true });
             alert('Ticket deleted successfully!');
             fetchTickets(); // Refresh the list
             setShowDeleteModal(false);

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { AuthService } from '../../../../services/auth/AuthService';
 
 interface Ticket {
@@ -61,21 +60,29 @@ const EditTicket: React.FC = () => {
                 setLoading(true);
 
                 // Get current user info for authorization
-                const userId = AuthService.getToken();
-                if (!userId) {
+                const userEmail = AuthService.getUserEmail();
+                if (!userEmail) {
                     setError('Please log in to edit tickets');
                     return;
                 }
-
-                const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
-                const user = userResponse.data;
-
-                // Fetch the specific ticket
-                const ticketResponse = await axios.get(`http://localhost:3001/tickets/${ticketId}`);
-                const ticketData = ticketResponse.data;
+                // Fetch the specific ticket from C# API
+                const resp = await fetch(`/api/tickets/${ticketId}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!resp.ok) {
+                    const txt = await resp.text();
+                    console.warn('Ticket fetch failed', resp.status, txt);
+                    throw new Error('Failed to load ticket');
+                }
+                const raw = await resp.text();
+                let parsed: any;
+                try { parsed = raw ? JSON.parse(raw) : {}; } catch { parsed = {}; }
+                const ticketData: Ticket = Array.isArray(parsed) ? parsed[0] : (parsed.response || parsed);
 
                 // Check if the ticket belongs to the current user
-                if (ticketData.submittedBy !== user.email) {
+                if (ticketData.submittedBy !== userEmail) {
                     setError('You do not have permission to edit this ticket');
                     return;
                 }
@@ -148,7 +155,17 @@ const EditTicket: React.FC = () => {
                 lastModified: new Date().toISOString()
             };
 
-            await axios.put(`http://localhost:3001/tickets/${ticketId}`, updatedTicket);
+            const updateResp = await fetch(`/api/tickets/${ticketId}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(updatedTicket)
+            });
+            if (!updateResp.ok) {
+                const t = await updateResp.text();
+                console.error('Update failed', updateResp.status, t);
+                throw new Error('Failed to update ticket');
+            }
 
             setSuccess('Ticket updated successfully!');
 

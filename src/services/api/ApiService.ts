@@ -1,12 +1,31 @@
 import { AuthService } from '../auth/AuthService';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000/api';
 
 // Standard API response structure matching C# backend
 export interface ApiResponse<T> {
     status: 'Success' | 'Error' | 0 | 1;
     message: string;
     response: T;
+}
+
+// Domain models (adjust to match backend DTOs)
+export interface Ticket {
+    id: number;
+    title: string;
+    description: string;
+    priority: string;
+    status?: string;
+    assignedTo?: string;
+    createdAt?: string;
+}
+
+export interface User {
+    id?: number;
+    username?: string;
+    userName?: string; // if backend uses userName
+    email?: string;
+    roles?: string[];
 }
 
 export class ApiService {
@@ -20,11 +39,15 @@ export class ApiService {
         try {
             const response = await AuthService.authenticatedFetch(url, {
                 credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
                 ...options,
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error ${response.status}`);
             }
 
             const result: ApiResponse<T> = await response.json();
@@ -39,35 +62,44 @@ export class ApiService {
     static async login(username: string, password: string) {
         return fetch(`${API_BASE_URL}/Account/Login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ username, password }),
         });
     }
 
     static async logout() {
-        return this.makeAuthenticatedRequest('/Account/SignOutUser', {
+        return this.makeAuthenticatedRequest<void>('/Account/SignOutUser', {
             method: 'POST',
         });
     }
 
-    // Example: Get current user info (protected endpoint)
     static async getCurrentUser() {
         const userId = AuthService.getUserId();
-        if (!userId) {
-            throw new Error('No user ID found');
-        }
-
-        return this.makeAuthenticatedRequest(`/Account/GetUser?username=${userId}`, {
+        if (!userId) throw new Error('No user ID found');
+        return this.makeAuthenticatedRequest<User>(`/Account/GetUser?username=${encodeURIComponent(userId)}`, {
             method: 'GET',
         });
     }
 
-    // Add more API methods as needed for tickets, users, etc.
-    // Example:
-    // static async getTickets() {
-    //   return this.makeAuthenticatedRequest('/Ticket/GetAll', { method: 'GET' });
-    // }
+    // Tickets
+    static async getTickets() {
+        return this.makeAuthenticatedRequest<Ticket[]>('/Ticket/GetAll', { method: 'GET' });
+    }
+
+    static async getTicket(id: number) {
+        return this.makeAuthenticatedRequest<Ticket>(`/Ticket/Get?id=${id}`, { method: 'GET' });
+    }
+
+    static async createTicket(payload: {
+        title: string;
+        description: string;
+        priority: string;
+        assignedTo?: string;
+    }) {
+        return this.makeAuthenticatedRequest<Ticket>('/Ticket/Create', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
 }

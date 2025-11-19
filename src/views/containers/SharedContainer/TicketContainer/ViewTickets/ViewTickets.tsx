@@ -49,11 +49,12 @@ const ViewTickets: React.FC = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/tickets');
+      const response = await fetch('/api/tickets', { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch tickets');
       }
-      const data = await response.json();
+      const raw = await response.json();
+      const data = Array.isArray(raw) ? raw : (raw.response ?? []);
 
       // Filter tickets based on user role
       const userRole = AuthService.getRole();
@@ -193,8 +194,9 @@ const ViewTickets: React.FC = () => {
 
     setDeleteLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/tickets/${ticketToDelete.id}`, {
+      const response = await fetch(`/api/tickets/${ticketToDelete.id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -235,11 +237,12 @@ const ViewTickets: React.FC = () => {
         ...resolutionData
       };
 
-      const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updatedTicket)
       });
 
@@ -281,11 +284,12 @@ const ViewTickets: React.FC = () => {
         // assignmentNotes: assignmentData.assignmentNotes
       };
 
-      const response = await fetch(`http://localhost:3001/tickets/${ticketId}`, {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updatedTicket)
       });
 

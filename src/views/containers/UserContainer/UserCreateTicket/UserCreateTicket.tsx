@@ -191,50 +191,54 @@ const UserCreateTicket: React.FC = () => {
                 return;
             }
 
-            // Prepare attachments data
-            const ticketAttachments: TicketAttachment[] = attachments.map((file, index) => ({
-                id: `temp_${Date.now()}_${index}`,
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                uploadDate: new Date().toISOString(),
-                url: '' // In a real app, you'd upload to a file service and get the URL
-            }));
-
-            const ticketData = {
+            // Map UI data to backend CreateTicketDto (C# expects PascalCase/enums)
+            const toPascal = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+            // Strictly match CreateTicketDto (extra fields removed to avoid unexpected server handling)
+            const createDto = {
                 title: formData.title,
                 description: formData.description,
-                priority: formData.priority,
-                category: formData.category,
+                priority: toPascal(formData.priority), // Ensure casing aligns with backend expectations
+                department: formData.department || 'General',
                 submittedBy: userEmail,
-                submittedDate: new Date().toISOString(),
-                status: "open",
-                attachments: ticketAttachments,
-                customerContact: {
-                    name: formData.customerName || '',
-                    email: formData.customerEmail || userEmail,
-                    phone: formData.customerPhone || ''
-                }
+                assignedTo: '' // Backend column is NOT NULL, send empty string if unassigned
             };
 
-            const response = await fetch('http://localhost:3001/tickets', {
+            const response = await fetch('/api/tickets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify(ticketData),
+                credentials: 'include',
+                body: JSON.stringify(createDto),
             });
 
-            if (response.ok) {
-                // Success - redirect to tickets page
-                navigate(PATHS.USER.MY_TICKETS.path);
-            } else {
-                console.error('Failed to create ticket');
-                alert('Failed to create ticket. Please try again.');
+                if (!response.ok) {
+                const rawText = await response.text().catch(() => '');
+                console.warn('Ticket create failed. Status:', response.status, 'Body:', rawText);
+                try {
+                    const ct = response.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        // We already consumed text; parse again only if available
+                        let errJson: any = {};
+                        try { errJson = rawText ? JSON.parse(rawText) : {}; } catch {}
+                                                const combinedMessage = [errJson?.message, errJson?.error, errJson?.innerException]
+                                                    .filter(Boolean)
+                                                    .join(' - ');
+                        throw new Error(combinedMessage || 'An error occurred while creating the ticket.');
+                    } else {
+                        throw new Error(rawText || 'An error occurred while creating the ticket.');
+                    }
+                } catch (e: any) {
+                    throw new Error(e?.message || 'An error occurred while creating the ticket.');
+                }
             }
+
+            // Success - redirect to tickets page
+            navigate(PATHS.USER.MY_TICKETS.path);
         } catch (error) {
             console.error('Error creating ticket:', error);
-            alert('Error creating ticket. Please try again.');
+            alert(error instanceof Error ? error.message : 'Error creating ticket. Please try again.');
         } finally {
             setLoading(false);
         }
