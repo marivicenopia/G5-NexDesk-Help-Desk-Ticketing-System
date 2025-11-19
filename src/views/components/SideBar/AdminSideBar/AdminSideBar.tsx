@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AdminSideBarItems, SideBarFooterItems } from "./sideBarItems";
+import { AuthService } from "../../../../services/auth/AuthService";
 
 const AdminSidebar: React.FC = () => {
     const navigate = useNavigate();
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-    const handleLogout = () => {
-        // Put your logout logic here, like clearing auth tokens, etc.
-        console.log("Logging out...");
+    const handleLogout = async () => {
+        await AuthService.logout();
+        console.log("User logged out successfully");
         navigate("/login");
     };
 

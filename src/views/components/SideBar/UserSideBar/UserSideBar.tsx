@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { PATHS } from "../../../../routes/constant";
 import type { User } from "../../../../types/user";
 import { getRoleDisplayName } from "../../../../utils/permissions";
+import { AuthService } from "../../../../services/auth/AuthService";
 
 interface SideBarItem {
     path: string;
@@ -60,9 +61,8 @@ const UserSideBar: React.FC = () => {
         fetchCurrentUser();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('userRole');
+    const handleLogout = async () => {
+        await AuthService.logout();
         navigate(PATHS.COMMON.LOGIN.path);
     };
 

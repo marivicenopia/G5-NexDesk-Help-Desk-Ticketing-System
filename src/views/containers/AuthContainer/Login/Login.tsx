@@ -41,8 +41,8 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // Updated to use C# backend API
-      const response = await fetch(`http://localhost:5000/api/Account/Login`, {
+      // Updated to use C# backend AuthController API
+      const response = await fetch(`http://localhost:5000/api/Auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

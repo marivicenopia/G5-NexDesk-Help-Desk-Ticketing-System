@@ -10,8 +10,8 @@ interface SettingsSubMenuProps {
 const SettingsSubMenu: React.FC<SettingsSubMenuProps> = ({ settingsPath, onClose }) => {
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        AuthService.logout();
+    const handleLogout = async () => {
+        await AuthService.logout();
         navigate("/login");
     };
 

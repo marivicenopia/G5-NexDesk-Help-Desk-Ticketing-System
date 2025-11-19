@@ -95,11 +95,8 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ title = "Dashboard" }) => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("userId");
+    const handleLogout = async () => {
+        await AuthService.logout();
         navigate("/login");
     };
 

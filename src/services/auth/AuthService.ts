@@ -18,7 +18,21 @@ export const AuthService = {
     if (fullName) localStorage.setItem(USER_FULLNAME_KEY, fullName);
   },
 
-  logout: () => {
+  logout: async () => {
+    try {
+      // Call backend logout endpoint to clear server-side session/cookies
+      await fetch('http://localhost:5000/api/Auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...AuthService.getAuthHeader()
+        }
+      });
+    } catch (error) {
+      console.warn('Backend logout failed, but continuing with client-side cleanup:', error);
+    }
+
+    // Clear localStorage items
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ROLE_KEY);
     localStorage.removeItem(USER_ID_KEY);
@@ -28,6 +42,27 @@ export const AuthService = {
     localStorage.removeItem(USER_FULLNAME_KEY);
     // Clean up old department key if it exists
     localStorage.removeItem("userDepartment");
+    // Clean up any other legacy keys
+    localStorage.removeItem("user");
+
+    // Clear specific known cookies by setting them to expire immediately
+    document.cookie = "tkn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "asi.basecode=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+    // Clear all cookies that might be related to authentication or sessions
+    const cookies = document.cookie.split(";");
+    cookies.forEach(cookie => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      if (name.toLowerCase().includes('auth') ||
+        name.toLowerCase().includes('token') ||
+        name.toLowerCase().includes('basecode') ||
+        name === 'tkn' ||
+        name === 'asi.basecode') {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
   },
 
   isAuthenticated: () => {
