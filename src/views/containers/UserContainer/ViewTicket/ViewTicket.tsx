@@ -26,11 +26,11 @@ const ViewTicket: React.FC = () => {
                 }
                 if (!Array.isArray(atts)) return [];
                 return atts.map((a: any, idx: number) => {
-                    const id = a.id ?? a.attachmentId ?? `${idx}`;
-                    const name = a.name ?? a.fileName ?? a.filename ?? `file-${idx}`;
-                    const type = a.type ?? a.contentType ?? a.mimeType ?? '';
-                    const size = Number(a.size ?? a.fileSize ?? 0);
-                    const url = a.url ?? a.fileUrl ?? (tid && id ? `/api/tickets/${tid}/attachments/${id}` : undefined);
+                    const id = a.id ?? a.Id ?? a.attachmentId ?? `${idx}`;
+                    const name = a.name ?? a.Name ?? a.fileName ?? a.filename ?? `file-${idx}`;
+                    const type = a.type ?? a.Type ?? a.contentType ?? a.mimeType ?? '';
+                    const size = Number(a.size ?? a.Size ?? a.fileSize ?? 0);
+                    const url = a.url ?? a.Url ?? a.fileUrl ?? (tid && id ? `/api/tickets/${tid}/attachments/${id}` : undefined);
                     const uploadDate = a.uploadDate ?? a.createdAt ?? new Date().toISOString();
                     return { id: String(id), name, type, size, url, uploadDate } as TicketAttachment;
                 });
@@ -144,7 +144,7 @@ const ViewTicket: React.FC = () => {
             }
             const updatedRaw = await response.text();
             let updatedParsed: any = {};
-            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch {}
+            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch { }
             const updatedTicket: Ticket = Array.isArray(updatedParsed) ? updatedParsed[0] : (updatedParsed.response || updatedParsed);
             setTicket(updatedTicket);
             setIsEditingStatus(false);

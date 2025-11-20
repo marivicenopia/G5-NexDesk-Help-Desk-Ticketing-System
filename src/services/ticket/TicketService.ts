@@ -5,7 +5,20 @@ export const TicketService = {
     const response = await fetch("/api/tickets", { credentials: 'include' });
     if (!response.ok) throw new Error("Failed to fetch tickets");
     const data = await response.json();
-    return Array.isArray(data) ? data : (data.response ?? []);
+    const tickets = Array.isArray(data) ? data : (data.response ?? []);
+
+    // Parse attachments from attachmentsJson field
+    return tickets.map((ticket: any) => ({
+      ...ticket,
+      attachments: ticket.attachmentsJson ? JSON.parse(ticket.attachmentsJson).map((att: any) => ({
+        id: att.Id || att.id,
+        name: att.Name || att.name,
+        size: att.Size || att.size,
+        type: att.Type || att.type,
+        url: att.Url || att.url,
+        uploadDate: att.UploadDate || att.uploadDate
+      })) : []
+    }));
   },
 
   // Add more ticket-related methods here
@@ -13,14 +26,27 @@ export const TicketService = {
     const response = await fetch(`/api/tickets/${id}`, { credentials: 'include' });
     if (!response.ok) throw new Error("Failed to fetch ticket");
     const data = await response.json();
-    return (data.response ?? data) as Ticket;
+    const ticket = (data.response ?? data) as any;
+
+    // Parse attachments from attachmentsJson field
+    return {
+      ...ticket,
+      attachments: ticket.attachmentsJson ? JSON.parse(ticket.attachmentsJson).map((att: any) => ({
+        id: att.Id || att.id,
+        name: att.Name || att.name,
+        size: att.Size || att.size,
+        type: att.Type || att.type,
+        url: att.Url || att.url,
+        uploadDate: att.UploadDate || att.uploadDate
+      })) : []
+    };
   },
 
   create: async (ticket: Partial<Ticket>): Promise<Ticket> => {
     const toPascal = (s?: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
     const toStatusTitle = (s?: string) => {
       if (!s) return s;
-      const map: Record<string,string> = {
+      const map: Record<string, string> = {
         'open': 'Open',
         'assigned': 'Assigned',
         'in progress': 'In Progress',
@@ -62,7 +88,8 @@ export const TicketService = {
         for (const f of maybeFiles) fd.append('files', f);
       }
 
-      response = await fetch("/api/tickets", {
+      // Use the dedicated with-attachments endpoint for file uploads
+      response = await fetch("/api/tickets/with-attachments", {
         method: "POST",
         // Do NOT set Content-Type for FormData; browser sets boundary
         headers: {
@@ -71,20 +98,6 @@ export const TicketService = {
         credentials: 'include',
         body: fd,
       });
-      // Fallback: some backends expose a dedicated with-attachments endpoint
-      if (response.status === 415) {
-        try {
-          const alt = await fetch("/api/tickets/with-attachments", {
-            method: "POST",
-            headers: { "Accept": "application/json" },
-            credentials: 'include',
-            body: fd,
-          });
-          response = alt;
-        } catch {
-          // keep original response for error handling below
-        }
-      }
     } else {
       const createDto = {
         title: ticket.title ?? '',
@@ -164,7 +177,7 @@ export const TicketService = {
         const raw = await cur.json();
         existing = raw?.response ?? raw;
       }
-    } catch {}
+    } catch { }
 
     // Sanitize existing object: remove arrays/props the backend might reject
     const base: any = { ...existing };
@@ -174,7 +187,7 @@ export const TicketService = {
 
     // Ensure submittedDate is a string to match earlier working code
     if (base.submittedDate && typeof base.submittedDate !== 'string') {
-      try { base.submittedDate = new Date(base.submittedDate).toISOString(); } catch {}
+      try { base.submittedDate = new Date(base.submittedDate).toISOString(); } catch { }
     }
 
     const updatedTicket: any = {
@@ -202,7 +215,7 @@ export const TicketService = {
           try { const j = JSON.parse(txt); message = j.message || j.error || message; details = j; }
           catch { details = txt; message = txt || message; }
         }
-      } catch {}
+      } catch { }
       throw new Error(JSON.stringify({ message, details, status: resp.status }));
     }
 
@@ -212,7 +225,7 @@ export const TicketService = {
         try {
           await fetch(`/api/tickets/${id}/attachments/${rid}`, { method: 'DELETE', credentials: 'include' });
           // ignore 404 silently
-        } catch {}
+        } catch { }
       }
     }
 
@@ -224,7 +237,7 @@ export const TicketService = {
         try {
           const up = await fetch(`/api/tickets/${id}/attachments`, { method: 'POST', credentials: 'include', body: fd });
           if (!up.ok) break; // stop on first failure silently
-        } catch {}
+        } catch { }
       }
     }
 
@@ -235,7 +248,7 @@ export const TicketService = {
         const j = await refreshed.json();
         return (j.response ?? j) as Ticket;
       }
-    } catch {}
+    } catch { }
     try {
       const body = await resp.json();
       return (body.response ?? body) as Ticket;

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaArrowLeft, FaTicketAlt, FaUser, FaClock, FaExclamationTriangle, FaBuilding, FaUserCheck, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import type { Ticket } from '../../../types/ticket';
 import { AuthService } from '../../../services/auth/AuthService';
+import { TicketService } from '../../../services/ticket/TicketService';
 
 const ViewTicketDetail: React.FC = () => {
     const navigate = useNavigate();
@@ -35,8 +36,8 @@ const ViewTicketDetail: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get(`/api/tickets/${ticketId}`, { withCredentials: true });
-            const data = response.data?.response ?? response.data;
+            // Use TicketService to properly parse attachments
+            const data = await TicketService.fetchById(ticketId!);
             setTicket(data);
             setNewStatus(data.status);
             setNewPriority(data.priority);
@@ -457,6 +458,60 @@ const ViewTicketDetail: React.FC = () => {
                             <p className="text-gray-900 whitespace-pre-wrap">{ticket.description || 'No description provided'}</p>
                         </div>
                     </div>
+
+                    {/* Attachments */}
+                    {ticket.attachments && ticket.attachments.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3">Attachments</h3>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="space-y-2">
+                                    {ticket.attachments.map((attachment) => (
+                                        <div
+                                            key={attachment.id}
+                                            className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="flex-shrink-0">
+                                                    {attachment.type?.startsWith('image/') ? (
+                                                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {(attachment.size / 1024).toFixed(1)} KB • {attachment.type || 'Unknown type'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {attachment.url && (
+                                                <a
+                                                    href={attachment.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                                >
+                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Download
+                                                </a>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Resolution Information (if resolved) */}
                     {(ticket.status === 'resolved' || ticket.status === 'closed') && (
