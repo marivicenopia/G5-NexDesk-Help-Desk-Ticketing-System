@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { PATHS } from "../../../../routes/constant";
+import type { User } from "../../../../types/user";
 import { getRoleDisplayName } from "../../../../utils/permissions";
 import { AuthService } from "../../../../services/auth/AuthService";
 
@@ -17,25 +18,53 @@ const UserSideBar: React.FC = () => {
     const [departmentDisplay, setDepartmentDisplay] = useState("Staff");
 
     useEffect(() => {
-        // Populate from AuthService/localStorage to avoid legacy json-server
-        const fullName = AuthService.getUserFullName();
-        const role = AuthService.getRole() as any;
+        const fetchCurrentUser = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
 
-        if (fullName) {
-            setDisplayName(fullName);
-            const parts = fullName.trim().split(/\s+/);
-            const init = parts.length >= 2 ? `${parts[0][0]}${parts[1][0]}` : `${parts[0][0] || 'S'}`;
-            setInitials(init.toUpperCase());
-        }
+                if (userId) {
+                    const response = await fetch(`http://localhost:3001/users/${userId}`);
+                    if (response.ok) {
+                        const user: User = await response.json();
+                        setDisplayName(`${user.firstname} ${user.lastname}`);
+                        setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
+                        // Display department instead of role for staff
+                        if (user.role === 'staff' && user.department) {
+                            setDepartmentDisplay(user.department);
+                        } else {
+                            setDepartmentDisplay(getRoleDisplayName(user.role));
+                        }
+                    } else {
+                        // Fallback: try to find user by searching all users
+                        const allUsersResponse = await fetch('http://localhost:3001/users');
+                        const allUsers = await allUsersResponse.json();
+                        const foundUser = allUsers.find((u: User) => u.id.toString() === userId);
 
-        if (role) {
-            // If staff, we could show department name if available later
-            setDepartmentDisplay(getRoleDisplayName(role));
-        }
+                        if (foundUser) {
+                            setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
+                            setInitials(`${foundUser.firstname[0] || ''}${foundUser.lastname[0] || ''}`.toUpperCase());
+                            // Display department instead of role for staff
+                            if (foundUser.role === 'staff' && foundUser.department) {
+                                setDepartmentDisplay(foundUser.department);
+                            } else {
+                                setDepartmentDisplay(getRoleDisplayName(foundUser.role));
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching current user:', error);
+                // Keep default values if fetch fails
+            }
+        };
+
+        fetchCurrentUser();
     }, []);
 
     const handleLogout = () => {
-        AuthService.logout();
+        AuthService.logout()
+        // localStorage.removeItem('user');
+        // localStorage.removeItem('userRole');
         navigate(PATHS.COMMON.LOGIN.path);
     };
 

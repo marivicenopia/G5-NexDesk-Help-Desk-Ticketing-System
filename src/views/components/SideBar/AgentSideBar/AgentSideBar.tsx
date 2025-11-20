@@ -63,9 +63,8 @@ const AgentSidebar: React.FC = () => {
         }
     };
 
-    const handleLogout = async () => {
-        await AuthService.logout();
-        navigate("/login");
+    const handleLogout = () => {
+        AuthService.logout()
     };
 
     const handleToggle = (label: string, hasChildren: boolean) => {

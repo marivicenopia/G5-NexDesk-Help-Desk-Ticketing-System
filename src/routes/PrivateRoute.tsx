@@ -16,10 +16,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ allowedRoles }) => {
     }
 
     if (!allowedRoles.includes(userRole)) {
-        return <Navigate to={PATHS.COMMON.NOT_FOUND.path} replace />;
+        return <Navigate to={PATHS.COMMON.PERMISSION_DENIED.path} replace />;
     }
-
     return <Outlet />;
 };
+
 
 export default PrivateRoute;
