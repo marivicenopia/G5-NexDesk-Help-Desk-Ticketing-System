@@ -19,10 +19,10 @@ export const API_CONFIG = {
         TICKETS_ASSIGN: (id: string) => `/api/tickets/${id}/assign`,
 
         // Users
-        USERS: "/api/users",
-        USERS_BY_ID: (id: string) => `/api/users/${id}`,
-        USERS_BY_ROLE: (role: string) => `/api/users/by-role/${role}`,
-        USERS_BY_DEPARTMENT: (department: string) => `/api/users/by-department/${department}`,
+        USERS: "/api/User",
+        USERS_BY_ID: (id: string) => `/api/User/${id}`,
+        USERS_BY_ROLE: (role: string) => `/api/User/role/${role}`,
+        USERS_BY_DEPARTMENT: (department: string) => `/api/User/department/${department}`,
 
         // Knowledge Base
         KNOWLEDGE_BASE_GET_CATEGORIES: "/api/KnowledgeBase/GetCategories",

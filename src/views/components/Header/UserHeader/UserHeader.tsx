@@ -37,7 +37,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
 
                 // Fallback: try to fetch from API if no stored data
                 if (userId) {
-                    const response = await fetch(`http://localhost:3001/users/${userId}`);
+                    const response = await fetch(`https://localhost:5001/api/User/${userId}`, {
+                        headers: AuthService.getAuthHeader()
+                    });
                     if (response.ok) {
                         const user: User = await response.json();
                         const fullName = `${user.firstname} ${user.lastname}`.trim();
@@ -52,7 +54,9 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
                         }
                     } else {
                         // Fallback: try to find user by searching all users
-                        const allUsersResponse = await fetch('http://localhost:3001/users');
+                        const allUsersResponse = await fetch('https://localhost:5001/api/User', {
+                            headers: AuthService.getAuthHeader()
+                        });
                         const allUsers = await allUsersResponse.json();
                         const foundUser = allUsers.find((u: User) => u.id.toString() === userId);
 

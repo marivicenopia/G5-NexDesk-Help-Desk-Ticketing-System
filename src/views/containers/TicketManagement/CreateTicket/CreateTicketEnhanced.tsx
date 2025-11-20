@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Ticket, PriorityOption } from '../../../../types/ticket';
+import { API_CONFIG } from '../../../../config/api';
+import { AuthService } from '../../../../services/auth/AuthService';
+import axios from 'axios';
 
 interface TicketFormData {
     customerName: string;
@@ -77,15 +80,19 @@ const CreateTicket: React.FC = () => {
             };
 
             // Submit to API
-            const response = await fetch('http://localhost:3001/tickets', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newTicket),
-            });
+            const response = await axios.post(
+                `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TICKETS}`,
+                newTicket,
+                {
+                    withCredentials: true,
+                    headers: {
+                        ...AuthService.getAuthHeader(),
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
 
-            if (!response.ok) {
+            if (response.status !== 200 && response.status !== 201) {
                 throw new Error('Failed to create ticket');
             }
 

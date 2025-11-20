@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { AuthService } from '../../../services/auth/AuthService';
-import { API_CONFIG } from '../../../config/api';
 
 interface Ticket {
   id: string;
@@ -33,31 +30,70 @@ const CreateFeedback = () => {
   useEffect(() => {
     const fetchUserDataAndTickets = async () => {
       try {
-        const userId = AuthService.getToken(); // Using token as user ID
+        const userId = localStorage.getItem('userId'); // Get actual user ID from localStorage
+        console.log('Fetching user with ID:', userId);
         if (userId) {
-          const response = await axios.get(
-            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS_BY_ID(userId)}`,
-            { withCredentials: true }
-          );
-          const user = response.data;
+          const response = await fetch(`/api/User/${userId}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          console.log('User fetch response status:', response.status);
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('User fetch failed:', response.status, errorText);
+            throw new Error('Failed to fetch user data');
+          }
+          const userResponse = await response.json();
+          console.log('Fetched user data:', userResponse);
+          const user = userResponse.response; // Extract the actual user data from the nested response
+          console.log('Actual user object:', user);
           setFormData(prev => ({
             ...prev,
             name: `${user.firstname} ${user.lastname}`,
             email: user.email,
           }));
 
-          // Fetch user's resolved/closed tickets
-          const ticketsResponse = await axios.get(
-            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TICKETS}`,
-            { withCredentials: true }
-          );
-          const allTickets = ticketsResponse.data;
+          // Fetch user's resolved/closed tickets (using proxy like UserTicketManagement)
+          const ticketsResponse = await fetch('/api/tickets', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          });
+          if (!ticketsResponse.ok) {
+            const text = await ticketsResponse.text();
+            console.warn('Failed to fetch tickets status:', ticketsResponse.status, 'body:', text);
+            throw new Error('Failed to load tickets');
+          }
+          let raw = await ticketsResponse.text();
+          let parsed: any;
+          try { parsed = raw ? JSON.parse(raw) : []; } catch { parsed = []; }
+          const allTickets = Array.isArray(parsed) ? parsed : (parsed.response || []);
+
+          console.log('All tickets:', allTickets);
+          console.log('Current user email:', user.email);
+
+          // Debug: Check ticket statuses and submitted by values
+          allTickets.forEach((ticket: Ticket, index: number) => {
+            console.log(`Ticket ${index}:`, {
+              id: ticket.id,
+              title: ticket.title,
+              status: ticket.status,
+              submittedBy: ticket.submittedBy,
+              statusMatch: ticket.status.toLowerCase() === 'resolved' || ticket.status.toLowerCase() === 'closed',
+              emailMatch: ticket.submittedBy === user.email
+            });
+          });
 
           // Filter tickets submitted by the user that are resolved or closed
-          const userResolvedTickets = allTickets.filter((ticket: Ticket) =>
-            ticket.submittedBy === user.email &&
-            (ticket.status === 'resolved' || ticket.status === 'closed')
-          );
+          console.log('Filtering with user email:', user.email);
+          const userResolvedTickets = allTickets.filter((ticket: Ticket) => {
+            const statusMatch = ticket.status.toLowerCase() === 'resolved' || ticket.status.toLowerCase() === 'closed';
+            const emailMatch = ticket.submittedBy === user.email;
+            console.log(`Ticket ${ticket.id}: statusMatch=${statusMatch}, emailMatch=${emailMatch}, user.email=${user.email}, ticket.submittedBy=${ticket.submittedBy}`);
+            return emailMatch && statusMatch;
+          });
+          console.log('User resolved tickets:', userResolvedTickets);
 
           setResolvedTickets(userResolvedTickets);
         }
@@ -96,11 +132,19 @@ const CreateFeedback = () => {
         id: Date.now().toString(36) + Math.random().toString(36).substr(2), // Generate unique ID
       };
 
-      await axios.post(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.FEEDBACK_ADD}`,
-        feedbackData,
-        { withCredentials: true }
-      );
+      const response = await fetch('/api/Feedback/SubmitTicketFeedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(feedbackData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
+      }
       alert('Feedback submitted successfully!');
       setFormData({
         name: formData.name, // Keep the name from current user

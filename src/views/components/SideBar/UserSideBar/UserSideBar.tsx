@@ -23,11 +23,15 @@ const UserSideBar: React.FC = () => {
                 const userId = localStorage.getItem("userId");
 
                 if (userId) {
-                    const response = await fetch(`http://localhost:3001/users/${userId}`);
+                    const response = await fetch(`https://localhost:5001/api/User/${userId}`, {
+                        headers: AuthService.getAuthHeader()
+                    });
                     if (response.ok) {
                         const user: User = await response.json();
                         setDisplayName(`${user.firstname} ${user.lastname}`);
-                        setInitials(`${user.firstname[0] || ''}${user.lastname[0] || ''}`.toUpperCase());
+                        const firstInitial = user.firstname && user.firstname.length > 0 ? user.firstname[0] : '';
+                        const lastInitial = user.lastname && user.lastname.length > 0 ? user.lastname[0] : '';
+                        setInitials(`${firstInitial}${lastInitial}`.toUpperCase());
                         // Display department instead of role for staff
                         if (user.role === 'staff' && user.department) {
                             setDepartmentDisplay(user.department);
@@ -36,13 +40,17 @@ const UserSideBar: React.FC = () => {
                         }
                     } else {
                         // Fallback: try to find user by searching all users
-                        const allUsersResponse = await fetch('http://localhost:3001/users');
+                        const allUsersResponse = await fetch('https://localhost:5001/api/User', {
+                            headers: AuthService.getAuthHeader()
+                        });
                         const allUsers = await allUsersResponse.json();
                         const foundUser = allUsers.find((u: User) => u.id.toString() === userId);
 
                         if (foundUser) {
                             setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
-                            setInitials(`${foundUser.firstname[0] || ''}${foundUser.lastname[0] || ''}`.toUpperCase());
+                            const firstInitial = foundUser.firstname && foundUser.firstname.length > 0 ? foundUser.firstname[0] : '';
+                            const lastInitial = foundUser.lastname && foundUser.lastname.length > 0 ? foundUser.lastname[0] : '';
+                            setInitials(`${firstInitial}${lastInitial}`.toUpperCase());
                             // Display department instead of role for staff
                             if (foundUser.role === 'staff' && foundUser.department) {
                                 setDepartmentDisplay(foundUser.department);

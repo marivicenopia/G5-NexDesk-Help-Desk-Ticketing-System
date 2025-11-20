@@ -51,10 +51,18 @@ const ViewTicket: React.FC = () => {
                 }
 
                 // Fetch the specific ticket from C# API via Vite proxy
+                const token = AuthService.getToken();
+                const headers: HeadersInit = {
+                    'Accept': 'application/json'
+                };
+                if (token) {
+                    (headers as any)['Authorization'] = `Bearer ${token}`;
+                }
+
                 const resp = await fetch(`/api/tickets/${ticketId}`, {
                     method: 'GET',
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    headers
                 });
                 if (!resp.ok) {
                     const txt = await resp.text();
@@ -131,10 +139,19 @@ const ViewTicket: React.FC = () => {
 
         try {
             setUpdateLoading(true);
+            const token = AuthService.getToken();
+            const updateHeaders: HeadersInit = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+            if (token) {
+                (updateHeaders as any)['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`/api/tickets/${ticketId}`, {
                 method: 'PUT',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                headers: updateHeaders,
                 body: JSON.stringify({ ...ticket, status: newStatus })
             });
             if (!response.ok) {
