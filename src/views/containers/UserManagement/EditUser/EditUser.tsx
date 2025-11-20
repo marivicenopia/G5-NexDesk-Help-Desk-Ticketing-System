@@ -6,6 +6,7 @@ import { UserService } from '../../../../services/users/UserService';
 import { DepartmentService, type Department } from '../../../../services/departments/DepartmentService';
 import UserEditSubMenu from '../../../components/SideBar/UserEditSubMenu';
 import warningSign from '../../../../assets/warning_sign.png';
+import { ValidationError } from '../../../../errors/ValidationError';
 
 // Define available roles based on current user permissions
 const getAvailableRoles = (currentUserRole: string | null, targetUserRole: string): RoleOption[] => {
@@ -30,6 +31,7 @@ const EditUser: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [activeTab, setActiveTab] = useState<'info' | 'password' | 'delete'>('info');
+    const role = AuthService.getRole()
 
     // Validation states
     const [fieldErrors, setFieldErrors] = useState({
@@ -137,9 +139,26 @@ const EditUser: React.FC = () => {
             alert('Please fix the validation errors before saving.');
             return;
         }
+        // console.log('debug sa ta')
+        // console.log(formData)
+        // console.log("HELLO WORD ASFNJKABHFKABIHEAHVFU")
+        // console.log(formData.role)
+        // console.log("fdnkabhsajd")
+        // console.log(role)
+        // if (role == "admin"){
+        //     if (formData.role == "admin" || formData.role == "superadmin"){
+        //         console.log("dili pwede")
+        //     }
+        // }
 
         setSaving(true);
         try {
+            if (role == "admin"){
+                if (formData.role == "admin" || formData.role == "superadmin"){
+                    console.log("HELLO WORD ASFNJKABHFKABIHEAHVFU")
+                    throw new ValidationError("You cannot change roles to admin or superadmin")
+                }
+            }
             const updatedUserData = {
                 username: formData.username.trim(),
                 firstName: formData.firstname.trim(),
@@ -149,13 +168,19 @@ const EditUser: React.FC = () => {
                 departmentId: formData.departmentId,
                 isActive: formData.isActive
             };
-
             await UserService.update(userId!, updatedUserData);
             alert('User updated successfully!');
             navigate('/admin/manage/users');
         } catch (error) {
             console.error('Error updating user:', error);
-            alert('Failed to update user');
+            if (error instanceof ValidationError){
+                const displayError = "Failed to update user: " + error.message
+                alert(displayError)
+            }else{
+                const displayError = "Failed to update user: " + error
+                alert(displayError)
+            }
+            
         } finally {
             setSaving(false);
         }
@@ -350,10 +375,11 @@ const EditUser: React.FC = () => {
                                     </div>
 
                                     {/* Basic Information */}
+                                    {/* Edit when clicked */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Username
+                                                Username 
                                             </label>
                                             <input
                                                 type="text"

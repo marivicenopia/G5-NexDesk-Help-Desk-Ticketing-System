@@ -29,8 +29,6 @@ interface DashboardProps {
     role: RoleOption;
 }
 
-
-
 const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -39,7 +37,12 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
     useEffect(() => {
         loadDashboardData();
     }, [role]);
-
+    
+    // const loadDashboardDataTest = setInterval(function(){
+    //     const dataTest = await DashboardApiService.getDashboardData();
+    //     setDashboardData(data);
+    // }, 1000)
+    
     const loadDashboardData = async () => {
         try {
             setLoading(true);

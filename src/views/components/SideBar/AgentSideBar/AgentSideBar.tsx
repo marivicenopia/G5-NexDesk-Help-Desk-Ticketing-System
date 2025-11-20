@@ -64,11 +64,7 @@ const AgentSidebar: React.FC = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("userId");
-        navigate("/login");
+        AuthService.logout()
     };
 
     const handleToggle = (label: string, hasChildren: boolean) => {

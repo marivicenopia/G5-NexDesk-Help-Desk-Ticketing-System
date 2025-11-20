@@ -55,6 +55,7 @@ export const PATHS = {
     LOGIN: { path: '/login', label: 'Login' },
     REGISTER: { path: '/register', label: 'Register' },
     NOT_FOUND: { path: '/not-found', label: 'Not Found' },
+    PERMISSION_DENIED: { path: "/permission-denied", label: "Permission Denied" },
   },
 
   ADMIN: {

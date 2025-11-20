@@ -25,7 +25,8 @@ import TicketAssignment from '../views/containers/TicketAssignment';
 import ViewTicketDetail from '../views/containers/TicketManagement/ViewTicketDetail';
 import TicketTracking from '../views/containers/TicketTracking';
 import { AgentDashboard } from '../views/containers/AgentContainer';
-
+import NotFound from "../views/containers/NotFound";
+import PermissionDenied from "../views/containers/PermissionDenied";
 export const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -112,6 +113,8 @@ export const AppRoutes = () => {
                         {/* Add more user routes as needed */}
                     </Route>
                 </Route>
+                <Route path={PATHS.COMMON.PERMISSION_DENIED.path} element={<PermissionDenied />} />
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     );
