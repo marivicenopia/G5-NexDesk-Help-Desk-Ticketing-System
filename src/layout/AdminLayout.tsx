@@ -34,12 +34,12 @@ const AdminLayout: React.FC = () => {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex">
+    <div className="flex h-screen w-full">
       <AdminSidebar />
       <main className="flex-1 flex flex-col">
         <AdminHeader title={pageTitle} />
 
-        <div className="p-4 flex-1 bg-gray-50">
+        <div className="p-6 flex-1 bg-gray-50 overflow-auto">
           <Outlet />
         </div>
       </main>

@@ -24,12 +24,12 @@ const UserLayout: React.FC = () => {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex">
+    <div className="flex h-screen w-full">
       <UserSidebar />
       <main className="flex-1 flex flex-col ml-64">
         <UserHeader title={pageTitle} />
 
-        <div className="p-4 flex-1 bg-gray-50">
+        <div className="flex-1 bg-gray-50 overflow-auto p-6">
           <Outlet />
         </div>
       </main>

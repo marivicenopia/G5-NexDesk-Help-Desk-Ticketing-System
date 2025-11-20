@@ -81,7 +81,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title = "Dashboard", userName
         {/* User Info */}
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="text-sm font-medium text-gray-800">Welcome, {displayName}</span>
+            <span className="text-sm font-medium text-gray-800">{displayName}</span>
             {userRole && (
               <div className="text-xs text-gray-500 capitalize">{userRole}</div>
             )}

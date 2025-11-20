@@ -32,7 +32,7 @@ const AgentLayout: React.FC = () => {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen w-full bg-gray-50">
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-full z-30">
         <AgentSidebar />
@@ -47,7 +47,7 @@ const AgentLayout: React.FC = () => {
 
         {/* Content */}
         <main className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
+          <div className="w-full">
             <Outlet />
           </div>
         </main>

@@ -28,6 +28,7 @@ export const TicketService = {
       customerEmail: ticket.customerEmail,
       contactNumber: ticket.contactNumber,
       category: ticket.category,
+      attachmentsJson: ticket.attachments ? JSON.stringify(ticket.attachments) : null,
     };
 
     const response = await fetch("/api/tickets", {

@@ -182,7 +182,7 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
     const statCards = getStatCards();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">{getRoleTitle()}</h1>

@@ -249,11 +249,11 @@ const EditUser: React.FC = () => {
             return;
         }
 
-        if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+        if (!/^[a-zA-Z0-9_.]+$/.test(trimmedUsername)) {
             setUsernameValidation({
                 isChecking: false,
                 isAvailable: false,
-                message: 'Username can only contain letters, numbers, and underscores'
+                message: 'Username can only contain letters, numbers, underscores, and periods'
             });
             return;
         }

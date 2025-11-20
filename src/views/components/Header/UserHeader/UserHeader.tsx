@@ -91,7 +91,7 @@ const UserHeader: React.FC<UserHeaderProps> = ({ title }) => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-[#031849]">{title}</h1>
-                    <p className="text-sm text-gray-500 mt-1">Welcome to your portal</p>
+                    <p className="text-sm text-gray-500 mt-1">Help Desk Ticketing System</p>
                 </div>
 
                 <div className="flex items-center space-x-4">

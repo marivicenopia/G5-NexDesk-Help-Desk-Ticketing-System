@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../../../services/auth/AuthService';
 
+interface TicketAttachment {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    url?: string;
+    uploadDate: string;
+}
+
 interface Ticket {
     id: string;
     title: string;
@@ -16,6 +25,8 @@ interface Ticket {
     resolvedDate?: string;
     resolutionDescription?: string;
     agentFeedback?: string;
+    attachmentsJson?: string;
+    attachments?: TicketAttachment[];
 }
 
 const ViewTicket: React.FC = () => {
@@ -56,6 +67,16 @@ const ViewTicket: React.FC = () => {
                 let parsed: any;
                 try { parsed = raw ? JSON.parse(raw) : {}; } catch { parsed = {}; }
                 const ticketData: Ticket = Array.isArray(parsed) ? parsed[0] : (parsed.response || parsed);
+
+                // Parse attachments from JSON if present
+                if (ticketData.attachmentsJson) {
+                    try {
+                        ticketData.attachments = JSON.parse(ticketData.attachmentsJson);
+                    } catch (error) {
+                        console.error('Error parsing attachments JSON:', error);
+                        ticketData.attachments = [];
+                    }
+                }
 
                 // Check if the ticket belongs to the current user
                 if (ticketData.submittedBy !== userEmail) {
@@ -132,7 +153,7 @@ const ViewTicket: React.FC = () => {
             }
             const updatedRaw = await response.text();
             let updatedParsed: any = {};
-            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch {}
+            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch { }
             const updatedTicket: Ticket = Array.isArray(updatedParsed) ? updatedParsed[0] : (updatedParsed.response || updatedParsed);
             setTicket(updatedTicket);
             setIsEditingStatus(false);
@@ -323,6 +344,44 @@ const ViewTicket: React.FC = () => {
                             <p className="text-gray-900 whitespace-pre-wrap">{ticket.description}</p>
                         </div>
                     </div>
+
+                    {/* Attachments Section */}
+                    {ticket.attachments && ticket.attachments.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3">Attachments</h3>
+                            <div className="space-y-2">
+                                {ticket.attachments.map((attachment) => (
+                                    <div
+                                        key={attachment.id}
+                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="flex-shrink-0">
+                                                {attachment.type.startsWith('image/') ? (
+                                                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {(attachment.size / 1024 / 1024).toFixed(2)} MB • {new Date(attachment.uploadDate).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-gray-400">
+                                            File attached - No download available
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Resolution Information */}
                     {(ticket.status === 'resolved' || ticket.status === 'closed') && ticket.resolutionDescription && (
