@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Ticket, PriorityOption } from '../../../../types/ticket';
+import { DepartmentService, type Department } from '../../../../services/departments/DepartmentService';
 
 interface TicketFormData {
     customerName: string;
@@ -29,6 +30,32 @@ const CreateTicket: React.FC = () => {
     const [attachment, setAttachment] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [departmentsLoading, setDepartmentsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadDepartments = async () => {
+            try {
+                setDepartmentsLoading(true);
+                const deptList = await DepartmentService.getActive();
+                setDepartments(deptList);
+            } catch (error) {
+                console.error('Error loading departments:', error);
+                // Set fallback departments if API fails
+                setDepartments([
+                    { id: '1', name: 'IT' },
+                    { id: '2', name: 'HR' },
+                    { id: '3', name: 'Finance' },
+                    { id: '4', name: 'Marketing' },
+                    { id: '5', name: 'Operations' }
+                ]);
+            } finally {
+                setDepartmentsLoading(false);
+            }
+        };
+
+        loadDepartments();
+    }, []);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -52,7 +79,7 @@ const CreateTicket: React.FC = () => {
         setError(null);
 
         // Validation
-        if (!formData.customerName || !formData.customerEmail || !formData.title || 
+        if (!formData.customerName || !formData.customerEmail || !formData.title ||
             !formData.category || !formData.priority || !formData.description) {
             setError('Please fill in all required fields.');
             setLoading(false);
@@ -103,7 +130,7 @@ const CreateTicket: React.FC = () => {
 
             // Success
             alert('Ticket submitted successfully!');
-            
+
             // Reset form
             setFormData({
                 customerName: '',
@@ -116,7 +143,7 @@ const CreateTicket: React.FC = () => {
                 department: '',
             });
             setAttachment(null);
-            
+
             // Navigate to tickets list
             navigate('/admin/tickets');
         } catch (err) {
@@ -232,13 +259,14 @@ const CreateTicket: React.FC = () => {
                             value={formData.department}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 rounded-md bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={departmentsLoading}
                         >
-                            <option value="">Choose Department</option>
-                            <option value="IT">IT</option>
-                            <option value="HR">HR</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Operations">Operations</option>
+                            <option value="">{departmentsLoading ? 'Loading departments...' : 'Choose Department'}</option>
+                            {departments.map((dept) => (
+                                <option key={dept.id} value={dept.name}>
+                                    {dept.name}
+                                </option>
+                            ))}
                             <option value="General">General</option>
                         </select>
                     </div>

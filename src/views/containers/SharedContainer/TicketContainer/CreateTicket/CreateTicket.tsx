@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TicketService } from "../../../../../services/ticket/TicketService";
+import { DepartmentService, type Department } from "../../../../../services/departments/DepartmentService";
 import {
   FiFileText,
   FiUpload,
@@ -14,11 +15,6 @@ import {
 } from "react-icons/fi";
 
 type PriorityOption = "low" | "medium" | "high" | "urgent";
-type DepartmentOption =
-  | "Facility Management"
-  | "IT Support"
-  | "Human Resources"
-  | "Finance";
 
 interface AttachedFile {
   id: string;
@@ -33,14 +29,46 @@ const CreateTicket: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<PriorityOption>("medium");
-  const [department, setDepartment] = useState<DepartmentOption>("IT Support");
+  const [department, setDepartment] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
 
   // File attachment states
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [fileErrors, setFileErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        setDepartmentsLoading(true);
+        const deptList = await DepartmentService.getActive();
+        setDepartments(deptList);
+        // Set first department as default if available
+        if (deptList.length > 0) {
+          setDepartment(deptList[0].name);
+        }
+      } catch (error) {
+        console.error('Error loading departments:', error);
+        // Set fallback departments if API fails
+        const fallbackDepts = [
+          { id: '1', name: 'IT' },
+          { id: '2', name: 'HR' },
+          { id: '3', name: 'Finance' },
+          { id: '4', name: 'Marketing' },
+          { id: '5', name: 'Operations' }
+        ];
+        setDepartments(fallbackDepts);
+        setDepartment(fallbackDepts[0].name);
+      } finally {
+        setDepartmentsLoading(false);
+      }
+    };
+
+    loadDepartments();
+  }, []);
 
   // Contact information states
   const [customerName, setCustomerName] = useState("");
@@ -194,7 +222,7 @@ const CreateTicket: React.FC = () => {
       setTitle("");
       setDescription("");
       setPriority("medium");
-      setDepartment("IT Support");
+      setDepartment(departments.length > 0 ? departments[0].name : "");
       setCustomerName("");
       setCustomerEmail("");
       setCustomerContact("");
@@ -266,14 +294,17 @@ const CreateTicket: React.FC = () => {
               <select
                 id="department"
                 value={department}
-                onChange={(e) => setDepartment(e.target.value as DepartmentOption)}
+                onChange={(e) => setDepartment(e.target.value)}
                 required
+                disabled={departmentsLoading}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="Facility Management">Facility Management</option>
-                <option value="IT Support">IT Support</option>
-                <option value="Human Resources">Human Resources</option>
-                <option value="Finance">Finance</option>
+                <option value="">{departmentsLoading ? 'Loading departments...' : 'Choose Department'}</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -307,8 +338,8 @@ const CreateTicket: React.FC = () => {
           {/* File Upload Area */}
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragging
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400'
               }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
