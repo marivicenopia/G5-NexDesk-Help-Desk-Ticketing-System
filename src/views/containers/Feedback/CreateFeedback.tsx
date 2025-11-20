@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AuthService } from '../../../services/auth/AuthService';
+import { API_CONFIG } from '../../../config/api';
 
 interface Ticket {
   id: string;
@@ -34,7 +35,10 @@ const CreateFeedback = () => {
       try {
         const userId = AuthService.getToken(); // Using token as user ID
         if (userId) {
-          const response = await axios.get(`http://localhost:3001/users/${userId}`);
+          const response = await axios.get(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS_BY_ID(userId)}`,
+            { withCredentials: true }
+          );
           const user = response.data;
           setFormData(prev => ({
             ...prev,
@@ -43,7 +47,10 @@ const CreateFeedback = () => {
           }));
 
           // Fetch user's resolved/closed tickets
-          const ticketsResponse = await axios.get('http://localhost:3001/tickets');
+          const ticketsResponse = await axios.get(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TICKETS}`,
+            { withCredentials: true }
+          );
           const allTickets = ticketsResponse.data;
 
           // Filter tickets submitted by the user that are resolved or closed
@@ -89,7 +96,11 @@ const CreateFeedback = () => {
         id: Date.now().toString(36) + Math.random().toString(36).substr(2), // Generate unique ID
       };
 
-      await axios.post('http://localhost:3001/feedback', feedbackData);
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.FEEDBACK_ADD}`,
+        feedbackData,
+        { withCredentials: true }
+      );
       alert('Feedback submitted successfully!');
       setFormData({
         name: formData.name, // Keep the name from current user

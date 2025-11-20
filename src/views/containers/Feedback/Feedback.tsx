@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaRegCommentDots, FaTimes } from 'react-icons/fa';
+import { API_CONFIG } from '../../../config/api';
 
 interface Feedback {
   id: number;
@@ -12,26 +13,11 @@ interface Feedback {
   ticketId?: string;
 }
 
-interface Ticket {
-  id: string;
-  title: string;
-  assignedTo?: string;
-}
-
-interface User {
-  id: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-}
-
 const ViewFeedback = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+  const [selectedFeedback] = useState<Feedback | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   const isAdminRoute = location.pathname.includes('/admin/');
@@ -42,31 +28,17 @@ const ViewFeedback = () => {
 
   const fetchData = async () => {
     try {
-      const [feedbackRes, ticketsRes, usersRes] = await Promise.all([
-        axios.get('http://localhost:3001/feedback'),
-        axios.get('http://localhost:3001/tickets'),
-        axios.get('http://localhost:3001/users')
-      ]);
-
-      setFeedback(feedbackRes.data);
-      setTickets(ticketsRes.data);
-      setUsers(usersRes.data);
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.FEEDBACK_GET_ALL}`,
+        { withCredentials: true }
+      );
+      // Handle the response - it will be in response.data.response (array of feedbacks)
+      const feedbacks = response.data.response || [];
+      setFeedback(feedbacks);
     } catch (error) {
       console.error('Error fetching data:', error);
       alert('Failed to fetch data.');
     }
-  };
-
-  const getTicketInfo = (ticketId?: string) => {
-    if (!ticketId) return { title: 'N/A', assignedAgent: 'N/A' };
-
-    const ticket = tickets.find(t => t.id === ticketId);
-    if (!ticket) return { title: 'Unknown Ticket', assignedAgent: 'N/A' };
-
-    const agent = users.find(u => u.email === ticket.assignedTo);
-    const assignedAgent = agent ? `${agent.firstname} ${agent.lastname}` : 'Unassigned';
-
-    return { title: ticket.title, assignedAgent };
   };
 
   const handleViewFeedback = (feedbackItem: Feedback) => {
@@ -105,9 +77,6 @@ const ViewFeedback = () => {
                     Related Ticket
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assigned Agent
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -117,7 +86,6 @@ const ViewFeedback = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {feedback.map((item) => {
-                  const ticketInfo = getTicketInfo(item.ticketId);
                   return (
                     <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -135,13 +103,7 @@ const ViewFeedback = () => {
                         <div className="text-sm text-gray-500 max-w-xs truncate">{item.message}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {ticketInfo.title}
-                        {item.ticketId && (
-                          <div className="text-xs text-gray-400">ID: {item.ticketId}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {ticketInfo.assignedAgent}
+                        {item.ticketId || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(item.date).toLocaleDateString()}
