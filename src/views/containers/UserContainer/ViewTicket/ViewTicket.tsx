@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../../../services/auth/AuthService';
+import type { Ticket as TicketType, TicketAttachment } from "../../../../types/ticket";
 
-interface Ticket {
-    id: string;
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    department: string;
-    submittedBy: string;
-    submittedDate: string;
-    assignedTo?: string;
-    resolvedBy?: string;
-    resolvedDate?: string;
-    resolutionDescription?: string;
-    agentFeedback?: string;
-}
+type Ticket = TicketType;
 
 const ViewTicket: React.FC = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
@@ -30,6 +17,28 @@ const ViewTicket: React.FC = () => {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     useEffect(() => {
+        const normalizeAttachments = (raw: any, tid?: string): TicketAttachment[] => {
+            try {
+                let atts: any = raw?.attachments;
+                if (!atts) atts = raw?.ticketAttachments || raw?.files || raw?.attachmentsJson;
+                if (typeof atts === 'string') {
+                    try { atts = JSON.parse(atts); } catch { atts = []; }
+                }
+                if (!Array.isArray(atts)) return [];
+                return atts.map((a: any, idx: number) => {
+                    const id = a.id ?? a.attachmentId ?? `${idx}`;
+                    const name = a.name ?? a.fileName ?? a.filename ?? `file-${idx}`;
+                    const type = a.type ?? a.contentType ?? a.mimeType ?? '';
+                    const size = Number(a.size ?? a.fileSize ?? 0);
+                    const url = a.url ?? a.fileUrl ?? (tid && id ? `/api/tickets/${tid}/attachments/${id}` : undefined);
+                    const uploadDate = a.uploadDate ?? a.createdAt ?? new Date().toISOString();
+                    return { id: String(id), name, type, size, url, uploadDate } as TicketAttachment;
+                });
+            } catch {
+                return [];
+            }
+        };
+
         const fetchTicket = async () => {
             try {
                 setLoading(true);
@@ -56,6 +65,9 @@ const ViewTicket: React.FC = () => {
                 let parsed: any;
                 try { parsed = raw ? JSON.parse(raw) : {}; } catch { parsed = {}; }
                 const ticketData: Ticket = Array.isArray(parsed) ? parsed[0] : (parsed.response || parsed);
+                // Normalize attachments from various backend shapes
+                const normalized = normalizeAttachments(ticketData, ticketId);
+                (ticketData as any).attachments = normalized;
 
                 // Check if the ticket belongs to the current user
                 if (ticketData.submittedBy !== userEmail) {
@@ -101,8 +113,8 @@ const ViewTicket: React.FC = () => {
         return priorityClasses[priority.toLowerCase()] || "bg-gray-100 text-gray-800";
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+    const formatDate = (dateLike: string | Date) => {
+        return new Date(dateLike as any).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -323,6 +335,43 @@ const ViewTicket: React.FC = () => {
                             <p className="text-gray-900 whitespace-pre-wrap">{ticket.description}</p>
                         </div>
                     </div>
+
+                    {/* Attachments */}
+                    {Array.isArray(ticket.attachments) && ticket.attachments.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3">Attachments</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {ticket.attachments.map((att: TicketAttachment, idx: number) => (
+                                    <div key={att.id || idx} className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        {att.type?.startsWith('image/') && att.url ? (
+                                            <a href={att.url} target="_blank" rel="noreferrer" className="flex items-center space-x-3">
+                                                <img src={att.url} alt={att.name} className="w-16 h-16 object-cover rounded" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">{att.name}</p>
+                                                    <p className="text-xs text-gray-500">{Math.round((att.size || 0) / 1024)} KB</p>
+                                                </div>
+                                            </a>
+                                        ) : (
+                                            <div className="flex-1 flex items-center justify-between w-full">
+                                                <div className="flex items-center space-x-3">
+                                                    <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{att.name}</p>
+                                                        <p className="text-xs text-gray-500">{att.type || 'file'} • {Math.round((att.size || 0) / 1024)} KB</p>
+                                                    </div>
+                                                </div>
+                                                {att.url && (
+                                                    <a href={att.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 text-sm">Download</a>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Resolution Information */}
                     {(ticket.status === 'resolved' || ticket.status === 'closed') && ticket.resolutionDescription && (

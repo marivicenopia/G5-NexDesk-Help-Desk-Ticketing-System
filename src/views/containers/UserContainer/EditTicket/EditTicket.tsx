@@ -1,22 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../../../services/auth/AuthService';
+import { TicketService } from '../../../../services/ticket/TicketService';
+import type { Ticket as TicketType, TicketAttachment } from '../../../../types/ticket';
 
-interface Ticket {
-    id: string;
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    department: string;
-    submittedBy: string;
-    submittedDate: string;
-    assignedTo?: string;
-    resolvedBy?: string;
-    resolvedDate?: string;
-    resolutionDescription?: string;
-    agentFeedback?: string;
-}
+type Ticket = TicketType;
 
 const EditTicket: React.FC = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
@@ -29,6 +17,10 @@ const EditTicket: React.FC = () => {
         department: ''
     });
     const [loading, setLoading] = useState(true);
+    const [existingAttachments, setExistingAttachments] = useState<TicketAttachment[]>([]);
+    const [removedIds, setRemovedIds] = useState<string[]>([]);
+    const [newFiles, setNewFiles] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -55,6 +47,28 @@ const EditTicket: React.FC = () => {
     ];
 
     useEffect(() => {
+        const normalizeAttachments = (raw: any, tid?: string): TicketAttachment[] => {
+            try {
+                let atts: any = raw?.attachments;
+                if (!atts) atts = raw?.ticketAttachments || raw?.files || raw?.attachmentsJson;
+                if (typeof atts === 'string') {
+                    try { atts = JSON.parse(atts); } catch { atts = []; }
+                }
+                if (!Array.isArray(atts)) return [];
+                return atts.map((a: any, idx: number) => {
+                    const id = a.id ?? a.attachmentId ?? `${idx}`;
+                    const name = a.name ?? a.fileName ?? a.filename ?? `file-${idx}`;
+                    const type = a.type ?? a.contentType ?? a.mimeType ?? '';
+                    const size = Number(a.size ?? a.fileSize ?? 0);
+                    const url = a.url ?? a.fileUrl ?? (tid && id ? `/api/tickets/${tid}/attachments/${id}` : undefined);
+                    const uploadDate = a.uploadDate ?? a.createdAt ?? new Date().toISOString();
+                    return { id: String(id), name, type, size, url, uploadDate } as TicketAttachment;
+                });
+            } catch {
+                return [];
+            }
+        };
+
         const fetchTicket = async () => {
             try {
                 setLoading(true);
@@ -101,6 +115,8 @@ const EditTicket: React.FC = () => {
                     priority: ticketData.priority,
                     department: ticketData.department
                 });
+                const normalized = normalizeAttachments(ticketData, ticketId);
+                setExistingAttachments(normalized);
 
                 // Debug logging
                 console.log('Ticket data loaded:', {
@@ -144,28 +160,15 @@ const EditTicket: React.FC = () => {
                 return;
             }
 
-            // Update the ticket
-            const updatedTicket = {
-                ...ticket,
+            // Update via service: will send FormData if files/removals provided
+            await TicketService.update(ticket.id as string, {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
-                priority: formData.priority,
+                priority: formData.priority as any,
                 department: formData.department,
-                // Add a last modified timestamp
-                lastModified: new Date().toISOString()
-            };
-
-            const updateResp = await fetch(`/api/tickets/${ticketId}`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(updatedTicket)
+                files: newFiles as any,
+                removeAttachmentIds: removedIds,
             });
-            if (!updateResp.ok) {
-                const t = await updateResp.text();
-                console.error('Update failed', updateResp.status, t);
-                throw new Error('Failed to update ticket');
-            }
 
             setSuccess('Ticket updated successfully!');
 
@@ -174,11 +177,29 @@ const EditTicket: React.FC = () => {
                 navigate(`/user/tickets/view/${ticketId}`);
             }, 1500);
         } catch (error) {
+            // Surface detailed error message from service (includes server response when available)
             console.error('Error updating ticket:', error);
-            setError('Failed to update ticket. Please try again.');
+            const msg = error instanceof Error ? error.message : String(error ?? 'Failed to update ticket');
+            setError(msg);
         } finally {
             setSaving(false);
         }
+    };
+
+    const onFilesSelected = (files: FileList | null) => {
+        if (!files) return;
+        const toAdd = Array.from(files);
+        setNewFiles(prev => [...prev, ...toAdd]);
+    };
+
+    const removeExistingAttachment = (id?: string) => {
+        if (!id) return;
+        setRemovedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+        setExistingAttachments(prev => prev.filter(a => a.id !== id));
+    };
+
+    const removeNewFile = (index: number) => {
+        setNewFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const getStatusBadgeClass = (status: string) => {
@@ -363,6 +384,62 @@ const EditTicket: React.FC = () => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Describe your issue in detail..."
                                 />
+                            </div>
+
+                            {/* Attachments Management */}
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-700 mb-2">Attachments</h3>
+                                {/* Existing */}
+                                {existingAttachments.length > 0 ? (
+                                    <div className="space-y-2 mb-4">
+                                        {existingAttachments.map((att) => (
+                                            <div key={att.id} className="flex items-center justify-between p-3 bg-gray-50 border rounded">
+                                                <div className="flex items-center space-x-3">
+                                                    {att.type?.startsWith('image/') && att.url ? (
+                                                        <img src={att.url} alt={att.name} className="w-12 h-12 object-cover rounded" />
+                                                    ) : (
+                                                        <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                        </svg>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{att.name}</p>
+                                                        <p className="text-xs text-gray-500">{att.type || 'file'}</p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onClick={() => removeExistingAttachment(att.id)} className="text-red-600 hover:text-red-800 text-sm">Remove</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500 mb-2">No existing attachments.</p>
+                                )}
+
+                                {/* New Files */}
+                                <div className="mb-2">
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-3 py-2 border rounded hover:bg-gray-50">Add Files</button>
+                                    <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => onFilesSelected(e.target.files)} />
+                                </div>
+                                {newFiles.length > 0 && (
+                                    <div className="space-y-2">
+                                        {newFiles.map((f, idx) => (
+                                            <div key={`${f.name}-${idx}`} className="flex items-center justify-between p-3 bg-white border rounded">
+                                                <div className="flex items-center space-x-3">
+                                                    {f.type?.startsWith('image/') ? (
+                                                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-500">IMG</div>
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-500">FILE</div>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{f.name}</p>
+                                                        <p className="text-xs text-gray-500">{Math.round(f.size / 1024)} KB</p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onClick={() => removeNewFile(idx)} className="text-red-600 hover:text-red-800 text-sm">Remove</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
