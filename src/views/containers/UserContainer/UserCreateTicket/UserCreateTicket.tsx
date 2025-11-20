@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "../../../../routes/constant";
 import { AuthService } from "../../../../services/auth/AuthService";
+import { TicketService } from "../../../../services/ticket/TicketService";
 import type { TicketAttachment } from "../../../../types/ticket";
 
 interface CreateTicketForm {
@@ -191,48 +192,21 @@ const UserCreateTicket: React.FC = () => {
                 return;
             }
 
-            // Map UI data to backend CreateTicketDto (C# expects PascalCase/enums)
+            // Use centralized service: JSON when no files, FormData when files
             const toPascal = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
-            // Strictly match CreateTicketDto (extra fields removed to avoid unexpected server handling)
-            const createDto = {
+            await TicketService.create({
                 title: formData.title,
                 description: formData.description,
-                priority: toPascal(formData.priority), // Ensure casing aligns with backend expectations
-                department: formData.department || 'General',
+                priority: toPascal(formData.priority) as any,
+                department: 'General',
                 submittedBy: userEmail,
-                assignedTo: '' // Backend column is NOT NULL, send empty string if unassigned
-            };
-
-            const response = await fetch('/api/tickets', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(createDto),
+                category: formData.category,
+                customerName: formData.customerName,
+                customerEmail: formData.customerEmail,
+                contactNumber: formData.customerPhone,
+                // Provide files when present; service selects FormData
+                ...(attachments.length > 0 ? { files: attachments as any } : {}),
             });
-
-                if (!response.ok) {
-                const rawText = await response.text().catch(() => '');
-                console.warn('Ticket create failed. Status:', response.status, 'Body:', rawText);
-                try {
-                    const ct = response.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) {
-                        // We already consumed text; parse again only if available
-                        let errJson: any = {};
-                        try { errJson = rawText ? JSON.parse(rawText) : {}; } catch {}
-                                                const combinedMessage = [errJson?.message, errJson?.error, errJson?.innerException]
-                                                    .filter(Boolean)
-                                                    .join(' - ');
-                        throw new Error(combinedMessage || 'An error occurred while creating the ticket.');
-                    } else {
-                        throw new Error(rawText || 'An error occurred while creating the ticket.');
-                    }
-                } catch (e: any) {
-                    throw new Error(e?.message || 'An error occurred while creating the ticket.');
-                }
-            }
 
             // Success - redirect to tickets page
             navigate(PATHS.USER.MY_TICKETS.path);

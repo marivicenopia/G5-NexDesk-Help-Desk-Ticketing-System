@@ -185,14 +185,9 @@ const CreateTicket: React.FC = () => {
         customerName: customerName || "Anonymous User",
         customerEmail: customerEmail || "user@example.com",
         customerContact: customerContact || "",
-        attachments: attachedFiles.map(file => ({
-          id: file.id,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          uploadDate: new Date().toISOString()
-        }))
-      });
+        // Send actual files for backend FormData handling
+        files: attachedFiles.map(f => f.file) as any,
+      } as any);
       alert(`Ticket created successfully with ID: ${newTicket.id}`);
 
       // Reset form

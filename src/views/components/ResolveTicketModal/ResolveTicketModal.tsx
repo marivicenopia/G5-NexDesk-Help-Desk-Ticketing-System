@@ -43,20 +43,16 @@ const ResolveTicketModal: React.FC<ResolveTicketModalProps> = ({
         setIsSubmitting(true);
 
         try {
-            // Get current agent info
-            const agentId = AuthService.getToken();
-            if (!agentId) {
-                alert('Unable to identify current agent');
-                return;
-            }
-
-            const agentResponse = await fetch(`http://localhost:3001/users/${agentId}`);
-            const agentData = await agentResponse.json();
+            // Identify current agent from AuthService/local session info
+            const resolvedBy =
+                AuthService.getUserEmail() ||
+                AuthService.getUserFullName() ||
+                'Unknown Agent';
 
             const resolutionData = {
                 resolutionDescription: resolutionDescription.trim(),
                 agentFeedback: agentFeedback.trim(),
-                resolvedBy: agentData.email || agentData.name || 'Unknown Agent',
+                resolvedBy,
                 resolvedDate: new Date().toISOString()
             };
 

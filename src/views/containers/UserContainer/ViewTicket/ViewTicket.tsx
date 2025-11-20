@@ -1,33 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '../../../../services/auth/AuthService';
+import type { Ticket as TicketType, TicketAttachment } from "../../../../types/ticket";
 
-interface TicketAttachment {
-    id: string;
-    name: string;
-    size: number;
-    type: string;
-    url?: string;
-    uploadDate: string;
-}
-
-interface Ticket {
-    id: string;
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    department: string;
-    submittedBy: string;
-    submittedDate: string;
-    assignedTo?: string;
-    resolvedBy?: string;
-    resolvedDate?: string;
-    resolutionDescription?: string;
-    agentFeedback?: string;
-    attachmentsJson?: string;
-    attachments?: TicketAttachment[];
-}
+type Ticket = TicketType;
 
 const ViewTicket: React.FC = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
@@ -41,6 +17,28 @@ const ViewTicket: React.FC = () => {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     useEffect(() => {
+        const normalizeAttachments = (raw: any, tid?: string): TicketAttachment[] => {
+            try {
+                let atts: any = raw?.attachments;
+                if (!atts) atts = raw?.ticketAttachments || raw?.files || raw?.attachmentsJson;
+                if (typeof atts === 'string') {
+                    try { atts = JSON.parse(atts); } catch { atts = []; }
+                }
+                if (!Array.isArray(atts)) return [];
+                return atts.map((a: any, idx: number) => {
+                    const id = a.id ?? a.attachmentId ?? `${idx}`;
+                    const name = a.name ?? a.fileName ?? a.filename ?? `file-${idx}`;
+                    const type = a.type ?? a.contentType ?? a.mimeType ?? '';
+                    const size = Number(a.size ?? a.fileSize ?? 0);
+                    const url = a.url ?? a.fileUrl ?? (tid && id ? `/api/tickets/${tid}/attachments/${id}` : undefined);
+                    const uploadDate = a.uploadDate ?? a.createdAt ?? new Date().toISOString();
+                    return { id: String(id), name, type, size, url, uploadDate } as TicketAttachment;
+                });
+            } catch {
+                return [];
+            }
+        };
+
         const fetchTicket = async () => {
             try {
                 setLoading(true);
@@ -67,16 +65,9 @@ const ViewTicket: React.FC = () => {
                 let parsed: any;
                 try { parsed = raw ? JSON.parse(raw) : {}; } catch { parsed = {}; }
                 const ticketData: Ticket = Array.isArray(parsed) ? parsed[0] : (parsed.response || parsed);
-
-                // Parse attachments from JSON if present
-                if (ticketData.attachmentsJson) {
-                    try {
-                        ticketData.attachments = JSON.parse(ticketData.attachmentsJson);
-                    } catch (error) {
-                        console.error('Error parsing attachments JSON:', error);
-                        ticketData.attachments = [];
-                    }
-                }
+                // Normalize attachments from various backend shapes
+                const normalized = normalizeAttachments(ticketData, ticketId);
+                (ticketData as any).attachments = normalized;
 
                 // Check if the ticket belongs to the current user
                 if (ticketData.submittedBy !== userEmail) {
@@ -122,8 +113,8 @@ const ViewTicket: React.FC = () => {
         return priorityClasses[priority.toLowerCase()] || "bg-gray-100 text-gray-800";
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+    const formatDate = (dateLike: string | Date) => {
+        return new Date(dateLike as any).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -153,7 +144,7 @@ const ViewTicket: React.FC = () => {
             }
             const updatedRaw = await response.text();
             let updatedParsed: any = {};
-            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch { }
+            try { updatedParsed = updatedRaw ? JSON.parse(updatedRaw) : {}; } catch {}
             const updatedTicket: Ticket = Array.isArray(updatedParsed) ? updatedParsed[0] : (updatedParsed.response || updatedParsed);
             setTicket(updatedTicket);
             setIsEditingStatus(false);
@@ -345,38 +336,37 @@ const ViewTicket: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Attachments Section */}
-                    {ticket.attachments && ticket.attachments.length > 0 && (
+                    {/* Attachments */}
+                    {Array.isArray(ticket.attachments) && ticket.attachments.length > 0 && (
                         <div className="mb-6">
                             <h3 className="text-sm font-medium text-gray-500 mb-3">Attachments</h3>
-                            <div className="space-y-2">
-                                {ticket.attachments.map((attachment) => (
-                                    <div
-                                        key={attachment.id}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
-                                    >
-                                        <div className="flex items-center space-x-3">
-                                            <div className="flex-shrink-0">
-                                                {attachment.type.startsWith('image/') ? (
-                                                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {ticket.attachments.map((att: TicketAttachment, idx: number) => (
+                                    <div key={att.id || idx} className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        {att.type?.startsWith('image/') && att.url ? (
+                                            <a href={att.url} target="_blank" rel="noreferrer" className="flex items-center space-x-3">
+                                                <img src={att.url} alt={att.name} className="w-16 h-16 object-cover rounded" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">{att.name}</p>
+                                                    <p className="text-xs text-gray-500">{Math.round((att.size || 0) / 1024)} KB</p>
+                                                </div>
+                                            </a>
+                                        ) : (
+                                            <div className="flex-1 flex items-center justify-between w-full">
+                                                <div className="flex items-center space-x-3">
+                                                    <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                                     </svg>
-                                                ) : (
-                                                    <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                                                    </svg>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{att.name}</p>
+                                                        <p className="text-xs text-gray-500">{att.type || 'file'} • {Math.round((att.size || 0) / 1024)} KB</p>
+                                                    </div>
+                                                </div>
+                                                {att.url && (
+                                                    <a href={att.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 text-sm">Download</a>
                                                 )}
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
-                                                <p className="text-xs text-gray-500">
-                                                    {(attachment.size / 1024 / 1024).toFixed(2)} MB • {new Date(attachment.uploadDate).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs text-gray-400">
-                                            File attached - No download available
-                                        </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
