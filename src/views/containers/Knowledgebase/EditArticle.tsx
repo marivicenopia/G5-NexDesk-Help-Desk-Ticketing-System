@@ -60,21 +60,52 @@ const EditArticle = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      // Note: Update endpoint not yet implemented in C# backend
-      // For now, this will show an error
-      alert('Update functionality is not yet available. Please delete and recreate the article.');
+  const handleCancel = () => {
+    if (window.confirm('Are you sure you want to discard your changes?')) {
       navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
-    } catch (error) {
-      console.error('Update failed', error);
-      alert('Failed to update the article.');
-    } finally {
-      setLoading(false);
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const updateData = {
+      title: formData.title.trim(),
+      categoryId: formData.categoryId,
+      author: formData.author.trim(),
+      content: formData.content.trim(),
+    };
+
+    const updateUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_UPDATE_ARTICLE(id!)}`;
+    console.log('Updating article at:', updateUrl);
+    
+    await axios.put(
+      updateUrl,
+      updateData,
+      { withCredentials: true }
+    );
+
+    alert('Article updated successfully!');
+    navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+  } catch (error: any) {
+    console.error('Update failed', error);
+    // Handle validation errors from backend
+    if (error.response?.data?.response) {
+      const errors = error.response.data.response;
+      if (Array.isArray(errors)) {
+        alert('Validation errors:\n' + errors.join('\n'));
+      } else {
+        alert(error.response.data.message || 'Failed to update article.');
+      }
+    } else {
+      alert(error.response?.data?.message || 'Failed to update article.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -143,7 +174,15 @@ const EditArticle = () => {
           />
         </div>
 
-        <div className="text-right">
+        <div className="flex gap-2 justify-end">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={loading}
+            className="bg-gray-500 text-white font-bold px-6 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
+          >
+            CANCEL
+          </button>
           <button
             type="submit"
             disabled={loading}

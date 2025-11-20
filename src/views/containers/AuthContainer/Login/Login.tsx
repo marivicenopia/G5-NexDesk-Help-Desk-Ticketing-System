@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { MdOutlinePerson, MdOutlineLock } from 'react-icons/md';
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "../../../../services/auth/AuthService";
+import { API_CONFIG } from "../../../../config/api";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -23,27 +24,59 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // Fetch all users and find matching credentials
-      const response = await fetch(`http://localhost:3001/users`);
-      const users = await response.json();
+      // Call C# backend login endpoint
+      // Backend expects 'userId' (can be username, email, or userId) and 'password'
+      const requestBody = {
+        username: username.trim(), // userId can accept username, email, or userId
+        password: password.trim(),
+      };
+      
+      console.log("Login request:", requestBody);
+      console.log("Login URL:", `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOGIN}`);
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOGIN}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log("Response status:", response.status);
 
-      console.log("Available users:", users.map((u: any) => ({ username: u.username, role: u.role, isActive: u.isActive })));
-      console.log("Looking for:", { username: username.trim(), password: password.trim() });
+      if (!response.ok) {
+        let errorMessage = "Invalid username or password";
+        try {
+          const errorData = await response.json();
+          console.log("Error response:", errorData);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const errorText = await response.text();
+          console.log("Error response (text):", errorText);
+          if (errorText) {
+            try {
+              const parsed = JSON.parse(errorText);
+              errorMessage = parsed.message || parsed.error || errorMessage;
+            } catch {
+              errorMessage = errorText || errorMessage;
+            }
+          }
+        }
+        setError(errorMessage);
+        return;
+      }
 
-      // Find user with matching username and password
-      const user = users.find((u: any) =>
-        u.username === username.trim() && u.password === password.trim()
-      );
+     const apiResult = await response.json();
+     const user = apiResult.response;
 
-      console.log("Found user:", user);
-
-      if (user && user.isActive) {
+      if (user) {
         console.log("User authenticated, navigating to:", user.role);
         // Store authentication data
-        AuthService.login(user.id.toString(), user.role, user.email, user.department);
+             AuthService.login(user.userId, user.role, user.email, user.departmentId);
 
-        // Navigate based on role
-        switch (user.role) {
+        // Navigate based on role (convert to lowercase for comparison)
+        const role = user.role?.toLowerCase() || "";
+        switch (role) {
           case "admin":
           case "superadmin":
             console.log("Navigating to admin dashboard");
@@ -54,6 +87,7 @@ const Login: React.FC = () => {
             navigate("/agent/dashboard", { replace: true });
             break;
           case "staff":
+          case "user":
             console.log("Navigating to staff dashboard");
             navigate("/user/dashboard", { replace: true });
             break;
@@ -61,8 +95,6 @@ const Login: React.FC = () => {
             console.log("Unknown role, navigating to home");
             navigate("/", { replace: true });
         }
-      } else if (user && !user.isActive) {
-        setError("Account is deactivated. Please contact administrator.");
       } else {
         setError("Invalid username or password");
       }

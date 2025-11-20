@@ -3,6 +3,7 @@
 
 export const API_CONFIG = {
     // Base URL for all API calls - C# backend
+    // Using HTTPS to avoid CORS redirect issues (HTTP redirects to HTTPS)
     BASE_URL: "https://localhost:5001",
 
     // API endpoints
@@ -27,7 +28,13 @@ export const API_CONFIG = {
         KNOWLEDGE_BASE_GET_CATEGORIES: "/api/KnowledgeBase/GetCategories",
         KNOWLEDGE_BASE_GET_ARTICLE: (id: string) => `/api/KnowledgeBase/GetArticle/${id}`,
         KNOWLEDGE_BASE_ADD_ARTICLE: "/api/KnowledgeBase/AddArticle",
+        KNOWLEDGE_BASE_UPDATE_ARTICLE: (id: string) => `/api/KnowledgeBase/UpdateArticle/${id}`,
         KNOWLEDGE_BASE_DELETE_ARTICLE: (id: string) => `/api/KnowledgeBase/DeleteArticle/${id}`,
+
+        // Feedback
+        FEEDBACK_GET_ALL: "/api/Feedback/GetFeedbacks",
+        FEEDBACK_GET_BY_ID: (id: string) => `/api/Feedback/GetFeedback/${id}`,
+        FEEDBACK_ADD: "/api/Feedback/AddFeedback",
     },
 
     // Common headers

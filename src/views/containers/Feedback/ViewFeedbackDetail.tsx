@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaRegCommentDots, FaArrowLeft } from 'react-icons/fa';
+import { API_CONFIG } from '../../../config/api';
 
 interface Feedback {
     id: number;
@@ -43,16 +44,27 @@ const ViewFeedbackDetail: React.FC = () => {
     }, [feedbackId]);
 
     const fetchFeedbackDetails = async () => {
+        if (!feedbackId) return;
+        
         try {
-            const feedbackRes = await axios.get(`http://localhost:3001/feedback/${feedbackId}`);
+            const feedbackRes = await axios.get(
+                `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.FEEDBACK_GET_BY_ID(feedbackId)}`,
+                { withCredentials: true }
+            );
             const feedbackData = feedbackRes.data;
             setFeedback(feedbackData);
 
             // If feedback has a ticket ID, fetch ticket and agent details
             if (feedbackData.ticketId) {
                 const [ticketRes, usersRes] = await Promise.all([
-                    axios.get(`http://localhost:3001/tickets/${feedbackData.ticketId}`),
-                    axios.get('http://localhost:3001/users')
+                    axios.get(
+                        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TICKETS_BY_ID(feedbackData.ticketId)}`,
+                        { withCredentials: true }
+                    ),
+                    axios.get(
+                        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}`,
+                        { withCredentials: true }
+                    )
                 ]);
 
                 const ticketData = ticketRes.data;

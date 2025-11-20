@@ -82,13 +82,6 @@ const ViewArticle = () => {
         {article.content || "No content available for this article."}
       </div>
 
-      <div className="mt-12 text-sm text-gray-500 text-center">
-        Is this article helpful?
-        <div className="flex justify-center gap-4 mt-2 text-xl">
-          <button title="Yes" className="hover:text-green-600">👍</button>
-          <button title="No" className="hover:text-red-600">👎</button>
-        </div>
-      </div>
     </div>
   );
 };
