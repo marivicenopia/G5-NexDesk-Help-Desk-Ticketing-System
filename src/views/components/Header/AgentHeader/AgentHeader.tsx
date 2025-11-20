@@ -41,7 +41,9 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ title = "Dashboard" }) => {
 
             // Fallback: try to fetch from API if no stored data
             if (userId) {
-                const response = await fetch(`http://localhost:3001/users/${userId}`);
+                const response = await fetch(`https://localhost:5001/api/User/${userId}`, {
+                    headers: AuthService.getAuthHeader()
+                });
                 if (response.ok) {
                     const user = await response.json();
                     const fullName = `${user.firstname} ${user.lastname}`.trim();
@@ -67,11 +69,15 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ title = "Dashboard" }) => {
         try {
             const userId = AuthService.getToken();
             if (userId) {
-                const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
+                const userResponse = await axios.get(`https://localhost:5001/api/User/${userId}`, {
+                    headers: AuthService.getAuthHeader()
+                });
                 const user = userResponse.data;
                 const agentName = `${user.firstname} ${user.lastname}`;
 
-                const ticketsResponse = await axios.get('http://localhost:3001/tickets');
+                const ticketsResponse = await axios.get('https://localhost:5001/api/tickets', {
+                    headers: AuthService.getAuthHeader()
+                });
                 const tickets = ticketsResponse.data || [];
 
                 const agentTickets = tickets.filter((t: any) => t.assignedTo === agentName);

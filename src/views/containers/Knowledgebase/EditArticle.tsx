@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { PATHS } from '../../../routes/constant';
 import { API_CONFIG } from '../../../config/api';
+import { AuthService } from '../../../services/auth/AuthService';
 
 interface Category {
   categoryId: string;
@@ -13,6 +14,16 @@ const EditArticle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
+
+  // Helper function for role-based navigation
+  const navigateToKnowledgeBase = () => {
+    const userRole = AuthService.getRole();
+    if (userRole === 'agent') {
+      navigate(PATHS.AGENT.KNOWLEDGEBASE.path);
+    } else {
+      navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+    }
+  };
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -47,7 +58,7 @@ const EditArticle = () => {
       } catch (err) {
         console.error('Failed to fetch article');
         alert('Article not found.');
-        navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+        navigateToKnowledgeBase();
       }
     };
 
@@ -62,50 +73,55 @@ const EditArticle = () => {
 
   const handleCancel = () => {
     if (window.confirm('Are you sure you want to discard your changes?')) {
-      navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+      navigateToKnowledgeBase();
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const updateData = {
-      title: formData.title.trim(),
-      categoryId: formData.categoryId,
-      author: formData.author.trim(),
-      content: formData.content.trim(),
-    };
+    try {
+      const updateData = {
+        title: formData.title.trim(),
+        category: formData.categoryId,
+        author: formData.author.trim(),
+        content: formData.content.trim(),
+      };
 
-    const updateUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_UPDATE_ARTICLE(id!)}`;
-    console.log('Updating article at:', updateUrl);
-    
-    await axios.put(
-      updateUrl,
-      updateData,
-      { withCredentials: true }
-    );
+      const updateUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_UPDATE_ARTICLE(id!)}`;
+      console.log('Updating article at:', updateUrl);
 
-    alert('Article updated successfully!');
-    navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
-  } catch (error: any) {
-    console.error('Update failed', error);
-    // Handle validation errors from backend
-    if (error.response?.data?.response) {
-      const errors = error.response.data.response;
-      if (Array.isArray(errors)) {
-        alert('Validation errors:\n' + errors.join('\n'));
+      await axios.put(
+        updateUrl,
+        updateData,
+        {
+          withCredentials: true,
+          headers: {
+            ...AuthService.getAuthHeader()
+          }
+        }
+      );
+
+      alert('Article updated successfully!');
+      navigateToKnowledgeBase();
+    } catch (error: any) {
+      console.error('Update failed', error);
+      // Handle validation errors from backend
+      if (error.response?.data?.response) {
+        const errors = error.response.data.response;
+        if (Array.isArray(errors)) {
+          alert('Validation errors:\n' + errors.join('\n'));
+        } else {
+          alert(error.response.data.message || 'Failed to update article.');
+        }
       } else {
-        alert(error.response.data.message || 'Failed to update article.');
+        alert(error.response?.data?.message || 'Failed to update article.');
       }
-    } else {
-      alert(error.response?.data?.message || 'Failed to update article.');
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">

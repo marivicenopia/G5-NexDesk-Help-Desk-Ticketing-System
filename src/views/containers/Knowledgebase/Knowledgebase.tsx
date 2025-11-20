@@ -4,6 +4,7 @@ import { MdArticle, MdDelete, MdAdd, MdEdit } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '../../../routes/constant';
 import { API_CONFIG } from '../../../config/api';
+import { AuthService } from '../../../services/auth/AuthService';
 
 interface ArticleSummary {
   id: string;
@@ -39,6 +40,8 @@ const Knowledgebase = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const userRole = AuthService.getRole();
+  const currentUserEmail = AuthService.getUserEmail();
 
   const fetchCategories = async () => {
     try {
@@ -58,25 +61,47 @@ const Knowledgebase = () => {
   }, []);
 
   const handleAdd = () => {
-    navigate(PATHS.ADMIN.ADD_ARTICLE.path);
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      navigate(PATHS.ADMIN.ADD_ARTICLE.path);
+    } else if (userRole === 'agent') {
+      navigate(PATHS.AGENT.ADD_ARTICLE.path);
+    }
   };
 
-  const handleEdit = (id: string) => {
-    navigate(PATHS.ADMIN.EDIT_ARTICLE.path.replace(':id', id));
+  const handleEdit = (id: string, articleAuthor: string) => {
+    // Agents, admins, and superadmins can all edit articles
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      navigate(PATHS.ADMIN.EDIT_ARTICLE.path.replace(':id', id));
+    } else if (userRole === 'agent') {
+      navigate(PATHS.AGENT.EDIT_ARTICLE.path.replace(':id', id));
+    }
   };
 
   const handleRedirectToDeletePage = () => {
-    navigate(PATHS.ADMIN.DELETE_ARTICLE.path);
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      navigate(PATHS.ADMIN.DELETE_ARTICLE.path);
+    } else {
+      alert('Only administrators can access the delete management page.');
+    }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, articleAuthor: string) => {
+    // Only admins and superadmins can delete articles
+    if (userRole !== 'admin' && userRole !== 'superadmin') {
+      alert('Only administrators can delete articles.');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to delete this article?')) {
       return;
     }
 
     try {
       await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_DELETE_ARTICLE(id)}`, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          ...AuthService.getAuthHeader()
+        }
       });
       alert('Article deleted successfully');
       fetchCategories();
@@ -103,14 +128,16 @@ const Knowledgebase = () => {
               <MdAdd className="w-4 h-4" />
               Add Article
             </button>
-            <button
-              onClick={handleRedirectToDeletePage}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-              title="Manage Articles"
-            >
-              <MdDelete className="w-4 h-4" />
-              Manage
-            </button>
+            {(userRole === 'admin' || userRole === 'superadmin') && (
+              <button
+                onClick={handleRedirectToDeletePage}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                title="Manage Articles"
+              >
+                <MdDelete className="w-4 h-4" />
+                Manage
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -153,9 +180,12 @@ const Knowledgebase = () => {
                         <div className="flex items-start gap-3 flex-1">
                           <MdArticle className="text-gray-400 mt-1 w-4 h-4 flex-shrink-0" />
                           <button
-                            onClick={() =>
-                              navigate(PATHS.ADMIN.VIEW_ARTICLE.path.replace(':id', article.id))
-                            }
+                            onClick={() => {
+                              const viewPath = userRole === 'agent' ?
+                                PATHS.AGENT.VIEW_ARTICLE.path.replace(':id', article.id) :
+                                PATHS.ADMIN.VIEW_ARTICLE.path.replace(':id', article.id);
+                              navigate(viewPath);
+                            }}
                             className="text-left text-sm text-gray-900 hover:text-blue-600 transition-colors font-medium line-clamp-2"
                           >
                             {article.title}
@@ -163,15 +193,15 @@ const Knowledgebase = () => {
                         </div>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => handleEdit(article.id)}
+                            onClick={() => handleEdit(article.id, article.author)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-blue-600"
                             title="Edit Article"
                           >
                             <MdEdit className="w-4 h-4" />
                           </button>
-                          {article.status !== 'COMPLETED' && (
+                          {(userRole === 'admin' || userRole === 'superadmin') && article.status !== 'COMPLETED' && (
                             <button
-                              onClick={() => handleDelete(article.id)}
+                              onClick={() => handleDelete(article.id, article.author)}
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-red-600"
                               title="Delete Article"
                             >
@@ -193,19 +223,19 @@ const Knowledgebase = () => {
           </div>
 
           {categories.length === 0 && (
-        <div className="text-center py-12">
-          <MdArticle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
-          <p className="text-gray-600 mb-4">Start building your knowledge base by adding articles.</p>
-          <button
-            onClick={handleAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
-          >
-            <MdAdd className="w-4 h-4" />
-            Add First Article
-          </button>
-        </div>
-      )}
+            <div className="text-center py-12">
+              <MdArticle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
+              <p className="text-gray-600 mb-4">Start building your knowledge base by adding articles.</p>
+              <button
+                onClick={handleAdd}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
+              >
+                <MdAdd className="w-4 h-4" />
+                Add First Article
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

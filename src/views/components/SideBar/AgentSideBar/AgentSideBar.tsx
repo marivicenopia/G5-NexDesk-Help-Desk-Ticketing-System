@@ -24,12 +24,16 @@ const AgentSidebar: React.FC = () => {
 
     const fetchAgentStats = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/tickets');
+            const response = await axios.get('https://localhost:5001/api/tickets', {
+                headers: AuthService.getAuthHeader()
+            });
             const tickets = response.data || [];
             const userId = AuthService.getToken();
 
             if (userId) {
-                const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
+                const userResponse = await axios.get(`https://localhost:5001/api/User/${userId}`, {
+                    headers: AuthService.getAuthHeader()
+                });
                 const user = userResponse.data;
                 const agentName = `${user.firstname} ${user.lastname}`;
 
@@ -55,8 +59,10 @@ const AgentSidebar: React.FC = () => {
         try {
             const userId = AuthService.getToken();
             if (userId) {
-                const response = await axios.get(`http://localhost:3001/users/${userId}`);
-                setUserInfo(response.data);
+                const response = await axios.get(`https://localhost:5001/api/User/${userId}`, {
+                    headers: AuthService.getAuthHeader()
+                });
+                const user = response.data;
             }
         } catch (error) {
             console.error('Error fetching user info:', error);

@@ -5,6 +5,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { PATHS } from "../../../routes/constant";
 import { API_CONFIG } from "../../../config/api";
+import { AuthService } from "../../../services/auth/AuthService";
 
 interface Article {
   id: string;
@@ -55,7 +56,10 @@ const DeleteArticle = () => {
 
     try {
       await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_DELETE_ARTICLE(id)}`, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          ...AuthService.getAuthHeader()
+        }
       });
       alert("Article deleted successfully.");
       fetchArticles();
@@ -106,11 +110,10 @@ const DeleteArticle = () => {
                 <tr key={article.id} className="border-t">
                   <td className="px-4 py-3">{article.title}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      article.status === 'COMPLETED' 
-                        ? 'bg-green-100 text-green-800' 
+                    <span className={`px-2 py-1 text-xs rounded ${article.status === 'COMPLETED'
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-blue-100 text-blue-800'
-                    }`}>
+                      }`}>
                       {article.status}
                     </span>
                   </td>
@@ -118,11 +121,10 @@ const DeleteArticle = () => {
                     <button
                       onClick={() => handleDelete(article.id, article.title)}
                       disabled={article.status === 'COMPLETED'}
-                      className={`${
-                        article.status === 'COMPLETED' 
-                          ? 'text-gray-400 cursor-not-allowed' 
+                      className={`${article.status === 'COMPLETED'
+                          ? 'text-gray-400 cursor-not-allowed'
                           : 'text-red-600 hover:text-red-800'
-                      }`}
+                        }`}
                       title={article.status === 'COMPLETED' ? 'Cannot delete completed articles' : 'Delete'}
                     >
                       <MdDelete className="text-lg" />

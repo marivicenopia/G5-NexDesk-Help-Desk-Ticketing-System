@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '../../../routes/constant';
 import { API_CONFIG } from '../../../config/api';
+import { AuthService } from '../../../services/auth/AuthService';
 
 interface Category {
   categoryId: string;
@@ -45,7 +46,7 @@ const AddArticle = () => {
 
     const article = {
       title: formData.title,
-      categoryId: formData.categoryId,
+      category: formData.categoryId,
       author: formData.author,
       content: formData.content,
     };
@@ -54,13 +55,32 @@ const AddArticle = () => {
       await axios.post(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.KNOWLEDGE_BASE_ADD_ARTICLE}`,
         article,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            ...AuthService.getAuthHeader()
+          }
+        }
       );
       alert('Article added successfully!');
-      navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+
+      // Navigate based on user role
+      const userRole = AuthService.getRole();
+      if (userRole === 'agent') {
+        navigate(PATHS.AGENT.KNOWLEDGEBASE.path);
+      } else {
+        navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+      }
     } catch (error: any) {
       console.error('Failed to submit article', error);
-      alert(error.response?.data?.message || 'Something went wrong.');
+
+      // Show detailed validation errors if available
+      if (error.response?.data?.data && Array.isArray(error.response.data.data)) {
+        const errorMessages = error.response.data.data.join('\n');
+        alert(`Validation Errors:\n${errorMessages}`);
+      } else {
+        alert(error.response?.data?.message || 'Something went wrong.');
+      }
     } finally {
       setLoading(false);
     }
@@ -121,26 +141,61 @@ const AddArticle = () => {
         </div>
 
         <div>
-          <label className="block font-semibold text-sm mb-1">Write Your Article</label>
+          <label className="block font-semibold text-sm mb-1">
+            Write Your Article
+            <span className="text-xs text-gray-500 font-normal ml-2">(minimum 50 characters)</span>
+          </label>
           <textarea
             name="content"
             rows={6}
-            placeholder="Start writing your article here..."
+            placeholder="Start writing your article here... (minimum 50 characters required)"
             value={formData.content}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          <div className="text-xs text-gray-500 mt-1">
+            Characters: {formData.content.length}/50 minimum
+          </div>
         </div>
 
-        <div className="text-right">
+        <div className="flex flex-wrap gap-3 justify-between items-center">
           <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800 disabled:opacity-50"
+            type="button"
+            onClick={() => {
+              const userRole = AuthService.getRole();
+              if (userRole === 'agent') {
+                navigate(PATHS.AGENT.KNOWLEDGEBASE.path);
+              } else {
+                navigate(PATHS.ADMIN.KNOWLEDGEBASE.path);
+              }
+            }}
+            className="bg-gray-600 text-white font-bold px-6 py-2 rounded hover:bg-gray-700 transition-colors"
           >
-            {loading ? 'SUBMITTING...' : 'SUBMIT'}
+            Back to Knowledge Base
           </button>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setFormData({
+                author: '',
+                title: '',
+                categoryId: '',
+                content: '',
+              })}
+              className="bg-orange-600 text-white font-bold px-6 py-2 rounded hover:bg-orange-700 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-900 text-white font-bold px-6 py-2 rounded hover:bg-blue-800 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'SUBMITTING...' : 'SUBMIT'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
