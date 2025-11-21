@@ -96,6 +96,14 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
     }
 
     const { stats, ticketsByPriority, ticketTrends, recentTickets } = dashboardData;
+    // Define Hex colors for the Pie Chart to match your badges
+    const priorityHexColors: { [key: string]: string } = {
+    low: '#DBEAFE',      // Blue-100 (matches 'bg-blue-100')
+    medium: '#FEF9C3',   // Yellow-100
+    high: '#FFEDD5',     // Orange-100
+    urgent: '#FEE2E2',   // Red-100
+    critical: '#FECACA', // Red-200
+    };
 
     const getStatCards = () => {
         const baseCards = [
@@ -237,9 +245,10 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
                         <PieChart>
                             <Pie
                                 data={ticketsByPriority.map(item => ({
-                                    name: item.priority,
-                                    value: item.count,
-                                    color: item.color
+                                name: item.priority,
+                                value: item.count,
+                                // We ignore the 'item.color' from the API and force our own Hex color
+                                color: priorityHexColors[item.priority.toLowerCase()] || '#E5E7EB'
                                 }))}
                                 cx="50%"
                                 cy="50%"
@@ -250,8 +259,11 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
                                 dataKey="value"
                             >
                                 {ticketsByPriority.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
+                                <Cell 
+                                    key={`cell-${index}`} 
+                                    fill={priorityHexColors[entry.priority.toLowerCase()] || '#E5E7EB'} 
+                                />
+                            ))}
                             </Pie>
                             <Tooltip />
                         </PieChart>
