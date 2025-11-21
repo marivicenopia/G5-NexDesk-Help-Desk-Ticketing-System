@@ -5,25 +5,41 @@ import { FaArrowLeft, FaTicketAlt, FaUser, FaClock, FaExclamationTriangle, FaBui
 import type { Ticket } from '../../../types/ticket';
 import { AuthService } from '../../../services/auth/AuthService';
 import { TicketService } from '../../../services/ticket/TicketService';
+import { getStatusColor, getPriorityColor } from '../../../utils/statusColors';
+
+// FIX: Use Omit to remove the original 'lastUpdated' from Ticket so we can redefine it
+// This prevents the "Interface correctly extends interface" error
+interface ExtendedTicket extends Omit<Ticket, 'lastUpdated'> {
+    lastUpdated?: string | Date; // Now it accepts a string OR a Date object
+    resolvedBy?: string;
+    resolvedDate?: string;
+    resolutionDescription?: string;
+    agentFeedback?: string;
+}
 
 const ViewTicketDetail: React.FC = () => {
     const navigate = useNavigate();
     const { ticketId } = useParams();
-    const [ticket, setTicket] = useState<Ticket | null>(null);
+    const [ticket, setTicket] = useState<ExtendedTicket | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isEditingStatus, setIsEditingStatus] = useState(false);
-    const [isEditingPriority, setIsEditingPriority] = useState(false);
+    
+    // Global Edit State
+    const [isEditing, setIsEditing] = useState(false);
+    
+    // Form States
     const [newStatus, setNewStatus] = useState('');
     const [newPriority, setNewPriority] = useState('');
+    
     const [updateLoading, setUpdateLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    // Get current user role for determining back navigation
-    const currentUserRole = AuthService.getRole();
+    // --- FIX: Force role to lowercase to match permissions ---
+    const rawRole = AuthService.getRole();
+    const currentUserRole = rawRole ? String(rawRole).toLowerCase() : '';
 
-    // Define status and priority options
-    const statusOptions = ['open', 'assigned', 'in progress', 'on hold', 'resolved', 'closed'];
+    // Options
+    const statusOptions = ['open', 'assigned', 'in progress', 'resolved', 'closed'];
     const priorityOptions = ['low', 'medium', 'high', 'urgent', 'critical'];
 
     useEffect(() => {
@@ -36,9 +52,9 @@ const ViewTicketDetail: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            // Use TicketService to properly parse attachments
             const data = await TicketService.fetchById(ticketId!);
-            setTicket(data);
+            // Cast data to unknown first, then ExtendedTicket to bypass strict overlap checks
+            setTicket(data as unknown as ExtendedTicket);
             setNewStatus(data.status);
             setNewPriority(data.priority);
         } catch (err) {
@@ -49,83 +65,56 @@ const ViewTicketDetail: React.FC = () => {
         }
     };
 
-    const handleStatusUpdate = async () => {
-        if (!ticket || newStatus === ticket.status) {
-            setIsEditingStatus(false);
-            return;
-        }
+    const handleSaveChanges = async () => {
+        if (!ticket) return;
 
         try {
             setUpdateLoading(true);
+            // Send PUT request
             const response = await axios.put(`/api/tickets/${ticketId}`, {
                 ...ticket,
                 status: newStatus,
-                lastUpdated: new Date().toISOString()
-            }, { withCredentials: true });
-            setTicket((response.data?.response ?? response.data));
-            setIsEditingStatus(false);
-            setSuccessMessage('Ticket status updated successfully');
-            setTimeout(() => setSuccessMessage(null), 3000);
-        } catch (err) {
-            console.error('Error updating ticket status:', err);
-            setError('Failed to update ticket status');
-        } finally {
-            setUpdateLoading(false);
-        }
-    };
-
-    const handlePriorityUpdate = async () => {
-        if (!ticket || newPriority === ticket.priority) {
-            setIsEditingPriority(false);
-            return;
-        }
-
-        try {
-            setUpdateLoading(true);
-            const response = await axios.put(`/api/tickets/${ticketId}`, {
-                ...ticket,
                 priority: newPriority,
                 lastUpdated: new Date().toISOString()
             }, { withCredentials: true });
-            setTicket((response.data?.response ?? response.data));
-            setIsEditingPriority(false);
-            setSuccessMessage('Ticket priority updated successfully');
+
+            // Update local state with response
+            const updatedTicket = response.data?.response ?? response.data;
+            // Cast response to avoid type conflicts
+            setTicket(updatedTicket as unknown as ExtendedTicket);
+            
+            setIsEditing(false);
+            setSuccessMessage('Ticket updated successfully!');
             setTimeout(() => setSuccessMessage(null), 3000);
         } catch (err) {
-            console.error('Error updating ticket priority:', err);
-            setError('Failed to update ticket priority');
+            console.error('Error updating ticket:', err);
+            setError('Failed to update ticket');
         } finally {
             setUpdateLoading(false);
         }
     };
 
-    const canUpdateStatus = () => {
-        if (currentUserRole === 'admin' || currentUserRole === 'superadmin') return true;
-        if (currentUserRole === 'agent' && ticket?.assignedTo) return true;
-        if (currentUserRole === 'user' && ticket?.status === 'open') return true; // Users can only close their own tickets
-        return false;
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        // Reset form values to current ticket values
+        if (ticket) {
+            setNewStatus(ticket.status);
+            setNewPriority(ticket.priority);
+        }
     };
 
-    const canUpdatePriority = () => {
+    const canEdit = () => {
         return currentUserRole === 'admin' || currentUserRole === 'superadmin' || currentUserRole === 'agent';
     };
 
-    const getAvailableStatusOptions = () => {
-        if (currentUserRole === 'user') {
-            // Users can only close their own tickets
-            return ['closed'];
-        }
-        return statusOptions;
-    };
-
     const formatForDisplay = (text: string) => {
+        if (!text) return '';
         return text.split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     };
 
     const handleAssignTicket = () => {
-        // Navigate to ticket assignment page with current ticket context
         if (currentUserRole === 'admin' || currentUserRole === 'superadmin') {
             navigate('/admin/tickets/assignment', { state: { ticketId: ticket?.id } });
         } else if (currentUserRole === 'agent') {
@@ -139,42 +128,7 @@ const ViewTicketDetail: React.FC = () => {
         } else if (currentUserRole === 'agent') {
             navigate('/agent/tickets');
         } else {
-            navigate(-1); // Go back to previous page
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority?.toLowerCase()) {
-            case 'urgent':
-            case 'critical':
-                return 'bg-red-100 text-red-800 border-red-200';
-            case 'high':
-                return 'bg-orange-100 text-orange-800 border-orange-200';
-            case 'medium':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'low':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'open':
-                return 'bg-green-100 text-green-800 border-green-200';
-            case 'assigned':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'in progress':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'on hold':
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-            case 'resolved':
-                return 'bg-purple-100 text-purple-800 border-purple-200';
-            case 'closed':
-                return 'bg-red-100 text-red-800 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+            navigate(-1);
         }
     };
 
@@ -191,12 +145,8 @@ const ViewTicketDetail: React.FC = () => {
             <div className="max-w-4xl mx-auto p-6">
                 <div className="text-center">
                     <div className="text-red-500 text-lg mb-4">{error || 'Ticket not found'}</div>
-                    <button
-                        onClick={handleGoBack}
-                        className="flex items-center text-blue-600 hover:text-blue-800 mx-auto"
-                    >
-                        <FaArrowLeft className="mr-2" />
-                        Back to Tickets
+                    <button onClick={handleGoBack} className="flex items-center text-blue-600 hover:text-blue-800 mx-auto">
+                        <FaArrowLeft className="mr-2" /> Back to Tickets
                     </button>
                 </div>
             </div>
@@ -212,375 +162,232 @@ const ViewTicketDetail: React.FC = () => {
                 </div>
             )}
 
-            {/* Header */}
-            <div className="mb-6">
-                <button
-                    onClick={handleGoBack}
-                    className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                >
-                    <FaArrowLeft className="mr-2" />
-                    Back to Tickets
+            {/* Top Navigation */}
+            <div className="mb-6 flex justify-between items-center">
+                <button onClick={handleGoBack} className="flex items-center text-blue-600 hover:text-blue-800">
+                    <FaArrowLeft className="mr-2" /> Back to Tickets
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900">Ticket Details</h1>
             </div>
 
-            {/* Ticket Card */}
+            {/* Main Card */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                {/* Header */}
+                
+                {/* Blue Header Bar */}
                 <div className="bg-blue-600 text-white px-6 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center">
                             <FaTicketAlt className="w-6 h-6 mr-3" />
                             <div>
                                 <h2 className="text-xl font-semibold">Ticket #{ticket.id}</h2>
-                                <p className="text-blue-100">{ticket.title}</p>
+                                <p className="text-blue-100 text-sm opacity-90">{ticket.title}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(ticket.priority)}`}>
-                                {formatForDisplay(ticket.priority)}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(ticket.status)}`}>
-                                {formatForDisplay(ticket.status)}
-                            </span>
-                            {/* Show assign button for unassigned tickets and for agents/admins */}
-                            {(!ticket.assignedTo || ticket.status === 'open') && (currentUserRole === 'admin' || currentUserRole === 'superadmin' || currentUserRole === 'agent') && (
-                                <button
-                                    onClick={handleAssignTicket}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 transition-colors"
-                                    title="Assign Ticket"
+
+                        {/* Header Actions: Edit/Save Buttons */}
+                        <div className="flex items-center gap-3">
+                            {canEdit() && !isEditing && (
+                                <button 
+                                    onClick={() => setIsEditing(true)}
+                                    className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium text-sm backdrop-blur-sm"
                                 >
-                                    <FaUserCheck className="w-3 h-3" />
-                                    Assign
+                                    <FaEdit /> Edit Ticket
                                 </button>
+                            )}
+
+                            {isEditing && (
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={handleSaveChanges}
+                                        disabled={updateLoading}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all font-medium text-sm disabled:opacity-50"
+                                    >
+                                        <FaSave /> Save
+                                    </button>
+                                    <button 
+                                        onClick={handleCancelEdit}
+                                        disabled={updateLoading}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all font-medium text-sm disabled:opacity-50"
+                                    >
+                                        <FaTimes /> Cancel
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Content */}
+                {/* Body Content */}
                 <div className="p-6">
-                    {/* Basic Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Ticket Information</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center">
-                                    <FaTicketAlt className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Ticket ID</label>
-                                        <p className="text-gray-900">{ticket.id}</p>
-                                    </div>
+                    {/* Information Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
+                        
+                        {/* Column 1 */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Ticket Information</h3>
+                            
+                            <div className="flex items-center">
+                                <FaTicketAlt className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Ticket ID</label>
+                                    <p className="text-gray-900 font-medium">{ticket.id}</p>
                                 </div>
+                            </div>
 
-                                <div className="flex items-center">
-                                    <FaBuilding className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Department</label>
-                                        <p className="text-gray-900">{ticket.department || 'N/A'}</p>
-                                    </div>
+                            <div className="flex items-center">
+                                <FaBuilding className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Department</label>
+                                    <p className="text-gray-900">{ticket.department || 'N/A'}</p>
                                 </div>
+                            </div>
 
-                                <div className="flex items-center">
-                                    <FaExclamationTriangle className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div className="flex-grow">
-                                        <label className="block text-sm font-medium text-gray-700">Priority</label>
-                                        {isEditingPriority && canUpdatePriority() ? (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <select
-                                                    value={newPriority}
-                                                    onChange={(e) => setNewPriority(e.target.value)}
-                                                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    disabled={updateLoading}
-                                                >
-                                                    {priorityOptions.map((priority) => (
-                                                        <option key={priority} value={priority}>
-                                                            {formatForDisplay(priority)}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    onClick={handlePriorityUpdate}
-                                                    disabled={updateLoading}
-                                                    className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                    <FaSave className="w-3 h-3" />
-                                                    Save
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setIsEditingPriority(false);
-                                                        setNewPriority(ticket?.priority || '');
-                                                    }}
-                                                    disabled={updateLoading}
-                                                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                    <FaTimes className="w-3 h-3" />
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
-                                                    {formatForDisplay(ticket.priority)}
-                                                </span>
-                                                {canUpdatePriority() && (
-                                                    <button
-                                                        onClick={() => setIsEditingPriority(true)}
-                                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
-                                                        title="Edit Priority"
-                                                    >
-                                                        <FaEdit className="w-3 h-3" />
-                                                        Edit
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                            {/* Priority Section */}
+                            <div className="flex items-center">
+                                <FaExclamationTriangle className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Priority</label>
+                                    {isEditing ? (
+                                        <select
+                                            value={newPriority}
+                                            onChange={(e) => setNewPriority(e.target.value)}
+                                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                                        >
+                                            {priorityOptions.map(opt => (
+                                                <option key={opt} value={opt}>{formatForDisplay(opt)}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
+                                            {formatForDisplay(ticket.priority)}
+                                        </span>
+                                    )}
                                 </div>
+                            </div>
 
-                                <div className="flex items-center">
-                                    <FaClock className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div className="flex-grow">
-                                        <label className="block text-sm font-medium text-gray-700">Status</label>
-                                        {isEditingStatus && canUpdateStatus() ? (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <select
-                                                    value={newStatus}
-                                                    onChange={(e) => setNewStatus(e.target.value)}
-                                                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    disabled={updateLoading}
-                                                >
-                                                    {getAvailableStatusOptions().map((status) => (
-                                                        <option key={status} value={status}>
-                                                            {formatForDisplay(status)}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    onClick={handleStatusUpdate}
-                                                    disabled={updateLoading}
-                                                    className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                    <FaSave className="w-3 h-3" />
-                                                    Save
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setIsEditingStatus(false);
-                                                        setNewStatus(ticket?.status || '');
-                                                    }}
-                                                    disabled={updateLoading}
-                                                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                    <FaTimes className="w-3 h-3" />
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(ticket.status)}`}>
-                                                    {formatForDisplay(ticket.status)}
-                                                </span>
-                                                {canUpdateStatus() && (
-                                                    <button
-                                                        onClick={() => setIsEditingStatus(true)}
-                                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
-                                                        title="Edit Status"
-                                                    >
-                                                        <FaEdit className="w-3 h-3" />
-                                                        Edit
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                            {/* Status Section */}
+                            <div className="flex items-center">
+                                <FaClock className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Status</label>
+                                    {isEditing ? (
+                                        <select
+                                            value={newStatus}
+                                            onChange={(e) => setNewStatus(e.target.value)}
+                                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                                        >
+                                            {statusOptions.map(opt => (
+                                                <option key={opt} value={opt}>{formatForDisplay(opt)}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(ticket.status)}`}>
+                                            {formatForDisplay(ticket.status)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* User Information */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">User Information</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center">
-                                    <FaUser className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Submitted By</label>
-                                        <p className="text-gray-900">{ticket.submittedBy || 'N/A'}</p>
+                        {/* Column 2 */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">User & Assignment</h3>
+
+                            <div className="flex items-center">
+                                <FaUser className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Submitted By</label>
+                                    <p className="text-gray-900">{ticket.submittedBy || 'N/A'}</p>
+                                    {ticket.customerName && <p className="text-sm text-gray-500">({ticket.customerName})</p>}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center">
+                                <FaClock className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Date Submitted</label>
+                                    <p className="text-gray-900">
+                                        {ticket.submittedDate ? new Date(ticket.submittedDate).toLocaleString() : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center">
+                                <FaUserCheck className="w-4 h-4 text-gray-400 mr-3" />
+                                <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Assigned To</label>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-gray-900 font-medium">{ticket.assignedTo || 'Unassigned'}</p>
+                                        {/* Assign Button: Visible only if not editing, and user has permission */}
+                                        {!isEditing && canEdit() && (
+                                            <button 
+                                                onClick={handleAssignTicket}
+                                                className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
+                                            >
+                                                {ticket.assignedTo ? 'Reassign' : 'Assign Agent'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
-
-                                <div className="flex items-center">
-                                    <FaClock className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Submitted Date</label>
-                                        <p className="text-gray-900">
-                                            {ticket.submittedDate
-                                                ? new Date(ticket.submittedDate).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })
-                                                : 'N/A'
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <FaUser className="w-4 h-4 text-gray-400 mr-3" />
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Assigned To</label>
-                                        <p className="text-gray-900">{ticket.assignedTo || 'Unassigned'}</p>
-                                    </div>
-                                </div>
-
-                                {ticket.customerName && (
-                                    <div className="flex items-center">
-                                        <FaUser className="w-4 h-4 text-gray-400 mr-3" />
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-                                            <p className="text-gray-900">{ticket.customerName}</p>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
 
                     {/* Description */}
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <h3 className="text-lg font-semibold text-gray-800 mb-3">Description</h3>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-gray-900 whitespace-pre-wrap">{ticket.description || 'No description provided'}</p>
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                {ticket.description || 'No description provided.'}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Attachments */}
+                    {/* Attachments Section (Only if exists) */}
                     {ticket.attachments && ticket.attachments.length > 0 && (
-                        <div className="mb-6">
+                        <div className="mb-8">
                             <h3 className="text-lg font-semibold text-gray-800 mb-3">Attachments</h3>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="space-y-2">
-                                    {ticket.attachments.map((attachment) => (
-                                        <div
-                                            key={attachment.id}
-                                            className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                <div className="flex-shrink-0">
-                                                    {attachment.type?.startsWith('image/') ? (
-                                                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                            </svg>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                            </svg>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {(attachment.size / 1024).toFixed(1)} KB • {attachment.type || 'Unknown type'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            {attachment.url && (
-                                                <a
-                                                    href={attachment.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                                                >
-                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                    Download
-                                                </a>
-                                            )}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {ticket.attachments.map((att) => (
+                                    <a 
+                                        key={att.id} 
+                                        href={att.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors group"
+                                    >
+                                        <div className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3 group-hover:bg-blue-200">
+                                            <FaTicketAlt />
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="overflow-hidden">
+                                            <p className="text-sm font-medium text-gray-900 truncate">{att.name}</p>
+                                            <p className="text-xs text-gray-500">
+                                                {(att.size / 1024).toFixed(1)} KB • {att.type}
+                                            </p>
+                                        </div>
+                                    </a>
+                                ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Resolution Information (if resolved) */}
-                    {(ticket.status === 'resolved' || ticket.status === 'closed') && (
-                        <div className="mb-6">
+                    {/* Resolution (Only if resolved/closed) */}
+                    {(ticket.status === 'resolved' || ticket.status === 'closed') && ticket.resolutionDescription && (
+                        <div className="mb-8">
                             <h3 className="text-lg font-semibold text-gray-800 mb-3">Resolution Details</h3>
                             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                                {ticket.resolvedBy && (
-                                    <div className="mb-2">
-                                        <label className="block text-sm font-medium text-gray-700">Resolved By</label>
-                                        <p className="text-gray-900">{ticket.resolvedBy}</p>
-                                    </div>
-                                )}
-                                {ticket.resolvedDate && (
-                                    <div className="mb-2">
-                                        <label className="block text-sm font-medium text-gray-700">Resolved Date</label>
-                                        <p className="text-gray-900">
-                                            {new Date(ticket.resolvedDate).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                    </div>
-                                )}
-                                {ticket.resolutionDescription && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Resolution Description</label>
-                                        <p className="text-gray-900 whitespace-pre-wrap">{ticket.resolutionDescription}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Agent Feedback (if available) */}
-                    {ticket.agentFeedback && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-3">Agent Feedback</h3>
-                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                <p className="text-gray-900 whitespace-pre-wrap">{ticket.agentFeedback}</p>
+                                <p className="text-green-900 whitespace-pre-wrap">{ticket.resolutionDescription}</p>
+                                <p className="text-xs text-green-700 mt-2">Resolved by {ticket.resolvedBy} on {new Date(ticket.resolvedDate!).toLocaleDateString()}</p>
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-50 px-6 py-4">
-                    <div className="flex justify-between items-center">
-                        <p className="text-sm text-gray-500">
-                            Last updated: {ticket.submittedDate
-                                ? new Date(ticket.submittedDate).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })
-                                : 'N/A'
-                            }
-                        </p>
-                        <button
-                            onClick={handleGoBack}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            Back to Tickets
-                        </button>
-                    </div>
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                    <p className="text-sm text-gray-500">
+                        Last updated: {new Date(ticket.lastUpdated || ticket.submittedDate).toLocaleString()}
+                    </p>
                 </div>
             </div>
         </div>
