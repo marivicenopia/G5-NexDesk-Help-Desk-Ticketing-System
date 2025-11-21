@@ -14,7 +14,7 @@ import {
   FiPhone,
 } from "react-icons/fi";
 
-type PriorityOption = "low" | "medium" | "high" | "urgent";
+type PriorityOption = "low" | "medium" | "high" | "urgent" | "critical";
 
 interface AttachedFile {
   id: string;
@@ -284,6 +284,7 @@ const CreateTicket: React.FC = () => {
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
               </select>
             </div>
 
