@@ -196,7 +196,10 @@ const TicketAssignment: React.FC = () => {
         setCurrentPage(1);
     }, [searchTerm, statusFilter, itemsPerPage]);
 
-    const getStatusBadgeClass = (status: string) => {
+const getStatusBadgeClass = (status: string) => {
+        // Fix: Convert to lowercase to match the keys (e.g. "Open" -> "open")
+        const statusKey = status ? status.toLowerCase() : ""; 
+        
         const statusClasses: { [key: string]: string } = {
             "open": "bg-green-100 text-green-800",
             "assigned": "bg-blue-100 text-blue-800",
@@ -205,10 +208,13 @@ const TicketAssignment: React.FC = () => {
             "resolved": "bg-purple-100 text-purple-800",
             "closed": "bg-gray-100 text-gray-800"
         };
-        return statusClasses[status] || "bg-gray-100 text-gray-800";
+        return statusClasses[statusKey] || "bg-gray-100 text-gray-800";
     };
 
     const getPriorityBadgeClass = (priority: string) => {
+        // Fix: Convert to lowercase to match the keys (e.g. "Medium" -> "medium")
+        const priorityKey = priority ? priority.toLowerCase() : "";
+
         const priorityClasses: { [key: string]: string } = {
             "low": "bg-blue-100 text-blue-800",
             "medium": "bg-yellow-100 text-yellow-800",
@@ -216,7 +222,7 @@ const TicketAssignment: React.FC = () => {
             "urgent": "bg-red-100 text-red-800",
             "critical": "bg-red-100 text-red-800"
         };
-        return priorityClasses[priority] || "bg-gray-100 text-gray-800";
+        return priorityClasses[priorityKey] || "bg-gray-100 text-gray-800";
     };
 
     if (loading) {
@@ -350,7 +356,7 @@ const TicketAssignment: React.FC = () => {
                                                 onClick={() => handleAssignTicket(ticket.id)}
                                                 className="text-blue-600 hover:text-blue-900"
                                             >
-                                                {ticket.assignedTo ? 'Reassign' : 'Assign'}
+                                                {(ticket.assignedTo && ticket.assignedTo !== 'Unassigned') ? 'Reassign' : 'Assign'}
                                             </button>
                                         </td>
                                     </tr>
