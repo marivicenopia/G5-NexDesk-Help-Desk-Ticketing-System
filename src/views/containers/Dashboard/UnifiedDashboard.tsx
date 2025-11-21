@@ -21,6 +21,8 @@ import {
     LineChart,
     Line
 } from 'recharts';
+// Add this with your other imports
+import { getStatusColor, getPriorityColor } from '../../../utils/statusColors';
 
 // Define types locally since we may not have the exact type files
 type RoleOption = 'staff' | 'admin' | 'agent' | 'superadmin';
@@ -297,21 +299,12 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
                                         {ticket.title}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ticket.status === 'open' ? 'bg-green-100 text-green-800' :
-                                            ticket.status === 'in progress' ? 'bg-blue-100 text-blue-800' :
-                                                ticket.status === 'resolved' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
                                             {ticket.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ticket.priority === 'low' ? 'bg-blue-100 text-blue-800' :
-                                            ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                                                    ticket.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                                                        'bg-red-200 text-red-900'
-                                            }`}>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
                                             {ticket.priority}
                                         </span>
                                     </td>

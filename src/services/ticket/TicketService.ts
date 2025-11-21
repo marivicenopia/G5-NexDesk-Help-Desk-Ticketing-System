@@ -50,7 +50,6 @@ export const TicketService = {
         'open': 'Open',
         'assigned': 'Assigned',
         'in progress': 'In Progress',
-        'on hold': 'On Hold',
         'resolved': 'Resolved',
         'closed': 'Closed',
       };

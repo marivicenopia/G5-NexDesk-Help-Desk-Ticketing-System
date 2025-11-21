@@ -19,15 +19,13 @@ const TicketSummary: React.FC = () => {
             titleMain: ticket.title || `Ticket #${ticket.id}`,
             titleSub: ticket.description?.substring(0, 50) + '...' || 'No description',
             number: `#${ticket.id}`,
-            status: ticket.status === 'open' || ticket.status === 'assigned' || ticket.status === 'in progress'
-                ? 'IN_PROGRESS' as TicketSummaryStatus
-                : 'CLOSED' as TicketSummaryStatus,
+            status: ticket.status as TicketSummaryStatus,
             identifier: ticket.customerEmail || ticket.submittedBy || `ID-${ticket.id}`,
-            priority: ticket.priority?.toUpperCase() as TicketSummaryPriority || 'MEDIUM',
+            priority: (ticket.priority ? ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1).toLowerCase() : 'Medium') as TicketSummaryPriority,
         }));
     };
 
-    // Fetch tickets when component mounts
+    // Fetch tickets when component mountss
     useEffect(() => {
         const fetchTickets = async () => {
             try {
@@ -67,20 +65,26 @@ const TicketSummary: React.FC = () => {
     };
 
     const handleSaveClick = async (ticketId: string, newStatus: TicketSummaryStatus, newPriority: TicketSummaryPriority) => {
-        const ticketToUpdate = tickets.find(t => t.id === ticketId);
-        if (!ticketToUpdate) return;
+    const ticketToUpdate = tickets.find(t => t.id === ticketId);
+    if (!ticketToUpdate) return;
 
-        // Convert back to original format for API
-        const statusMapping: Record<TicketSummaryStatus, string> = {
-            'IN_PROGRESS': 'in progress',
-            'CLOSED': 'closed'
-        };
+    // MAPPING: UI Value -> Database Value (lowercase)
+    const statusMapping: Record<string, string> = {
+        'Open': 'open',
+        'Assigned': 'assigned',
+        'In Progress': 'in progress',
+        'Resolved': 'resolved',
+        'Closed': 'closed'
+    };
 
-        const priorityMapping: Record<TicketSummaryPriority, string> = {
-            'LOW': 'low',
-            'MEDIUM': 'medium',
-            'HIGH': 'high'
-        };
+    // MAPPING: UI Value -> Database Value (lowercase)
+    const priorityMapping: Record<string, string> = {
+        'Low': 'low',
+        'Medium': 'medium',
+        'High': 'high',
+        'Urgent': 'urgent',
+        'Critical': 'critical'
+    };
 
         try {
             const response = await fetch(`${API_URL}/${ticketId}`, {
@@ -90,9 +94,10 @@ const TicketSummary: React.FC = () => {
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    status: statusMapping[newStatus],
-                    priority: priorityMapping[newPriority]
-                }),
+                // Convert the UI status/priority to the lowercase backend version
+                status: statusMapping[newStatus] || newStatus.toLowerCase(),
+                priority: priorityMapping[newPriority] || newPriority.toLowerCase()
+            }),
             });
 
             if (!response.ok) {

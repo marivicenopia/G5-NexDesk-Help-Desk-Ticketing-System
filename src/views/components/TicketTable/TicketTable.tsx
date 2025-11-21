@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import type { Ticket } from "../../../types/ticket";
 import { FiTrash2, FiEye, FiChevronLeft, FiChevronRight, FiCheck, FiUserPlus } from "react-icons/fi";
+import { getStatusColor, getPriorityColor } from '../../../utils/statusColors';
 
 interface TicketTableProps {
     data: Ticket[];
@@ -161,13 +162,13 @@ const TicketTable: React.FC<TicketTableProps> = ({
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(ticket.priority || 'medium')}`}>
-                                            {ticket.priority || 'Medium'}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
+                                            {ticket.priority}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(ticket.status || 'open')}`}>
-                                            {ticket.status || 'Open'}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                                            {ticket.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
