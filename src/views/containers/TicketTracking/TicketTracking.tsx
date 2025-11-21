@@ -537,30 +537,6 @@ const TicketTracking: React.FC = () => {
                                             >
                                                 <FiEye size={16} />
                                             </button>
-                                            {/* Show assign/reassign based on current role and ticket status */}
-                                            {(currentUserRole === 'admin' || currentUserRole === 'superadmin') && (
-                                                <button
-                                                    onClick={() => handleAssign(ticket)}
-                                                    className="text-green-600 hover:text-green-900 p-1 rounded"
-                                                    title={ticket.assignedTo ? "Reassign Ticket" : "Assign Ticket"}
-                                                >
-                                                    {ticket.assignedTo ? <FiUserCheck size={16} /> : <FiUser size={16} />}
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleEdit(ticket)}
-                                                className="text-yellow-600 hover:text-yellow-900 p-1 rounded"
-                                                title="Edit Ticket"
-                                            >
-                                                <FiEdit size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(ticket)}
-                                                className="text-red-600 hover:text-red-900 p-1 rounded"
-                                                title="Delete Ticket"
-                                            >
-                                                <FiTrash2 size={16} />
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
