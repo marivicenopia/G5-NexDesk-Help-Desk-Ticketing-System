@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DashboardApiService, type DashboardData } from '../../../services/dashboard/DashboardApiService';
 import {
     FaTicketAlt,
@@ -40,11 +40,6 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
         loadDashboardData();
     }, [role]);
     
-    // const loadDashboardDataTest = setInterval(function(){
-    //     const dataTest = await DashboardApiService.getDashboardData();
-    //     setDashboardData(data);
-    // }, 1000)
-    
     const loadDashboardData = async () => {
         try {
             setLoading(true);
@@ -61,6 +56,32 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
             setLoading(false);
         }
     };
+
+    // --- AGGREGATION LOGIC START ---
+    // This combines "Critical" and "critical" into one slice
+    const aggregatedPieData = useMemo(() => {
+        if (!dashboardData) return [];
+        
+        const acc: { [key: string]: number } = {};
+
+        // 1. Loop through data and sum up counts by lowercase key
+        dashboardData.ticketsByPriority.forEach((item) => {
+            // Force lowercase so "Critical" matches "critical"
+            const key = (item.priority || 'unknown').toLowerCase().trim();
+            if (!acc[key]) {
+                acc[key] = 0;
+            }
+            acc[key] += item.count;
+        });
+
+        // 2. Convert back to an array for the Chart
+        return Object.keys(acc).map((key) => ({
+            name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize for display (e.g. "Critical")
+            value: acc[key],
+            rawKey: key // Keep lowercase for color matching
+        }));
+    }, [dashboardData]);
+    // --- AGGREGATION LOGIC END ---
 
     if (loading) {
         return (
@@ -95,14 +116,15 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
         return null;
     }
 
-    const { stats, ticketsByPriority, ticketTrends, recentTickets } = dashboardData;
+    const { stats, ticketTrends, recentTickets } = dashboardData;
+    
     // Define Hex colors for the Pie Chart to match your badges
     const priorityHexColors: { [key: string]: string } = {
-    low: '#DBEAFE',      // Blue-100 (matches 'bg-blue-100')
-    medium: '#FEF9C3',   // Yellow-100
-    high: '#FFEDD5',     // Orange-100
-    urgent: '#FEE2E2',   // Red-100
-    critical: '#FECACA', // Red-200
+        low: '#DBEAFE',      // Blue-100
+        medium: '#FEF9C3',   // Yellow-100
+        high: '#FFEDD5',     // Orange-100
+        urgent: '#FEE2E2',   // Red-100
+        critical: '#FECACA', // Red-200
     };
 
     const getStatCards = () => {
@@ -184,14 +206,6 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
     const statCards = getStatCards();
 
     return (
@@ -244,12 +258,7 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
-                                data={ticketsByPriority.map(item => ({
-                                name: item.priority,
-                                value: item.count,
-                                // We ignore the 'item.color' from the API and force our own Hex color
-                                color: priorityHexColors[item.priority.toLowerCase()] || '#E5E7EB'
-                                }))}
+                                data={aggregatedPieData} // <--- Uses the combined data now
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
@@ -258,12 +267,13 @@ const UnifiedDashboard: React.FC<DashboardProps> = ({ role }) => {
                                 fill="#8884d8"
                                 dataKey="value"
                             >
-                                {ticketsByPriority.map((entry, index) => (
-                                <Cell 
-                                    key={`cell-${index}`} 
-                                    fill={priorityHexColors[entry.priority.toLowerCase()] || '#E5E7EB'} 
-                                />
-                            ))}
+                                {aggregatedPieData.map((entry, index) => (
+                                    <Cell 
+                                        key={`cell-${index}`} 
+                                        // Uses the lowercase 'rawKey' to find the correct Hex color
+                                        fill={priorityHexColors[entry.rawKey] || '#E5E7EB'} 
+                                    />
+                                ))}
                             </Pie>
                             <Tooltip />
                         </PieChart>
