@@ -50,7 +50,7 @@ const CreateFeedback = () => {
           console.log('Actual user object:', user);
           setFormData(prev => ({
             ...prev,
-            name: `${user.firstname} ${user.lastname}`,
+            name: `${user.firstName} ${user.lastName}`,
             email: user.email,
           }));
 
@@ -127,9 +127,16 @@ const CreateFeedback = () => {
     }
 
     try {
+      // Map frontend camelCase to backend PascalCase
       const feedbackData = {
-        ...formData,
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2), // Generate unique ID
+        Id: Date.now().toString(36) + Math.random().toString(36).substr(2), // Generate unique ID
+        Name: formData.name,
+        Email: formData.email,
+        Title: formData.title,
+        Message: formData.message,
+        Experience: formData.experience,
+        Date: formData.date,
+        TicketId: formData.ticketId
       };
 
       const response = await fetch('/api/Feedback/SubmitTicketFeedback', {

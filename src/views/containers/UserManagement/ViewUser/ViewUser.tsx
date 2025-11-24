@@ -146,13 +146,13 @@ const ViewUser: React.FC = () => {
                     <div className="flex-shrink-0 h-20 w-20">
                         <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center">
                             <span className="text-white font-bold text-2xl">
-                                {user.firstname?.[0]}{user.lastname?.[0]}
+                                {user.firstName?.[0]}{user.lastName?.[0]}
                             </span>
                         </div>
                     </div>
                     <div className="ml-6">
                         <h2 className="text-xl font-semibold text-gray-900">
-                            {user.firstname} {user.lastname}
+                            {user.firstName} {user.lastName}
                         </h2>
                         <p className="text-gray-600">@{user.username}</p>
                         <div className="flex items-center gap-2 mt-2">
@@ -175,12 +175,12 @@ const ViewUser: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">First Name</label>
-                            <p className="text-gray-900">{user.firstname || 'N/A'}</p>
+                            <p className="text-gray-900">{user.firstName || 'N/A'}</p>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                            <p className="text-gray-900">{user.lastname || 'N/A'}</p>
+                            <p className="text-gray-900">{user.lastName || 'N/A'}</p>
                         </div>
 
                         <div>

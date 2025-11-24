@@ -195,7 +195,7 @@ export const UserService = {
       console.error('Error creating user:', error);
       throw error;
     }
-  }, update: async (userId: string, userData: Partial<User>): Promise<User> => {
+  }, update: async (userId: string, userData: Partial<User>, updatePurpose: string | null): Promise<User> => {
     try {
       const updateRequest = {
         username: userData.username,
@@ -207,7 +207,21 @@ export const UserService = {
         departmentId: userData.departmentId,
         isActive: userData.isActive
       };
-
+      if (updatePurpose == "passwordChange") {
+        const identifier = AuthService.getUserId();
+        if (identifier) {
+          userId = identifier;
+          const userInfo = await UserService.getById(identifier);
+          updateRequest.username = userInfo.username;
+          updateRequest.email = userInfo.email;
+          updateRequest.firstName = userInfo.firstName;
+          updateRequest.lastName = userInfo.lastName;
+          updateRequest.role = userInfo.role;
+          updateRequest.departmentId = userInfo.departmentId;
+          updateRequest.isActive = userInfo.isActive;
+        }
+      }
+      console.log('Updating user with data:', updateRequest);
       const response = await AuthService.authenticatedFetch(`${API_BASE_URL}/User/${userId}`, {
         method: "PUT",
         headers: {

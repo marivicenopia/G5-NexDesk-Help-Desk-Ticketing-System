@@ -5,10 +5,12 @@ import { FaRegCommentDots, FaArrowLeft } from 'react-icons/fa';
 import { API_CONFIG } from '../../../config/api';
 
 interface Feedback {
-    id: number;
+    id: string;
     name: string;
+    email: string;
     title: string;
     message: string;
+    rating: string;
     date: string;
     ticketId?: string;
 }
@@ -45,13 +47,14 @@ const ViewFeedbackDetail: React.FC = () => {
 
     const fetchFeedbackDetails = async () => {
         if (!feedbackId) return;
-        
+
         try {
             const feedbackRes = await axios.get(
                 `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.FEEDBACK_GET_BY_ID(feedbackId)}`,
                 { withCredentials: true }
             );
-            const feedbackData = feedbackRes.data;
+            // Handle the ApiResult wrapper from the backend
+            const feedbackData = feedbackRes.data.data || feedbackRes.data;
             setFeedback(feedbackData);
 
             // If feedback has a ticket ID, fetch ticket and agent details
@@ -67,12 +70,13 @@ const ViewFeedbackDetail: React.FC = () => {
                     )
                 ]);
 
-                const ticketData = ticketRes.data;
+                const ticketData = ticketRes.data.data || ticketRes.data;
                 setTicket(ticketData);
 
                 // Find the assigned agent
                 if (ticketData.assignedTo) {
-                    const assignedAgent = usersRes.data.find((user: User) => user.email === ticketData.assignedTo);
+                    const usersData = usersRes.data.data || usersRes.data;
+                    const assignedAgent = usersData.find((user: User) => user.email === ticketData.assignedTo);
                     setAgent(assignedAgent || null);
                 }
             }
@@ -188,12 +192,12 @@ const ViewFeedbackDetail: React.FC = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Priority</label>
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${ticket.priority === 'urgent' || ticket.priority === 'critical'
-                                                ? 'bg-red-100 text-red-800'
-                                                : ticket.priority === 'high'
-                                                    ? 'bg-orange-100 text-orange-800'
-                                                    : ticket.priority === 'medium'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-blue-100 text-blue-800'
+                                            ? 'bg-red-100 text-red-800'
+                                            : ticket.priority === 'high'
+                                                ? 'bg-orange-100 text-orange-800'
+                                                : ticket.priority === 'medium'
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-blue-100 text-blue-800'
                                             }`}>
                                             {ticket.priority}
                                         </span>

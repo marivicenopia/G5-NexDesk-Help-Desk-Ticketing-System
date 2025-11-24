@@ -28,9 +28,9 @@ const UserSideBar: React.FC = () => {
                     });
                     if (response.ok) {
                         const user: User = await response.json();
-                        setDisplayName(`${user.firstname} ${user.lastname}`);
-                        const firstInitial = user.firstname && user.firstname.length > 0 ? user.firstname[0] : '';
-                        const lastInitial = user.lastname && user.lastname.length > 0 ? user.lastname[0] : '';
+                        setDisplayName(`${user.firstName} ${user.lastName}`);
+                        const firstInitial = user.firstName && user.firstName.length > 0 ? user.firstName[0] : '';
+                        const lastInitial = user.lastName && user.lastName.length > 0 ? user.lastName[0] : '';
                         setInitials(`${firstInitial}${lastInitial}`.toUpperCase());
                         // Display department instead of role for staff
                         if (user.role === 'staff' && user.department) {
@@ -47,9 +47,9 @@ const UserSideBar: React.FC = () => {
                         const foundUser = allUsers.find((u: User) => u.id.toString() === userId);
 
                         if (foundUser) {
-                            setDisplayName(`${foundUser.firstname} ${foundUser.lastname}`);
-                            const firstInitial = foundUser.firstname && foundUser.firstname.length > 0 ? foundUser.firstname[0] : '';
-                            const lastInitial = foundUser.lastname && foundUser.lastname.length > 0 ? foundUser.lastname[0] : '';
+                            setDisplayName(`${foundUser.firstName} ${foundUser.lastName}`);
+                            const firstInitial = foundUser.firstName && foundUser.firstName.length > 0 ? foundUser.firstName[0] : '';
+                            const lastInitial = foundUser.lastName && foundUser.lastName.length > 0 ? foundUser.lastName[0] : '';
                             setInitials(`${firstInitial}${lastInitial}`.toUpperCase());
                             // Display department instead of role for staff
                             if (foundUser.role === 'staff' && foundUser.department) {
@@ -177,6 +177,7 @@ const UserSideBar: React.FC = () => {
                         <span className="text-white font-medium text-sm">{initials}</span>
                     </div>
                     <div>
+
                         <p className="text-sm font-medium text-gray-900">{displayName}</p>
                         <p className="text-xs text-gray-500">{departmentDisplay}</p>
                     </div>

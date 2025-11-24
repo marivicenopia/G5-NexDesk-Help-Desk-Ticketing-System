@@ -153,8 +153,8 @@ const EditUser: React.FC = () => {
 
         setSaving(true);
         try {
-            if (role == "admin"){
-                if (formData.role == "admin" || formData.role == "superadmin"){
+            if (role == "admin") {
+                if (formData.role == "admin" || formData.role == "superadmin") {
                     console.log("HELLO WORD ASFNJKABHFKABIHEAHVFU")
                     throw new ValidationError("You cannot change roles to admin or superadmin")
                 }
@@ -173,14 +173,14 @@ const EditUser: React.FC = () => {
             navigate('/admin/manage/users');
         } catch (error) {
             console.error('Error updating user:', error);
-            if (error instanceof ValidationError){
+            if (error instanceof ValidationError) {
                 const displayError = "Failed to update user: " + error.message
                 alert(displayError)
-            }else{
+            } else {
                 const displayError = "Failed to update user: " + error
                 alert(displayError)
             }
-            
+
         } finally {
             setSaving(false);
         }
@@ -195,7 +195,7 @@ const EditUser: React.FC = () => {
         try {
             await UserService.update(userId!, {
                 password: newPassword
-            });
+            }, "passwordChange");
             alert('Password updated successfully!');
             setNewPassword('');
             setActiveTab('info');
@@ -379,7 +379,7 @@ const EditUser: React.FC = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Username 
+                                                Username
                                             </label>
                                             <input
                                                 type="text"
